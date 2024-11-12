@@ -7,7 +7,7 @@ import pluginTurbo from "eslint-plugin-turbo";
 
 export default tseslint.config(
   {
-    ignores: ["**/*.(spec|test).(ts|tsx|js|jsx)$", "**/node_modules/**", "**/dist/**"],
+    ignores: ["**/node_modules/**", "**/dist/**"],
     files: ["**/*.(ts|tsx|js|jsx|mjs)$"],
     extends: [
       eslint.configs.recommended,
@@ -50,5 +50,13 @@ export default tseslint.config(
       ],
     },
   },
-  configPrettier
+  configPrettier,
+  {
+    files: ["**/*.(spec|test).(ts|tsx|js|jsx)$"],
+    languageOptions: {
+      globals: {
+        jest: true,
+      },
+    },
+  }
 );

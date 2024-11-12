@@ -24,4 +24,7 @@
     ],
     "jsx": "preserve",
   },
+  "ts-node": {
+    "esm": true
+  }
 }

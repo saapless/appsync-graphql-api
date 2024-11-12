@@ -1,0 +1,14 @@
+{
+  "name": "@saapless/graphql-api-construct",
+  "version": "0.0.1",
+  "description": "AppSync GraphQL Api Construct",
+  "author": "Saapless",
+  "license": "MIT",
+  "main": "dist/index.js",
+  "types": "dist/index.d.ts",
+  "scripts": {
+    "build": "tsc",
+    "test": "jest",
+    "lint": "eslint"
+  }
+}

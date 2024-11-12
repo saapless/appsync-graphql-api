@@ -1,0 +1,14 @@
+{
+  "name": "@saapless/appsync-utils",
+  "version": "0.0.1",
+  "description": "Utilities for AWS AppSync JS resolvers",
+  "author": "Saapless",
+  "license": "MIT",
+  "main": "dist/index.js",
+  "types": "dist/index.d.ts",
+  "scripts": {
+    "build": "tsc",
+    "test": "jest",
+    "lint": "eslint"
+  }
+}
