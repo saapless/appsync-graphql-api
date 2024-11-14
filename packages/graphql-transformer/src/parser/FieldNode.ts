@@ -4,6 +4,7 @@ import { DirectiveNode } from "./DirectiveNode";
 import { TypeNode } from "./TypeNode";
 
 export class FieldNode {
+  kind: Kind.FIELD_DEFINITION = Kind.FIELD_DEFINITION;
   name: string;
   type: TypeNode;
   arguments?: InputValueNode[] | undefined;
@@ -21,11 +22,30 @@ export class FieldNode {
     this.directives = directives;
   }
 
+  public hasArgument(arg: string) {
+    return this.arguments?.some((argument) => argument.name === arg) ?? false;
+  }
+
   public addArgument(argument: InputValueNode | InputValueDefinitionNode) {
+    const argumentNode =
+      argument instanceof InputValueNode ? argument : InputValueNode.fromDefinition(argument);
+
+    if (this.hasArgument(argumentNode.name)) {
+      throw new Error(`Argument ${argument.name} already exists on field ${this.name}`);
+    }
+
     this.arguments = this.arguments ?? [];
-    this.arguments.push(
-      argument instanceof InputValueNode ? argument : InputValueNode.fromDefinition(argument)
-    );
+    this.arguments.push(argumentNode);
+    return this;
+  }
+
+  public removeArgument(arg: string) {
+    this.arguments = this.arguments?.filter((argument) => argument.name !== arg);
+    return this;
+  }
+
+  public getArgument(arg: string) {
+    return this.arguments?.find((argument) => argument.name === arg);
   }
 
   public addDirective(directive: DirectiveNode | ConstDirectiveNode) {

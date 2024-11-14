@@ -1,14 +1,16 @@
 import {
+  ConstDirectiveNode,
   FieldDefinitionNode,
   InputObjectTypeDefinitionNode,
   InputValueDefinitionNode,
   Kind,
   ObjectTypeDefinitionNode,
-} from "graphql";
+} from "graphql/language";
 import { InputValueNode } from "./InputValueNode";
 import { DirectiveNode } from "./DirectiveNode";
 
 export class InputObjectNode {
+  kind: Kind.INPUT_OBJECT_TYPE_DEFINITION = Kind.INPUT_OBJECT_TYPE_DEFINITION;
   name: string;
   fields?: InputValueNode[] | undefined;
   directives?: DirectiveNode[] | undefined;
@@ -39,6 +41,33 @@ export class InputObjectNode {
 
   public removeField(name: string) {
     this.fields = this.fields?.filter((field) => field.name !== name);
+    return this;
+  }
+
+  public hasDirective(name: string): boolean {
+    return this.directives?.some((directive) => directive.name === name) ?? false;
+  }
+
+  public addDirective(directive: string | DirectiveNode | ConstDirectiveNode) {
+    const node =
+      directive instanceof DirectiveNode
+        ? directive
+        : typeof directive === "string"
+          ? DirectiveNode.create(directive)
+          : DirectiveNode.fromDefinition(directive);
+
+    if (this.hasDirective(node.name)) {
+      throw new Error(`Directive ${node.name} already exists on type ${this.name}`);
+    }
+
+    this.directives = this.directives ?? [];
+    this.directives.push(node);
+
+    return this;
+  }
+
+  public removeDirective(name: string) {
+    this.directives = this.directives?.filter((directive) => directive.name !== name);
     return this;
   }
 

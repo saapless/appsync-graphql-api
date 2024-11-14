@@ -3,6 +3,7 @@ import { DirectiveNode } from "./DirectiveNode";
 import { NamedTypeNode } from "./TypeNode";
 
 export class UnionNode {
+  kind: Kind.UNION_TYPE_DEFINITION = Kind.UNION_TYPE_DEFINITION;
   name: string;
   types?: NamedTypeNode[] | undefined;
   directives?: DirectiveNode[] | undefined;
@@ -33,11 +34,16 @@ export class UnionNode {
     return this.types?.some((node) => node.name === type) ?? false;
   }
 
-  public addType(type: NamedTypeNode) {
-    if (!this.hasType(type.name)) {
-      this.types = this.types ?? [];
-      this.types.push(type);
+  public addType(type: string | NamedTypeNode) {
+    const typeNode = type instanceof NamedTypeNode ? type : NamedTypeNode.create(type);
+
+    if (this.hasType(typeNode.name)) {
+      throw new Error(`Type ${typeNode.name} already exists on union ${this.name}`);
     }
+
+    this.types = this.types ?? [];
+    this.types.push(typeNode);
+
     return this;
   }
 
@@ -51,22 +57,32 @@ export class UnionNode {
   }
 
   public addDirective(directive: string | DirectiveNode | ConstDirectiveNode) {
-    this.directives = this.directives ?? [];
-    this.directives.push(
+    const node =
       directive instanceof DirectiveNode
         ? directive
         : typeof directive === "string"
           ? DirectiveNode.create(directive)
-          : DirectiveNode.fromDefinition(directive)
-    );
+          : DirectiveNode.fromDefinition(directive);
+
+    if (this.hasDirective(node.name)) {
+      throw new Error(`Directive ${node.name} already exists on type ${this.name}`);
+    }
+
+    this.directives = this.directives ?? [];
+    this.directives.push(node);
+    return this;
   }
 
   public removeDirective(name: string) {
     this.directives = this.directives?.filter((node) => node.name !== name);
+    return this;
   }
 
-  static create(name: string, types: NamedTypeNode[] = []): UnionNode {
-    return new UnionNode(name, types);
+  static create(name: string, types: (NamedTypeNode | string)[] = []): UnionNode {
+    return new UnionNode(
+      name,
+      types.map((type) => (type instanceof NamedTypeNode ? type : NamedTypeNode.create(type)))
+    );
   }
 
   static fromDefinition(definition: UnionTypeDefinitionNode) {

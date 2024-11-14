@@ -2,6 +2,7 @@ import { ConstArgumentNode, ConstValueNode, Kind } from "graphql";
 import { ValueNode } from "./ValueNode";
 
 export class ArgumentNode {
+  kind: Kind.ARGUMENT = Kind.ARGUMENT;
   name: string;
   value: ConstValueNode;
 

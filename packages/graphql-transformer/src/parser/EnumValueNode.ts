@@ -2,6 +2,7 @@ import { ConstDirectiveNode, EnumValueDefinitionNode, Kind } from "graphql";
 import { DirectiveNode } from "./DirectiveNode";
 
 export class EnumValueNode {
+  kind: Kind.ENUM_VALUE_DEFINITION = Kind.ENUM_VALUE_DEFINITION;
   name: string;
   directives?: DirectiveNode[] | undefined;
 

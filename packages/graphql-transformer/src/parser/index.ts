@@ -1,6 +1,7 @@
 export { ArgumentNode } from "./ArgumentNode";
+export { DirectiveDefinitionNode } from "./DirectiveDefinitionNode";
 export { DirectiveNode } from "./DirectiveNode";
-export { DocumentNode } from "./DocumentNode";
+export { DocumentNode, type DefinitionNode } from "./DocumentNode";
 export { EnumNode } from "./EnumNode";
 export { EnumValueNode } from "./EnumValueNode";
 export { FieldNode } from "./FieldNode";
@@ -8,4 +9,7 @@ export { InputObjectNode } from "./InputObjectNode";
 export { InputValueNode } from "./InputValueNode";
 export { InterfaceNode } from "./InterfaceNode";
 export { ObjectNode } from "./ObjectNode";
+export { ScalarNode } from "./ScalarNode";
+export { NamedTypeNode, ListTypeNode, NonNullTypeNode, TypeNode } from "./TypeNode";
 export { UnionNode } from "./UnionNode";
+export { ValueNode } from "./ValueNode";

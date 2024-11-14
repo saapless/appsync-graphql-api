@@ -9,6 +9,7 @@ import { DirectiveNode } from "./DirectiveNode";
 import { TypeNode } from "./TypeNode";
 
 export class InputValueNode {
+  kind: Kind.INPUT_VALUE_DEFINITION = Kind.INPUT_VALUE_DEFINITION;
   name: string;
   type: TypeNode;
   defaultValue?: ConstValueNode | undefined;

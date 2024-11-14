@@ -8,6 +8,7 @@ import {
 } from "graphql";
 
 export class NamedTypeNode {
+  kind: Kind.NAMED_TYPE = Kind.NAMED_TYPE;
   name: string;
   loc?: Location;
   constructor(name: string, loc?: Location) {
@@ -36,6 +37,7 @@ export class NamedTypeNode {
 }
 
 export class ListTypeNode {
+  kind: Kind.LIST_TYPE = Kind.LIST_TYPE;
   type: TypeNode;
   loc?: Location;
 
@@ -65,6 +67,7 @@ export class ListTypeNode {
 }
 
 export class NonNullTypeNode {
+  kind: Kind.NON_NULL_TYPE = Kind.NON_NULL_TYPE;
   type: NamedTypeNode | ListTypeNode;
   loc?: Location;
 

@@ -2,6 +2,7 @@ import { ConstDirectiveNode, Kind } from "graphql";
 import { ArgumentNode } from "./ArgumentNode";
 
 export class DirectiveNode {
+  kind: Kind.DIRECTIVE = Kind.DIRECTIVE;
   name: string;
   arguments?: ArgumentNode[] | undefined;
 

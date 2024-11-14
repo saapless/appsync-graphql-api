@@ -4,10 +4,20 @@ import { InputObjectNode } from "./InputObjectNode";
 import { InterfaceNode } from "./InterfaceNode";
 import { EnumNode } from "./EnumNode";
 import { UnionNode } from "./UnionNode";
+import { ScalarNode } from "./ScalarNode";
+import { DirectiveDefinitionNode } from "./DirectiveDefinitionNode";
 
-type DefinitionNode = InterfaceNode | ObjectNode | InputObjectNode | EnumNode | UnionNode;
+export type DefinitionNode =
+  | InterfaceNode
+  | ObjectNode
+  | InputObjectNode
+  | EnumNode
+  | UnionNode
+  | ScalarNode
+  | DirectiveDefinitionNode;
 
 export class DocumentNode {
+  kind: Kind.DOCUMENT = Kind.DOCUMENT;
   definitions: DefinitionNode[];
 
   constructor(definitions: DefinitionNode[] = []) {
@@ -49,6 +59,12 @@ export class DocumentNode {
 
     for (const definition of definitions) {
       switch (definition.kind) {
+        case Kind.SCALAR_TYPE_DEFINITION:
+          document.addNode(ScalarNode.fromDefinition(definition));
+          break;
+        case Kind.DIRECTIVE_DEFINITION:
+          document.addNode(DirectiveDefinitionNode.fromDefinition(definition));
+          break;
         case Kind.OBJECT_TYPE_DEFINITION:
           document.addNode(ObjectNode.fromDefinition(definition));
           break;
@@ -73,7 +89,7 @@ export class DocumentNode {
   }
 
   static fromSource(source: string | Source) {
-    const { definitions } = parse(source);
-    return DocumentNode.fromDefinition({ kind: Kind.DOCUMENT, definitions });
+    const { kind, definitions } = parse(source);
+    return DocumentNode.fromDefinition({ kind, definitions });
   }
 }

@@ -1,14 +1,14 @@
+import { Kind } from "graphql/language";
 import {
-  EnumTypeDefinitionNode,
-  FieldDefinitionNode,
-  InputObjectTypeDefinitionNode,
-  InputValueDefinitionNode,
-  InterfaceTypeDefinitionNode,
-  Kind,
-  ObjectTypeDefinitionNode,
-  parse,
-  UnionTypeDefinitionNode,
-} from "graphql";
+  DocumentNode,
+  EnumNode,
+  FieldNode,
+  InputObjectNode,
+  InputValueNode,
+  InterfaceNode,
+  ObjectNode,
+  UnionNode,
+} from "../parser";
 
 export interface GraphQLTransformerOptions {
   definition: string;
@@ -18,7 +18,7 @@ export class GraphQLTransformer {
   constructor(protected readonly options: GraphQLTransformerOptions) {}
 
   public transform() {
-    const document = parse(this.options.definition);
+    const document = DocumentNode.fromSource(this.options.definition);
 
     for (const definition of document.definitions) {
       switch (definition.kind) {
@@ -28,11 +28,11 @@ export class GraphQLTransformer {
         case Kind.OBJECT_TYPE_DEFINITION:
           this._transformObject(definition);
           break;
-        case Kind.ENUM_TYPE_DEFINITION:
-          this._transformEnum(definition);
-          break;
         case Kind.INPUT_OBJECT_TYPE_DEFINITION:
           this._transformInput(definition);
+          break;
+        case Kind.ENUM_TYPE_DEFINITION:
+          this._transformEnum(definition);
           break;
         case Kind.UNION_TYPE_DEFINITION:
           this._transformUnion(definition);
@@ -49,13 +49,13 @@ export class GraphQLTransformer {
     };
   }
 
-  private _transformInterface(definition: InterfaceTypeDefinitionNode) {
+  private _transformInterface(definition: InterfaceNode) {
     const fields = definition.fields ?? [];
     for (const field of fields) {
       this._transformField(field);
     }
   }
-  private _transformObject(definition: ObjectTypeDefinitionNode) {
+  private _transformObject(definition: ObjectNode) {
     // Loop over each plugins and execute the ones that matches the object
 
     // Transform fields
@@ -65,7 +65,7 @@ export class GraphQLTransformer {
     }
   }
 
-  private _transformInput(definition: InputObjectTypeDefinitionNode) {
+  private _transformInput(definition: InputObjectNode) {
     const fields = definition.fields ?? [];
     for (const field of fields) {
       this._transformInputValue(field);
@@ -73,15 +73,15 @@ export class GraphQLTransformer {
   }
 
   // eslint-disable-next-line @typescript-eslint/no-unused-vars
-  private _transformEnum(definition: EnumTypeDefinitionNode) {
+  private _transformEnum(definition: EnumNode) {
     // Loop over each plugins and execute the ones that matches the enum
   }
 
   // eslint-disable-next-line @typescript-eslint/no-unused-vars
-  private _transformUnion(definition: UnionTypeDefinitionNode) {
+  private _transformUnion(definition: UnionNode) {
     // Loop over each plugins and execute the ones that matches the union
   }
-  private _transformInputValue(definition: InputValueDefinitionNode) {
+  private _transformInputValue(definition: InputValueNode) {
     // Loop over each plugins and execute the ones that matches the input value
 
     // Transform default value
@@ -91,7 +91,7 @@ export class GraphQLTransformer {
     }
   }
 
-  private _transformField(definition: FieldDefinitionNode) {
+  private _transformField(definition: FieldNode) {
     // Loop over each plugins and execute the ones that matches the field
 
     // Transform arguments

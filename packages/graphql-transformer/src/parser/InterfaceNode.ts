@@ -1,8 +1,15 @@
-import { InterfaceTypeDefinitionNode, Kind, NamedTypeNode } from "graphql";
+import {
+  ConstDirectiveNode,
+  FieldDefinitionNode,
+  InterfaceTypeDefinitionNode,
+  Kind,
+} from "graphql";
 import { FieldNode } from "./FieldNode";
 import { DirectiveNode } from "./DirectiveNode";
+import { NamedTypeNode } from "./TypeNode";
 
 export class InterfaceNode {
+  kind: Kind.INTERFACE_TYPE_DEFINITION = Kind.INTERFACE_TYPE_DEFINITION;
   name: string;
   fields?: FieldNode[] | undefined;
   interfaces?: NamedTypeNode[] | undefined;
@@ -17,32 +24,44 @@ export class InterfaceNode {
     this.name = name;
     this.fields = fields ?? undefined;
     this.interfaces = interfaces ?? undefined;
-    this.directives = directives;
+    this.directives = directives ?? undefined;
   }
 
-  public serialize(): InterfaceTypeDefinitionNode {
-    return {
-      kind: Kind.INTERFACE_TYPE_DEFINITION,
-      name: {
-        kind: Kind.NAME,
-        value: this.name,
-      },
-      fields: this.fields?.map((node) => node.serialize()),
-      interfaces: this.interfaces,
-      directives: this.directives?.map((node) => node.serialize()),
-    };
+  public hasInterface(name: string): boolean {
+    return this.interfaces?.some((iface) => iface.name === name) ?? false;
+  }
+
+  public addInterface(iface: string | NamedTypeNode) {
+    const node = iface instanceof NamedTypeNode ? iface : NamedTypeNode.create(iface);
+
+    if (this.hasInterface(node.name)) {
+      throw new Error(`Interface ${node.name} already exists on type ${this.name}`);
+    }
+    this.interfaces = this.interfaces ?? [];
+    this.interfaces.push(node);
+
+    return this;
+  }
+
+  public removeInterface(name: string) {
+    this.interfaces = this.interfaces?.filter((iface) => iface.name !== name);
+    return this;
   }
 
   public hasField(name: string): boolean {
     return this.fields?.some((field) => field.name === name) ?? false;
   }
 
-  public addField(field: FieldNode) {
-    if (this.hasField(field.name)) {
-      throw new Error(`Field ${field.name} already exists on type ${this.name}`);
+  public addField(field: FieldNode | FieldDefinitionNode) {
+    const node = field instanceof FieldNode ? field : FieldNode.fromDefinition(field);
+
+    if (this.hasField(node.name)) {
+      throw new Error(`Field ${node.name} already exists on type ${this.name}`);
     }
 
-    this.fields?.push(field);
+    this.fields = this.fields ?? [];
+    this.fields.push(node);
+
     return this;
   }
 
@@ -55,12 +74,21 @@ export class InterfaceNode {
     return this.directives?.some((directive) => directive.name === name) ?? false;
   }
 
-  public addDirective(directive: DirectiveNode) {
-    if (this.hasDirective(directive.name)) {
-      throw new Error(`Directive ${directive.name} already exists on type ${this.name}`);
+  public addDirective(directive: string | DirectiveNode | ConstDirectiveNode) {
+    const node =
+      directive instanceof DirectiveNode
+        ? directive
+        : typeof directive === "string"
+          ? DirectiveNode.create(directive)
+          : DirectiveNode.fromDefinition(directive);
+
+    if (this.hasDirective(node.name)) {
+      throw new Error(`Directive ${node.name} already exists on type ${this.name}`);
     }
 
-    this.directives?.push(directive);
+    this.directives = this.directives ?? [];
+    this.directives.push(node);
+
     return this;
   }
 
@@ -69,16 +97,29 @@ export class InterfaceNode {
     return this;
   }
 
-  static create(name: string, fields: FieldNode[] = []): InterfaceNode {
-    return new InterfaceNode(name, fields);
+  public serialize(): InterfaceTypeDefinitionNode {
+    return {
+      kind: Kind.INTERFACE_TYPE_DEFINITION,
+      name: {
+        kind: Kind.NAME,
+        value: this.name,
+      },
+      fields: this.fields?.map((node) => node.serialize()),
+      interfaces: this.interfaces?.map((node) => node.serialize()),
+      directives: this.directives?.map((node) => node.serialize()),
+    };
   }
 
   static fromDefinition(definition: InterfaceTypeDefinitionNode) {
     return new InterfaceNode(
       definition.name.value,
       definition.fields?.map((field) => FieldNode.fromDefinition(field)) ?? undefined,
-      definition.interfaces?.map((node) => node) ?? null,
+      definition.interfaces?.map((node) => NamedTypeNode.fromDefinition(node)) ?? null,
       definition.directives?.map((directive) => DirectiveNode.fromDefinition(directive))
     );
+  }
+
+  static create(name: string, fields: FieldNode[] = []): InterfaceNode {
+    return new InterfaceNode(name, fields);
   }
 }

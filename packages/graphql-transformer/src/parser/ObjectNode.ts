@@ -4,6 +4,7 @@ import { DirectiveNode } from "./DirectiveNode";
 import { NamedTypeNode } from "./TypeNode";
 
 export class ObjectNode {
+  kind: Kind.OBJECT_TYPE_DEFINITION = Kind.OBJECT_TYPE_DEFINITION;
   name: string;
   fields?: FieldNode[] | undefined;
   interfaces?: NamedTypeNode[] | undefined;
@@ -16,7 +17,6 @@ export class ObjectNode {
     directives?: DirectiveNode[] | undefined
   ) {
     this.name = name;
-
     this.fields = fields ?? undefined;
     this.interfaces = interfaces ?? undefined;
     this.directives = directives;
@@ -26,9 +26,15 @@ export class ObjectNode {
     return this.interfaces?.some((iface) => iface.name === name) ?? false;
   }
 
-  public addInterface(node: string | NamedTypeNode) {
+  public addInterface(iface: string | NamedTypeNode) {
+    const node = iface instanceof NamedTypeNode ? iface : NamedTypeNode.create(iface);
+
+    if (this.hasInterface(node.name)) {
+      throw new Error(`Interface ${node.name} already exists on type ${this.name}`);
+    }
     this.interfaces = this.interfaces ?? [];
-    this.interfaces.push(node instanceof NamedTypeNode ? node : NamedTypeNode.create(node));
+    this.interfaces.push(node);
+
     return this;
   }
 
@@ -42,8 +48,15 @@ export class ObjectNode {
   }
 
   public addField(field: FieldNode | FieldDefinitionNode) {
+    const node = field instanceof FieldNode ? field : FieldNode.fromDefinition(field);
+
+    if (this.hasField(node.name)) {
+      throw new Error(`Field ${node.name} already exists on type ${this.name}`);
+    }
+
     this.fields = this.fields ?? [];
-    this.fields.push(field instanceof FieldNode ? field : FieldNode.fromDefinition(field));
+    this.fields.push(node);
+
     return this;
   }
 
@@ -57,15 +70,25 @@ export class ObjectNode {
   }
 
   public addDirective(directive: string | DirectiveNode | ConstDirectiveNode) {
-    this.directives = this.directives ?? [];
-    this.directives.push(
+    const node =
       directive instanceof DirectiveNode
         ? directive
         : typeof directive === "string"
           ? DirectiveNode.create(directive)
-          : DirectiveNode.fromDefinition(directive)
-    );
+          : DirectiveNode.fromDefinition(directive);
 
+    if (this.hasDirective(node.name)) {
+      throw new Error(`Directive ${node.name} already exists on type ${this.name}`);
+    }
+
+    this.directives = this.directives ?? [];
+    this.directives.push(node);
+
+    return this;
+  }
+
+  public removeDirective(name: string) {
+    this.directives = this.directives?.filter((directive) => directive.name !== name);
     return this;
   }
 
