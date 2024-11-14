@@ -1,1 +1,1 @@
-export * from "./graphql-transformer";
+export * from "./transformer";

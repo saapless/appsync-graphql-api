@@ -1,0 +1,18 @@
+// Jest Snapshot v1, https://goo.gl/fbAQLP
+
+exports[`DocumentNode parser should add nodes 1`] = `
+"type Query {
+  hello: String
+  node(id: ID!): Node @auth
+}
+
+interface Node {
+  id: ID!
+}"
+`;
+
+exports[`DocumentNode parser should serialize document 1`] = `
+"type Query {
+  hello: String
+}"
+`;
