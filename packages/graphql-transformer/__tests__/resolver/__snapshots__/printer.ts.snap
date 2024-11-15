@@ -1,0 +1,14 @@
+// Jest Snapshot v1, https://goo.gl/fbAQLP
+
+exports[`printAST should print the AST 1`] = `
+"import { Context } from "@aws-appsync/utils";
+
+export function request(ctx: Context) {
+  return {};
+};
+
+export function response(ctx: Context) {
+  return ctx.result;
+};
+"
+`;

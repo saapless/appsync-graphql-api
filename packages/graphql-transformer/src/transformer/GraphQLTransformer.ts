@@ -55,6 +55,7 @@ export class GraphQLTransformer {
       this._transformField(field);
     }
   }
+
   private _transformObject(definition: ObjectNode) {
     // Loop over each plugins and execute the ones that matches the object
 

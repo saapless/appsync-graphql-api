@@ -1,0 +1,45 @@
+// Jest Snapshot v1, https://goo.gl/fbAQLP
+
+exports[`CodeNode should generate node 1`] = `
+{
+  "imports": [
+    {
+      "from": "@aws-appsync/utils",
+      "kind": "ImportStatement",
+      "named": [
+        {
+          "kind": "ImportValue",
+          "value": "Context",
+        },
+      ],
+    },
+  ],
+  "kind": "CodeDocument",
+  "requestFunction": {
+    "body": "return {}",
+    "exports": true,
+    "kind": "FunctionDefinition",
+    "name": "request",
+    "parameters": [
+      {
+        "kind": "FunctionParameter",
+        "name": "ctx",
+        "type": "Context",
+      },
+    ],
+  },
+  "responseFunction": {
+    "body": "return ctx.result",
+    "exports": true,
+    "kind": "FunctionDefinition",
+    "name": "response",
+    "parameters": [
+      {
+        "kind": "FunctionParameter",
+        "name": "ctx",
+        "type": "Context",
+      },
+    ],
+  },
+}
+`;

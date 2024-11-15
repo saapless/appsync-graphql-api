@@ -1,5 +1,12 @@
 import { TransformerContext } from "../context";
-import { DefinitionNode, FieldNode, InterfaceNode, ObjectNode, TypeNode } from "../parser";
+import {
+  DefinitionNode,
+  FieldNode,
+  InputValueNode,
+  InterfaceNode,
+  ObjectNode,
+  TypeNode,
+} from "../parser";
 import { InvalidDefinitionError } from "../utils/errors";
 import { ITransformerPlugin } from "./TransformerPluginBase";
 
@@ -28,15 +35,27 @@ export class NodeInterfacePlugin implements ITransformerPlugin {
       if (!node.hasField("id")) {
         node.addField(FieldNode.create("id", TypeNode.create("ID", false)));
       }
-
-      return;
+    } else {
+      context.document.addNode(
+        InterfaceNode.create("Node", [FieldNode.create("id", TypeNode.create("ID", false))])
+      );
     }
 
-    const nodeInterface = InterfaceNode.create("Node", [
-      FieldNode.create("id", TypeNode.create("ID", false)),
-    ]);
+    // Ensure Query.node field is defined
+    let queryNode = context.document.getNode("Query") as ObjectNode;
 
-    context.document.addNode(nodeInterface);
+    if (!queryNode) {
+      queryNode = ObjectNode.create("Query");
+      context.document.addNode(queryNode);
+    }
+
+    if (!queryNode.hasField("node")) {
+      queryNode.addField(
+        FieldNode.create("node", TypeNode.create("Node"), [
+          InputValueNode.create("id", TypeNode.create("ID", false)),
+        ])
+      );
+    }
   }
 
   match(definition: DefinitionNode): boolean {
