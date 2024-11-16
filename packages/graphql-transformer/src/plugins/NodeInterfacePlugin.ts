@@ -7,6 +7,8 @@ import {
   ObjectNode,
   TypeNode,
 } from "../parser";
+import { FieldResolver } from "../resolver";
+import { block, expression, join, statement } from "../resolver/ast/utils";
 import { InvalidDefinitionError } from "../utils/errors";
 import { ITransformerPlugin } from "./TransformerPluginBase";
 
@@ -15,14 +17,15 @@ export class NodeInterfacePlugin implements ITransformerPlugin {
   constructor() {}
 
   /**
-   * Make sure the document contains necessary types:
+   * Make sure context contains necessary resources & types:
    * * `Node` interface
    * * `Query` field `node(id: ID!): Node`;
+   * * `Query.node` resolver
    * @throws {InvalidDefinitionError}
-   * When document contains a type named `Node` that is not of proper type (interface)
+   * If document declares `Node` but is not an `interface`
    */
 
-  public before(context: TransformerContext) {
+  public before(context: TransformerContext): void {
     const node = context.document.getNode("Node");
 
     // Node interface is defiend by user;
@@ -55,6 +58,27 @@ export class NodeInterfacePlugin implements ITransformerPlugin {
           InputValueNode.create("id", TypeNode.create("ID", false)),
         ])
       );
+    }
+
+    // Add Query.node resolver
+    const field = queryNode.getField("node") as FieldNode;
+
+    if (!field.hasDirective("resolver")) {
+      const resolver = FieldResolver.create("Query", "node");
+      resolver
+        .addImport("@aws-appsync/utils", { value: "util" })
+        .addImport("@aws-appsync/utils/dynamodb", { value: "get" })
+        .addRequestFunction(statement("return get({ key: { id: ctx.args.id } })"))
+        .addResponseFunction(
+          join(
+            "\n",
+            statement("const { error, result } = ctx"),
+            join(" ", "if", expression("error"), block("util.error(error.message, error.type)")),
+            statement("return result")
+          )
+        );
+
+      context.resolvers.set("Query.node", resolver);
     }
   }
 

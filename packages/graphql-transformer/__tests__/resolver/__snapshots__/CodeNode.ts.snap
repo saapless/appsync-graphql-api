@@ -9,6 +9,7 @@ exports[`CodeNode should generate node 1`] = `
       "named": [
         {
           "kind": "ImportValue",
+          "type": true,
           "value": "Context",
         },
       ],
@@ -16,7 +17,10 @@ exports[`CodeNode should generate node 1`] = `
   ],
   "kind": "CodeDocument",
   "requestFunction": {
-    "body": "return {}",
+    "body": {
+      "kind": "CodeBlock",
+      "value": "return {}",
+    },
     "exports": true,
     "kind": "FunctionDefinition",
     "name": "request",
@@ -29,7 +33,10 @@ exports[`CodeNode should generate node 1`] = `
     ],
   },
   "responseFunction": {
-    "body": "return ctx.result",
+    "body": {
+      "kind": "CodeBlock",
+      "value": "return ctx.result",
+    },
     "exports": true,
     "kind": "FunctionDefinition",
     "name": "response",

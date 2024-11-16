@@ -4,7 +4,7 @@ import { DefinitionNode } from "../parser";
 export interface ITransformerPlugin {
   name: string;
   /**
-   * should before transformation, usually adds extra definitions to schema.
+   * should run before transformation, usually adds extra definitions to schema.
    */
   before?: (context: TransformerContext) => void;
   /**

@@ -26,6 +26,10 @@ export class FieldNode {
     return this.arguments?.some((argument) => argument.name === arg) ?? false;
   }
 
+  public getArgument(arg: string) {
+    return this.arguments?.find((argument) => argument.name === arg);
+  }
+
   public addArgument(argument: InputValueNode | InputValueDefinitionNode) {
     const argumentNode =
       argument instanceof InputValueNode ? argument : InputValueNode.fromDefinition(argument);
@@ -44,15 +48,30 @@ export class FieldNode {
     return this;
   }
 
-  public getArgument(arg: string) {
-    return this.arguments?.find((argument) => argument.name === arg);
+  public hasDirective(name: string): boolean {
+    return this.directives?.some((directive) => directive.name === name) ?? false;
+  }
+
+  public getDirective(name: string) {
+    return this.directives?.find((directive) => directive.name === name);
   }
 
   public addDirective(directive: DirectiveNode | ConstDirectiveNode) {
+    const directiveNode =
+      directive instanceof DirectiveNode ? directive : DirectiveNode.fromDefinition(directive);
+
+    if (this.hasDirective(directiveNode.name)) {
+      throw new Error(`Directive ${directiveNode.name} already exists on field ${this.name}`);
+    }
+
     this.directives = this.directives ?? [];
-    this.directives.push(
-      directive instanceof DirectiveNode ? directive : DirectiveNode.fromDefinition(directive)
-    );
+    this.directives.push(directiveNode);
+    return this;
+  }
+
+  public removeDirective(name: string) {
+    this.directives = this.directives?.filter((directive) => directive.name !== name);
+    return this;
   }
 
   public serialize(): FieldDefinitionNode {

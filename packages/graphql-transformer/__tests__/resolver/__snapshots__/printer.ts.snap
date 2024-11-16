@@ -5,10 +5,10 @@ exports[`printAST should print the AST 1`] = `
 
 export function request(ctx: Context) {
   return {};
-};
+}
 
 export function response(ctx: Context) {
   return ctx.result;
-};
+}
 "
 `;

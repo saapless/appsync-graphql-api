@@ -1,4 +1,10 @@
-import { FunctionDefinition, ImportStatementDefinition, ImportValue, NodeKind } from "./ast";
+import {
+  FunctionDefinition,
+  ImportStatementDefinition,
+  ImportValue,
+  NodeKind,
+  printAST,
+} from "./ast";
 
 export class CodeNode {
   kind: NodeKind.CODE_DOCUMENT = NodeKind.CODE_DOCUMENT;
@@ -14,6 +20,7 @@ export class CodeNode {
           {
             kind: NodeKind.IMPORT_VALUE,
             value: "Context",
+            type: true,
           },
         ],
         from: "@aws-appsync/utils",
@@ -30,7 +37,10 @@ export class CodeNode {
           type: "Context",
         },
       ],
-      body: "return {}",
+      body: {
+        kind: NodeKind.CODE_BLOCK,
+        value: "return {}",
+      },
     };
 
     this.responseFunction = {
@@ -44,7 +54,10 @@ export class CodeNode {
           type: "Context",
         },
       ],
-      body: "return ctx.result",
+      body: {
+        kind: NodeKind.CODE_BLOCK,
+        value: "return ctx.result",
+      },
     };
   }
 
@@ -58,15 +71,25 @@ export class CodeNode {
   }
 
   public print(): string {
-    return "";
+    return printAST(this.serialize());
   }
 
-  public addRequestFunction(body: string) {
-    this.requestFunction.body = body;
+  public addRequestFunction(value: string) {
+    this.requestFunction.body = {
+      kind: NodeKind.CODE_BLOCK,
+      value,
+    };
+
+    return this;
   }
 
-  public addResponseFunction(body: string) {
-    this.responseFunction.body = body;
+  public addResponseFunction(value: string) {
+    this.responseFunction.body = {
+      kind: NodeKind.CODE_BLOCK,
+      value,
+    };
+
+    return this;
   }
 
   private _getImportFrom(from: string) {

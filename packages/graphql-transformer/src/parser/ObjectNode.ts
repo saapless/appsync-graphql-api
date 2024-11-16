@@ -26,6 +26,10 @@ export class ObjectNode {
     return this.interfaces?.some((iface) => iface.name === name) ?? false;
   }
 
+  public getInterface(name: string) {
+    return this.interfaces?.find((iface) => iface.name === name);
+  }
+
   public addInterface(iface: string | NamedTypeNode) {
     const node = iface instanceof NamedTypeNode ? iface : NamedTypeNode.create(iface);
 
@@ -45,6 +49,10 @@ export class ObjectNode {
 
   public hasField(name: string): boolean {
     return this.fields?.some((field) => field.name === name) ?? false;
+  }
+
+  public getField(name: string) {
+    return this.fields?.find((field) => field.name === name);
   }
 
   public addField(field: FieldNode | FieldDefinitionNode) {
@@ -67,6 +75,10 @@ export class ObjectNode {
 
   public hasDirective(name: string): boolean {
     return this.directives?.some((directive) => directive.name === name) ?? false;
+  }
+
+  public getDirective(name: string) {
+    return this.directives?.find((directive) => directive.name === name);
   }
 
   public addDirective(directive: string | DirectiveNode | ConstDirectiveNode) {

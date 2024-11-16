@@ -39,7 +39,7 @@ const printReducer: ASTPrintReducer = {
     keys: ["imports", "requestFunction", "responseFunction"],
     print(node) {
       const { imports, requestFunction, responseFunction } = node;
-      return join("\n", imports ?? "", requestFunction ?? "", responseFunction ?? "");
+      return join("\n", join("", imports), requestFunction, responseFunction);
     },
   },
   ImportStatement: {
@@ -50,6 +50,17 @@ const printReducer: ASTPrintReducer = {
       return statement(`import ${join(", ", defaultImport, namedImports)} from "${node.from}"`);
     },
   },
+  FunctionDefinition: {
+    keys: ["parameters", "body"],
+    print: (node) =>
+      join(
+        " ",
+        node.exports ? "export" : "",
+        "function",
+        join("", node.name, expression(join(", ", node.parameters))),
+        node.body
+      ),
+  },
   ImportValue: {
     print: (node) => {
       const type = node.type ? "type" : "";
@@ -57,21 +68,11 @@ const printReducer: ASTPrintReducer = {
       return join(" ", type, node.value, alias);
     },
   },
-  FunctionDefinition: {
-    keys: ["parameters"],
-    print: (node) =>
-      statement(
-        join(
-          " ",
-          node.exports ? "export" : "",
-          "function",
-          join("", node.name, expression(join(", ", node.parameters))),
-          block(node.body)
-        )
-      ),
-  },
   FunctionParameter: {
     print: (node) => join(" = ", join(": ", node.name, node.type ?? ""), node.default ?? ""),
+  },
+  CodeBlock: {
+    print: (node) => block(node.value),
   },
 };
 

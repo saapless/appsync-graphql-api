@@ -14,7 +14,7 @@ export function join<T extends (string | string[])[]>(separator = "", ...stateme
 }
 
 export function block<T extends string[]>(...value: T) {
-  return wrap("{\n", indent(join("\n", value)), "\n}");
+  return wrap("{\n", indent(join("\n", value)).trimEnd(), "\n}\n");
 }
 
 export function expression(value: string) {

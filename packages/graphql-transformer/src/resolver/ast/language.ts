@@ -4,6 +4,7 @@ export enum NodeKind {
   IMPORT_VALUE = "ImportValue",
   FUNCTION_DEFINITION = "FunctionDefinition",
   FUNCTION_PARAMETER = "FunctionParameter",
+  CODE_BLOCK = "CodeBlock",
 }
 
 export type ImportValue = {
@@ -20,6 +21,11 @@ export type FunctionParameter = {
   default?: string;
 };
 
+export type CodeBlock = {
+  kind: NodeKind.CODE_BLOCK;
+  value: string;
+};
+
 export type ImportStatementDefinition = {
   kind: NodeKind.IMPORT_STATEMENT;
   default?: ImportValue;
@@ -32,7 +38,7 @@ export type FunctionDefinition = {
   name: string;
   exports: boolean;
   parameters: FunctionParameter[];
-  body: string;
+  body: CodeBlock;
 };
 
 export type CodeDocumentDefinition = {
@@ -47,4 +53,5 @@ export type CodeASTNode =
   | ImportStatementDefinition
   | ImportValue
   | FunctionDefinition
-  | FunctionParameter;
+  | FunctionParameter
+  | CodeBlock;

@@ -1,0 +1,21 @@
+// Jest Snapshot v1, https://goo.gl/fbAQLP
+
+exports[`resolver/FieldResolver should create resolver code 1`] = `
+"import { type Context, util } from "@aws-appsync/utils";
+import { get } from "@aws-appsync/utils/dynamodb";
+
+export function request(ctx: Context) {
+  return get({ key: { id: ctx.args.id } });
+}
+
+export function response(ctx: Context) {
+  const { error, result } = ctx;
+  
+  if (error) {
+    util.error(error.message, error.type)
+  }
+  
+  return result;
+}
+"
+`;

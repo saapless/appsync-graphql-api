@@ -16,7 +16,7 @@ const ast = {
   ],
   requestFunction: {
     kind: NodeKind.FUNCTION_DEFINITION,
-    body: "return {};",
+    body: { kind: NodeKind.CODE_BLOCK, value: "return {};" },
     exports: true,
     name: "request",
     parameters: [
@@ -29,7 +29,7 @@ const ast = {
   },
   responseFunction: {
     kind: NodeKind.FUNCTION_DEFINITION,
-    body: "return ctx.result;",
+    body: { kind: NodeKind.CODE_BLOCK, value: "return ctx.result;" },
     exports: true,
     name: "response",
     parameters: [

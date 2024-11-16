@@ -1,23 +1,43 @@
-import { CodeNode } from "./CodeNode";
+import { Resolver, ResolverKind } from "./ResolverBase";
 
-export class FieldResolver {
-  typeName: string;
-  fieldName: string;
-  dataSource?: string;
-  pipelineFunctions?: string[];
-  code: CodeNode;
+export class FieldResolver extends Resolver {
+  public readonly kind = ResolverKind.FIELD_RESOLVER;
+  public readonly typeName: string;
+  public readonly fieldName: string;
+  public readonly pipelineFunctions?: string[];
 
   constructor(
     typeName: string,
     fieldName: string,
     dataSource?: string,
-    pipelineFunctions?: string[]
+    pipelineFunctions?: string[],
+    source?: string
   ) {
+    super(`${typeName}.${fieldName}`, dataSource, source);
+
     this.typeName = typeName;
     this.fieldName = fieldName;
-    this.dataSource = dataSource;
     this.pipelineFunctions = pipelineFunctions;
-    this.code = CodeNode.create();
+  }
+
+  public serialize() {
+    return {
+      typeName: this.typeName,
+      fieldName: this.fieldName,
+      dataSource: this.dataSource,
+      pipelineFunctions: this.pipelineFunctions,
+      node: this.print(),
+    };
+  }
+
+  static fromSource(
+    typeName: string,
+    fieldName: string,
+    source: string,
+    dataSource?: string,
+    pipelineFunctions?: string[]
+  ) {
+    return new FieldResolver(typeName, fieldName, dataSource, pipelineFunctions, source);
   }
 
   static create(
