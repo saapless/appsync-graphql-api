@@ -1,6 +1,15 @@
+import { GraphQLError } from "graphql";
+
 export class InvalidDefinitionError extends Error {
   constructor(message: string) {
     super(message);
     this.name = "InvalidDefinitionError";
+  }
+}
+
+export class SchemaValidationError extends Error {
+  constructor(errors: Readonly<GraphQLError[]>) {
+    super(`Schema validation failed.\n\n${errors.map((error) => error.toString()).join("\n\n")}`);
+    this.name = "SchemaValidationError";
   }
 }

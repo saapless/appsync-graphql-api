@@ -10,6 +10,6 @@ export { InputValueNode } from "./InputValueNode";
 export { InterfaceNode } from "./InterfaceNode";
 export { ObjectNode } from "./ObjectNode";
 export { ScalarNode } from "./ScalarNode";
-export { NamedTypeNode, ListTypeNode, NonNullTypeNode, TypeNode } from "./TypeNode";
+export { NamedTypeNode, ListTypeNode, NonNullTypeNode, type TypeNode } from "./TypeNode";
 export { UnionNode } from "./UnionNode";
 export { ValueNode } from "./ValueNode";

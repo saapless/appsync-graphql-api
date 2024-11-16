@@ -1,7 +1,7 @@
 import { ConstDirectiveNode, FieldDefinitionNode, InputValueDefinitionNode, Kind } from "graphql";
 import { InputValueNode } from "./InputValueNode";
 import { DirectiveNode } from "./DirectiveNode";
-import { TypeNode } from "./TypeNode";
+import { ListTypeNode, NamedTypeNode, NonNullTypeNode, TypeNode } from "./TypeNode";
 
 export class FieldNode {
   kind: Kind.FIELD_DEFINITION = Kind.FIELD_DEFINITION;
@@ -99,7 +99,11 @@ export class FieldNode {
   static fromDefinition(field: FieldDefinitionNode) {
     return new FieldNode(
       field.name.value,
-      TypeNode.fromDefinition(field.type),
+      field.type.kind === Kind.NON_NULL_TYPE
+        ? NonNullTypeNode.fromDefinition(field.type)
+        : field.type.kind === Kind.LIST_TYPE
+          ? ListTypeNode.fromDefinition(field.type)
+          : NamedTypeNode.fromDefinition(field.type),
       field.arguments?.map((arg) => InputValueNode.fromDefinition(arg)) ?? null,
       field.directives?.map((directive) => DirectiveNode.fromDefinition(directive)) ?? undefined
     );

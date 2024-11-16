@@ -1,7 +1,18 @@
 import { createTransformer, GraphQLTransformer } from "../src/transformer";
+import { FieldResolver } from "../src/resolver";
 
 const schema = /* GraphQL */ `
   type Viewer
+
+  interface Node {
+    id: ID!
+
+    # Metadata
+    createdAt: AWSDateTime
+    updatedAt: AWSDateTime
+    _version: Int
+    _deleted: Boolean
+  }
 
   type User @model {
     id: ID!
@@ -33,6 +44,11 @@ describe("createTransformer function", () => {
 
   it("transforms schema", () => {
     const result = transformer.transform();
-    expect(result.schema).toMatchSnapshot();
+    const schema = result.document.print();
+    const nodeResolver = result.resolvers.get("Query.node");
+
+    expect(schema).toMatchSnapshot();
+    expect(nodeResolver).toBeInstanceOf(FieldResolver);
+    expect(nodeResolver?.print()).toMatchSnapshot();
   });
 });

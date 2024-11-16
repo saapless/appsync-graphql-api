@@ -5,9 +5,10 @@ import {
   FieldNode,
   InputValueNode,
   InterfaceNode,
+  NamedTypeNode,
+  NonNullTypeNode,
   ObjectNode,
 } from "../src/parser";
-import { TypeNode } from "../src/parser/TypeNode";
 
 const schema = /* GraphQL */ `
   type Viewer
@@ -52,7 +53,7 @@ describe("DocumentNode parser", () => {
 
   it("should add nodes", () => {
     const nodeInterface = InterfaceNode.create("Node", [
-      FieldNode.create("id", TypeNode.create("ID", false)),
+      FieldNode.create("id", NonNullTypeNode.create(NamedTypeNode.create("ID"))),
     ]);
 
     documentNode.addNode(nodeInterface);
@@ -63,8 +64,8 @@ describe("DocumentNode parser", () => {
       queryNode.addField(
         FieldNode.create(
           "node",
-          TypeNode.create("Node"),
-          [InputValueNode.create("id", TypeNode.create("ID", false))],
+          NamedTypeNode.create("Node"),
+          [InputValueNode.create("id", NonNullTypeNode.create(NamedTypeNode.create("ID")))],
           [DirectiveNode.create("auth")]
         )
       );

@@ -1,2 +1,2 @@
-export { type ITransformerPlugin } from "./TransformerPluginBase";
+export { TransformerPluginBase } from "./TransformerPluginBase";
 export { NodeInterfacePlugin } from "./NodeInterfacePlugin";

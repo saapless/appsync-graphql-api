@@ -2,7 +2,6 @@ import {
   DirectiveDefinitionNode as IDirectiveDefinitionNode,
   InputValueDefinitionNode,
   Kind,
-  NameNode,
 } from "graphql";
 import { InputValueNode } from "./InputValueNode";
 
@@ -10,10 +9,10 @@ export class DirectiveDefinitionNode {
   kind: Kind.DIRECTIVE_DEFINITION = Kind.DIRECTIVE_DEFINITION;
   name: string;
   repeatable: boolean = false;
-  locations: NameNode[];
+  locations: string[];
   arguments?: InputValueNode[];
 
-  constructor(name: string, locations: NameNode[], repeatable: boolean, args?: InputValueNode[]) {
+  constructor(name: string, locations: string[], repeatable: boolean, args?: InputValueNode[]) {
     this.name = name;
     this.locations = locations;
     this.repeatable = repeatable;
@@ -54,7 +53,12 @@ export class DirectiveDefinitionNode {
         value: this.name,
       },
       repeatable: this.repeatable,
-      locations: this.locations,
+      locations: this.locations.map((value) => {
+        return {
+          kind: Kind.NAME,
+          value,
+        };
+      }),
       arguments: this.arguments?.map((arg) => arg.serialize()) ?? undefined,
     };
   }
@@ -62,7 +66,7 @@ export class DirectiveDefinitionNode {
   static fromDefinition(definition: IDirectiveDefinitionNode) {
     return new DirectiveDefinitionNode(
       definition.name.value,
-      definition.locations.map((node) => node),
+      definition.locations.map((node) => node.value),
       definition.repeatable,
       definition.arguments?.map((arg) => InputValueNode.fromDefinition(arg))
     );
@@ -70,7 +74,7 @@ export class DirectiveDefinitionNode {
 
   static create(
     name: string,
-    locations: NameNode[],
+    locations: string[],
     repeatable: boolean = false,
     args?: InputValueNode[]
   ) {

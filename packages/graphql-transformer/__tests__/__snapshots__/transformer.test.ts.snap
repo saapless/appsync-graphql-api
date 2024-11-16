@@ -1,3 +1,92 @@
 // Jest Snapshot v1, https://goo.gl/fbAQLP
 
-exports[`createTransformer function transforms schema 1`] = `""`;
+exports[`createTransformer function transforms schema 1`] = `
+"type Viewer {
+  user: User
+  tasks: Task @connection
+}
+
+interface Node {
+  id: ID!
+  createdAt: AWSDateTime
+  updatedAt: AWSDateTime
+  _version: Int
+  _deleted: Boolean
+}
+
+type User implements Node @model {
+  id: ID!
+  firstName: String
+  lastName: String
+  email: AWSEmail @auth(rules: [{allow: "owner"}])
+  picture: AWSURL
+  createdAt: AWSDateTime
+  updatedAt: AWSDateTime
+  _version: Int
+  _deleted: Boolean
+}
+
+type Task implements Node @model {
+  id: ID!
+  title: String!
+  content: AWSJSON
+  createdAt: AWSDateTime
+  updatedAt: AWSDateTime
+  _version: Int
+  _deleted: Boolean
+}
+
+scalar AWSDate
+
+scalar AWSTime
+
+scalar AWSDateTime
+
+scalar AWSTimestamp
+
+scalar AWSEmail
+
+scalar AWSJSON
+
+scalar AWSPhone
+
+scalar AWSURL
+
+scalar AWSIPAddress
+
+directive @aws_api_key on FIELD_DEFINITION | OBJECT
+
+directive @aws_auth(cognito_groups: [String!]!) on FIELD_DEFINITION | OBJECT
+
+directive @aws_cognito_user_pools(cognito_groups: [String!]!) on FIELD_DEFINITION | OBJECT
+
+directive @aws_lambda on FIELD_DEFINITION | OBJECT
+
+directive @aws_oidc on FIELD_DEFINITION | OBJECT
+
+directive @aws_subscribe(mutations: [String!]!) on FIELD_DEFINITION
+
+type Query {
+  node(id: ID!): Node
+}"
+`;
+
+exports[`createTransformer function transforms schema 2`] = `
+"import { type Context, util } from "@aws-appsync/utils";
+import { get } from "@aws-appsync/utils/dynamodb";
+
+export function request(ctx: Context) {
+  return get({ key: { id: ctx.args.id } });
+}
+
+export function response(ctx: Context) {
+  const { error, result } = ctx;
+  
+  if (error) {
+    util.error(error.message, error.type)
+  }
+  
+  return result;
+}
+"
+`;

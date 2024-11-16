@@ -1,22 +1,33 @@
 import { TransformerContext } from "../context";
 import { DefinitionNode } from "../parser";
 
-export interface ITransformerPlugin {
-  name: string;
+export interface IPluginFactory {
+  create(context: TransformerContext): TransformerPluginBase;
+}
+
+export abstract class TransformerPluginBase {
+  public abstract readonly name: string;
+  public readonly context: TransformerContext;
+  constructor(context: TransformerContext) {
+    this.context = context;
+  }
+
   /**
    * should run before transformation, usually adds extra definitions to schema.
    */
-  before?: (context: TransformerContext) => void;
+  public before() {}
   /**
    * Should run after transformation and before validation for cleaup purposes.
    */
-  after?: (context: TransformerContext) => void;
+  public after() {}
   /**
    * Match the definition node to the plugin.
    */
-  match(definition: DefinitionNode): boolean;
+  public abstract match(definition: DefinitionNode): boolean;
   /**
    * Execute transformation on the definition node
    */
-  execute(context: TransformerContext, definition: DefinitionNode): void;
+  public abstract execute(definition: DefinitionNode): void;
+
+  static create: (context: TransformerContext) => TransformerPluginBase;
 }

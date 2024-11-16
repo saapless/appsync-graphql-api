@@ -1,20 +1,25 @@
+import { Kind } from "graphql";
 import { TransformerContext } from "../context";
 import {
   DefinitionNode,
   FieldNode,
   InputValueNode,
   InterfaceNode,
+  NamedTypeNode,
+  NonNullTypeNode,
   ObjectNode,
-  TypeNode,
 } from "../parser";
 import { FieldResolver } from "../resolver";
 import { block, expression, join, statement } from "../resolver/ast/utils";
 import { InvalidDefinitionError } from "../utils/errors";
-import { ITransformerPlugin } from "./TransformerPluginBase";
+import { TransformerPluginBase } from "./TransformerPluginBase";
 
-export class NodeInterfacePlugin implements ITransformerPlugin {
-  name = "NodeInterfacePlugin";
-  constructor() {}
+export class NodeInterfacePlugin extends TransformerPluginBase {
+  readonly name = "NodeInterfacePlugin";
+
+  constructor(context: TransformerContext) {
+    super(context);
+  }
 
   /**
    * Make sure context contains necessary resources & types:
@@ -25,8 +30,8 @@ export class NodeInterfacePlugin implements ITransformerPlugin {
    * If document declares `Node` but is not an `interface`
    */
 
-  public before(context: TransformerContext): void {
-    const node = context.document.getNode("Node");
+  public before(): void {
+    const node = this.context.document.getNode("Node");
 
     // Node interface is defiend by user;
     if (node) {
@@ -36,26 +41,28 @@ export class NodeInterfacePlugin implements ITransformerPlugin {
 
       // Ensure minimum required fields are present
       if (!node.hasField("id")) {
-        node.addField(FieldNode.create("id", TypeNode.create("ID", false)));
+        node.addField(FieldNode.create("id", NonNullTypeNode.create(NamedTypeNode.create("ID"))));
       }
     } else {
-      context.document.addNode(
-        InterfaceNode.create("Node", [FieldNode.create("id", TypeNode.create("ID", false))])
+      this.context.document.addNode(
+        InterfaceNode.create("Node", [
+          FieldNode.create("id", NonNullTypeNode.create(NamedTypeNode.create("ID"))),
+        ])
       );
     }
 
     // Ensure Query.node field is defined
-    let queryNode = context.document.getNode("Query") as ObjectNode;
+    let queryNode = this.context.document.getNode("Query") as ObjectNode;
 
     if (!queryNode) {
       queryNode = ObjectNode.create("Query");
-      context.document.addNode(queryNode);
+      this.context.document.addNode(queryNode);
     }
 
     if (!queryNode.hasField("node")) {
       queryNode.addField(
-        FieldNode.create("node", TypeNode.create("Node"), [
-          InputValueNode.create("id", TypeNode.create("ID", false)),
+        FieldNode.create("node", NamedTypeNode.create("Node"), [
+          InputValueNode.create("id", NonNullTypeNode.create(NamedTypeNode.create("ID"))),
         ])
       );
     }
@@ -78,7 +85,7 @@ export class NodeInterfacePlugin implements ITransformerPlugin {
           )
         );
 
-      context.resolvers.set("Query.node", resolver);
+      this.context.resolvers.set("Query.node", resolver);
     }
   }
 
@@ -92,9 +99,41 @@ export class NodeInterfacePlugin implements ITransformerPlugin {
     return false;
   }
 
-  execute(context: TransformerContext, definition: DefinitionNode): void {
+  execute(definition: DefinitionNode): void {
     if (!(definition instanceof ObjectNode)) {
-      return;
+      throw new Error(
+        `Invalid execute call. Expected node kind ${Kind.OBJECT_TYPE_DEFINITION}, received ${definition.kind}`
+      );
     }
+
+    const nodeInterface = this.context.document.getNode("Node") as InterfaceNode;
+
+    if (!nodeInterface) {
+      throw new Error(
+        "Node Interface not found. Make sure you run `plugin.before()` before executing."
+      );
+    }
+
+    // In definition has directive `@model` it should also implement `Node` interface
+    if (definition.hasDirective("model")) {
+      definition.addInterface(nodeInterface.name);
+    }
+
+    // Make sure that all fields declared by `Node` interface are declased by definition as well
+    const nodeFields = nodeInterface.fields ?? [];
+
+    for (const field of nodeFields) {
+      if (!definition.hasField(field.name)) {
+        definition.addField(FieldNode.fromDefinition(field.serialize()));
+      } else {
+        // TODO: Check if field types match
+        // This might throw an error in the validation process
+        // so could be redundant, will investigate.
+      }
+    }
+  }
+
+  static create(context: TransformerContext): NodeInterfacePlugin {
+    return new NodeInterfacePlugin(context);
   }
 }

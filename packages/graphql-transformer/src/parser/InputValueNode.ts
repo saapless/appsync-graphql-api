@@ -6,7 +6,7 @@ import {
   TypeNode as TypeNodeDefinition,
 } from "graphql";
 import { DirectiveNode } from "./DirectiveNode";
-import { TypeNode } from "./TypeNode";
+import { ListTypeNode, NamedTypeNode, NonNullTypeNode, TypeNode } from "./TypeNode";
 
 export class InputValueNode {
   kind: Kind.INPUT_VALUE_DEFINITION = Kind.INPUT_VALUE_DEFINITION;
@@ -41,20 +41,30 @@ export class InputValueNode {
   }
 
   static create(name: string, value: string | TypeNode | TypeNodeDefinition) {
-    return new InputValueNode(
-      name,
-      value instanceof TypeNode
-        ? value
-        : typeof value === "string"
-          ? TypeNode.create(value)
-          : TypeNode.fromDefinition(value)
-    );
+    const typeNode =
+      typeof value === "string"
+        ? NamedTypeNode.create(value)
+        : value instanceof NamedTypeNode ||
+            value instanceof NonNullTypeNode ||
+            value instanceof ListTypeNode
+          ? value
+          : value.kind === Kind.NON_NULL_TYPE
+            ? NonNullTypeNode.fromDefinition(value)
+            : value.kind === Kind.LIST_TYPE
+              ? ListTypeNode.fromDefinition(value)
+              : NamedTypeNode.fromDefinition(value);
+
+    return new InputValueNode(name, typeNode);
   }
 
   static fromDefinition(field: FieldDefinitionNode | InputValueDefinitionNode) {
     return new InputValueNode(
       field.name.value,
-      TypeNode.fromDefinition(field.type),
+      field.type.kind === Kind.NON_NULL_TYPE
+        ? NonNullTypeNode.fromDefinition(field.type)
+        : field.type.kind === Kind.LIST_TYPE
+          ? ListTypeNode.fromDefinition(field.type)
+          : NamedTypeNode.fromDefinition(field.type),
       "defaultValue" in field ? field.defaultValue : null,
       field.directives?.map((directive) => DirectiveNode.fromDefinition(directive))
     );

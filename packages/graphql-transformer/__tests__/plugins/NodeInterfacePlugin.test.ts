@@ -4,8 +4,6 @@ import { NodeInterfacePlugin } from "../../src/plugins/NodeInterfacePlugin";
 import { InvalidDefinitionError } from "../../src/utils/errors";
 
 describe("NodeInterfacePlugin", () => {
-  const plugin = new NodeInterfacePlugin();
-
   describe("the `before` hook", () => {
     describe("when user declares invalid `Node` type", () => {
       const schema = /* GraphQL */ `
@@ -14,9 +12,9 @@ describe("NodeInterfacePlugin", () => {
         }
       `;
       const context = new TransformerContext({ document: DocumentNode.fromSource(schema) });
-
+      const plugin = new NodeInterfacePlugin(context);
       it("it throws InvalidDefinitionError", () => {
-        expect(() => plugin.before(context)).toThrow(InvalidDefinitionError);
+        expect(() => plugin.before()).toThrow(InvalidDefinitionError);
       });
     });
 
@@ -27,7 +25,8 @@ describe("NodeInterfacePlugin", () => {
     `;
 
     const context = new TransformerContext({ document: DocumentNode.fromSource(schema) });
-    plugin.before(context);
+    const plugin = new NodeInterfacePlugin(context);
+    plugin.before();
 
     it("adds interface definition", () => {
       const nodeInterface = context.document.getNode("Node") as InterfaceNode;

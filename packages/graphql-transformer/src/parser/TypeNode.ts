@@ -2,7 +2,6 @@ import {
   NamedTypeNode as INamedTypeNode,
   ListTypeNode as IListTypeNode,
   NonNullTypeNode as INonNullTypeNode,
-  TypeNode as ITypeNode,
   Kind,
   Location,
 } from "graphql";
@@ -27,7 +26,7 @@ export class NamedTypeNode {
     };
   }
 
-  static create(name: string): NamedTypeNode {
+  static create(name: string) {
     return new NamedTypeNode(name);
   }
 
@@ -54,15 +53,19 @@ export class ListTypeNode {
     };
   }
 
-  static create(type: TypeNode | string, nullable = true): ListTypeNode {
-    return new ListTypeNode(
-      type instanceof TypeNode ? type : TypeNode.create(type, nullable),
-      type instanceof TypeNode ? type.node.loc : undefined
-    );
+  static create(type: TypeNode | string): ListTypeNode {
+    const node = typeof type === "string" ? NamedTypeNode.create(type) : type;
+    return new ListTypeNode(node);
   }
 
   static fromDefinition(definition: IListTypeNode): ListTypeNode {
-    return new ListTypeNode(TypeNode.fromDefinition(definition.type), definition.loc);
+    return new ListTypeNode(
+      definition.type.kind === Kind.NON_NULL_TYPE
+        ? NonNullTypeNode.fromDefinition(definition.type)
+        : definition.type.kind === Kind.LIST_TYPE
+          ? ListTypeNode.fromDefinition(definition.type)
+          : NamedTypeNode.fromDefinition(definition.type)
+    );
   }
 }
 
@@ -86,7 +89,7 @@ export class NonNullTypeNode {
 
   static create(type: NamedTypeNode | ListTypeNode | string | string[]): NonNullTypeNode {
     if (Array.isArray(type)) {
-      return new NonNullTypeNode(ListTypeNode.create(TypeNode.create(type[0])));
+      return new NonNullTypeNode(ListTypeNode.create(type[0]));
     }
 
     if (typeof type === "string") {
@@ -106,61 +109,4 @@ export class NonNullTypeNode {
   }
 }
 
-export class TypeNode {
-  node: NamedTypeNode | ListTypeNode | NonNullTypeNode;
-
-  constructor(node: NamedTypeNode | ListTypeNode | NonNullTypeNode) {
-    this.node = node;
-  }
-
-  public serialize(): ITypeNode {
-    return this.node.serialize();
-  }
-
-  public isNullable() {
-    return this.node instanceof NamedTypeNode || this.node instanceof ListTypeNode;
-  }
-
-  public makeNullable() {
-    if (this.node instanceof NonNullTypeNode) {
-      this.node = this.node.type;
-    }
-
-    return this;
-  }
-
-  public makeNonNullable() {
-    if (this.node instanceof NamedTypeNode || this.node instanceof ListTypeNode) {
-      this.node = NonNullTypeNode.create(this.node);
-    }
-
-    return this;
-  }
-
-  clone() {
-    return new TypeNode(this.node);
-  }
-
-  static fromDefinition(type: ITypeNode) {
-    const node =
-      type.kind === Kind.NAMED_TYPE
-        ? NamedTypeNode.fromDefinition(type)
-        : type.kind === Kind.LIST_TYPE
-          ? ListTypeNode.fromDefinition(type)
-          : NonNullTypeNode.fromDefinition(type);
-
-    return new TypeNode(node);
-  }
-
-  static create(type: string | [string], nullable = true) {
-    let node: NamedTypeNode | ListTypeNode;
-
-    if (Array.isArray(type)) {
-      node = ListTypeNode.create(TypeNode.create(type));
-    } else {
-      node = NamedTypeNode.create(type);
-    }
-
-    return new TypeNode(nullable ? node : NonNullTypeNode.create(node));
-  }
-}
+export type TypeNode = NamedTypeNode | ListTypeNode | NonNullTypeNode;

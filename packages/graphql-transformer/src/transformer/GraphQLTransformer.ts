@@ -9,18 +9,45 @@ import {
   ObjectNode,
   UnionNode,
 } from "../parser";
+import { TransformerContext } from "../context";
+import { IPluginFactory, TransformerPluginBase } from "../plugins/TransformerPluginBase";
+// import { SchemaValidationError } from "../utils/errors";
 
 export interface GraphQLTransformerOptions {
   definition: string;
+  plugins: IPluginFactory[];
 }
 
 export class GraphQLTransformer {
-  constructor(protected readonly options: GraphQLTransformerOptions) {}
+  readonly document: DocumentNode;
+  readonly context: TransformerContext;
+  readonly plugins: TransformerPluginBase[];
+
+  constructor(protected readonly options: GraphQLTransformerOptions) {
+    this.document = DocumentNode.fromSource(options.definition);
+    this.context = new TransformerContext({ document: this.document });
+    this.plugins = this._initPlugins(this.context);
+  }
+
+  private _initPlugins(context: TransformerContext) {
+    return this.options.plugins.map((factory) => factory.create(context));
+  }
 
   public transform() {
-    const document = DocumentNode.fromSource(this.options.definition);
+    // Run plugins before
+    for (const plugin of this.plugins) {
+      plugin.before();
+    }
 
-    for (const definition of document.definitions) {
+    // Should be safe to validate the schema here
+    // const errors = this.document.validate();
+
+    // if (errors.length) {
+    //   throw new SchemaValidationError(errors)
+    // }
+
+    // Run transformers
+    for (const definition of this.document.definitions) {
       switch (definition.kind) {
         case Kind.INTERFACE_TYPE_DEFINITION:
           this._transformInterface(definition);
@@ -42,14 +69,16 @@ export class GraphQLTransformer {
       }
     }
 
-    return {
-      schema: "",
-      resolvers: {},
-      typeDefs: "",
-    };
+    return this.context;
   }
 
   private _transformInterface(definition: InterfaceNode) {
+    for (const plugin of this.plugins) {
+      if (plugin.match(definition)) {
+        plugin.execute(definition);
+      }
+    }
+
     const fields = definition.fields ?? [];
     for (const field of fields) {
       this._transformField(field);
@@ -58,6 +87,11 @@ export class GraphQLTransformer {
 
   private _transformObject(definition: ObjectNode) {
     // Loop over each plugins and execute the ones that matches the object
+    for (const plugin of this.plugins) {
+      if (plugin.match(definition)) {
+        plugin.execute(definition);
+      }
+    }
 
     // Transform fields
     const fields = definition.fields ?? [];
