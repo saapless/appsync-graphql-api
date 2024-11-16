@@ -24,3 +24,7 @@ export function expression(value: string) {
 export function statement(value: string) {
   return wrap("", value, `${value.endsWith(";") ? "" : ";"}\n`);
 }
+
+export function returnStatement(value: string) {
+  return wrap("return ", statement(value));
+}

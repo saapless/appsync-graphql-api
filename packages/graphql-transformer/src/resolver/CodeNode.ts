@@ -102,7 +102,8 @@ export class CodeNode {
       this.imports.push({
         kind: NodeKind.IMPORT_STATEMENT,
         from,
-        named: [{ kind: NodeKind.IMPORT_VALUE, ...value }],
+        default: defaultImport ? { kind: NodeKind.IMPORT_VALUE, ...value } : undefined,
+        named: !defaultImport ? [{ kind: NodeKind.IMPORT_VALUE, ...value }] : undefined,
       });
 
       return this;

@@ -1,4 +1,10 @@
-import { ConstDirectiveNode, EnumTypeDefinitionNode, EnumValueDefinitionNode, Kind } from "graphql";
+import {
+  ConstDirectiveNode,
+  EnumTypeDefinitionNode,
+  EnumTypeExtensionNode,
+  EnumValueDefinitionNode,
+  Kind,
+} from "graphql";
 import { DirectiveNode } from "./DirectiveNode";
 import { EnumValueNode } from "./EnumValueNode";
 
@@ -64,6 +70,24 @@ export class EnumNode {
 
   public removeDirective(name: string) {
     this.directives = this.directives?.filter((directive) => directive.name !== name);
+    return this;
+  }
+
+  public extend(definition: EnumTypeExtensionNode) {
+    const { values, directives } = definition;
+
+    if (values) {
+      for (const value of values) {
+        this.addValue(value);
+      }
+    }
+
+    if (directives) {
+      for (const directive of directives) {
+        this.addDirective(directive);
+      }
+    }
+
     return this;
   }
 

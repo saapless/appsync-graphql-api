@@ -2,6 +2,7 @@ import {
   ConstDirectiveNode,
   FieldDefinitionNode,
   InputObjectTypeDefinitionNode,
+  InputObjectTypeExtensionNode,
   InputValueDefinitionNode,
   Kind,
   ObjectTypeDefinitionNode,
@@ -68,6 +69,24 @@ export class InputObjectNode {
 
   public removeDirective(name: string) {
     this.directives = this.directives?.filter((directive) => directive.name !== name);
+    return this;
+  }
+
+  public extend(definition: InputObjectTypeExtensionNode) {
+    const { fields, directives } = definition;
+
+    if (fields) {
+      for (const field of fields) {
+        this.addField(field);
+      }
+    }
+
+    if (directives) {
+      for (const directive of directives) {
+        this.addDirective(directive);
+      }
+    }
+
     return this;
   }
 

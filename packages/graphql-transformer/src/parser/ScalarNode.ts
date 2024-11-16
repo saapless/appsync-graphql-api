@@ -1,4 +1,9 @@
-import { ConstDirectiveNode, Kind, ScalarTypeDefinitionNode } from "graphql";
+import {
+  ConstDirectiveNode,
+  Kind,
+  ScalarTypeDefinitionNode,
+  ScalarTypeExtensionNode,
+} from "graphql";
 import { DirectiveNode } from "./DirectiveNode";
 
 export class ScalarNode {
@@ -35,6 +40,13 @@ export class ScalarNode {
 
   public removeDirective(name: string) {
     this.directives = this.directives?.filter((directive) => directive.name !== name);
+    return this;
+  }
+
+  public extend(definition: ScalarTypeExtensionNode) {
+    this.directives = definition.directives?.map((directive) =>
+      DirectiveNode.fromDefinition(directive)
+    );
     return this;
   }
 

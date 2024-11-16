@@ -6,7 +6,7 @@ const config = {
   preset: "ts-jest/presets/default-esm",
   verbose: true,
   testMatch: ["**/__tests__/**/*.[jt]s?(x)", "**/?(*.)+(spec|test).[jt]s?(x)"],
-  moduleFileExtensions: ["ts", "tsx", "js", "jsx", "json", "node"],
+  moduleFileExtensions: ["ts", "tsx", "js", "jsx", "json", "node", "graphql"],
   extensionsToTreatAsEsm: [".ts"],
   testEnvironment: "node",
   transform: {

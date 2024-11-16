@@ -2,6 +2,8 @@ import {
   ConstDirectiveNode,
   FieldDefinitionNode,
   InterfaceTypeDefinitionNode,
+  InterfaceTypeExtensionNode,
+  NamedTypeNode as INamedTypeNode,
   Kind,
 } from "graphql";
 import { FieldNode } from "./FieldNode";
@@ -31,8 +33,13 @@ export class InterfaceNode {
     return this.interfaces?.some((iface) => iface.name === name) ?? false;
   }
 
-  public addInterface(iface: string | NamedTypeNode) {
-    const node = iface instanceof NamedTypeNode ? iface : NamedTypeNode.create(iface);
+  public addInterface(iface: string | NamedTypeNode | INamedTypeNode) {
+    const node =
+      iface instanceof NamedTypeNode
+        ? iface
+        : typeof iface === "string"
+          ? NamedTypeNode.create(iface)
+          : NamedTypeNode.fromDefinition(iface);
 
     if (this.hasInterface(node.name)) {
       throw new Error(`Interface ${node.name} already exists on type ${this.name}`);
@@ -94,6 +101,30 @@ export class InterfaceNode {
 
   public removeDirective(name: string) {
     this.directives = this.directives?.filter((directive) => directive.name !== name);
+    return this;
+  }
+
+  public extend(definition: InterfaceTypeExtensionNode) {
+    const { fields, directives, interfaces } = definition;
+
+    if (fields) {
+      for (const field of fields) {
+        this.addField(field);
+      }
+    }
+
+    if (directives) {
+      for (const directive of directives) {
+        this.addDirective(directive);
+      }
+    }
+
+    if (interfaces) {
+      for (const iface of interfaces) {
+        this.addInterface(iface);
+      }
+    }
+
     return this;
   }
 

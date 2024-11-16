@@ -1,9 +1,25 @@
 import { createTransformer, GraphQLTransformer } from "../src/transformer";
 
 const schema = /* GraphQL */ `
-  type Task implements Node @model {
+  type Viewer
+
+  type User @model {
+    id: ID!
+    firstName: String
+    lastName: String
+    email: AWSEmail @auth(rules: [{ allow: "owner" }])
+    picture: AWSURL
+  }
+
+  type Task @model {
     id: ID!
     title: String!
+    content: AWSJSON
+  }
+
+  extend type Viewer {
+    user: User
+    tasks: Task @connection
   }
 `;
 

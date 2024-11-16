@@ -23,4 +23,7 @@ declare global {
   }
 }
 
-export {};
+declare module "*.graphql" {
+  const content: string;
+  export default content;
+}

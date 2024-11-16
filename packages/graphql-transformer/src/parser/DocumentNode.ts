@@ -62,24 +62,54 @@ export class DocumentNode {
         case Kind.SCALAR_TYPE_DEFINITION:
           document.addNode(ScalarNode.fromDefinition(definition));
           break;
+        case Kind.SCALAR_TYPE_EXTENSION: {
+          const node = document.getNode(definition.name.value);
+          if (node instanceof ScalarNode) node.extend(definition);
+          break;
+        }
         case Kind.DIRECTIVE_DEFINITION:
           document.addNode(DirectiveDefinitionNode.fromDefinition(definition));
           break;
         case Kind.OBJECT_TYPE_DEFINITION:
           document.addNode(ObjectNode.fromDefinition(definition));
           break;
+        case Kind.OBJECT_TYPE_EXTENSION: {
+          const node = document.getNode(definition.name.value);
+          if (node instanceof ObjectNode) node.extend(definition);
+          break;
+        }
         case Kind.INPUT_OBJECT_TYPE_DEFINITION:
           document.addNode(InputObjectNode.fromDefinition(definition));
           break;
+        case Kind.INPUT_OBJECT_TYPE_EXTENSION: {
+          const node = document.getNode(definition.name.value);
+          if (node instanceof InputObjectNode) node.extend(definition);
+          break;
+        }
         case Kind.INTERFACE_TYPE_DEFINITION:
           document.addNode(InterfaceNode.fromDefinition(definition));
           break;
+        case Kind.INTERFACE_TYPE_EXTENSION: {
+          const node = document.getNode(definition.name.value);
+          if (node instanceof InterfaceNode) node.extend(definition);
+          break;
+        }
         case Kind.ENUM_TYPE_DEFINITION:
           document.addNode(EnumNode.fromDefinition(definition));
           break;
+        case Kind.ENUM_TYPE_EXTENSION: {
+          const node = document.getNode(definition.name.value);
+          if (node instanceof EnumNode) node.extend(definition);
+          break;
+        }
         case Kind.UNION_TYPE_DEFINITION:
           document.addNode(UnionNode.fromDefinition(definition));
           break;
+        case Kind.UNION_TYPE_EXTENSION: {
+          const node = document.getNode(definition.name.value);
+          if (node instanceof UnionNode) node.extend(definition);
+          break;
+        }
         default:
           continue;
       }
