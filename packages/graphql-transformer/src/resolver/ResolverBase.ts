@@ -37,7 +37,8 @@ export abstract class Resolver {
       throw this._throwReadonly();
     }
 
-    return this._code.addImport(from, value);
+    this._code.addImport(from, value);
+    return this;
   }
 
   public setRequest(code: string) {
@@ -45,7 +46,8 @@ export abstract class Resolver {
       throw this._throwReadonly();
     }
 
-    return this._code.addRequestFunction(code);
+    this._code.addRequestFunction(code);
+    return this;
   }
 
   public setResponse(code: string) {
@@ -53,7 +55,8 @@ export abstract class Resolver {
       throw this._throwReadonly();
     }
 
-    return this._code.addResponseFunction(code);
+    this._code.addResponseFunction(code);
+    return this;
   }
 
   public print(): string {

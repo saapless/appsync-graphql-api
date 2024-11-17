@@ -1,4 +1,4 @@
-import { ConstDirectiveNode, Kind } from "graphql";
+import { ConstArgumentNode, ConstDirectiveNode, Kind } from "graphql";
 import { ArgumentNode } from "./ArgumentNode";
 
 export class DirectiveNode {
@@ -9,6 +9,32 @@ export class DirectiveNode {
   constructor(name: string, args?: ArgumentNode[]) {
     this.name = name;
     this.arguments = args;
+  }
+
+  public hasArgument(arg: string) {
+    return this.arguments?.some((argument) => argument.name === arg) ?? false;
+  }
+
+  public getArgument(arg: string) {
+    return this.arguments?.find((argument) => argument.name === arg);
+  }
+
+  public addArgument(argument: ArgumentNode | ConstArgumentNode) {
+    const argumentNode =
+      argument instanceof ArgumentNode ? argument : ArgumentNode.fromDefinition(argument);
+
+    if (this.hasArgument(argumentNode.name)) {
+      throw new Error(`Argument ${argument.name} already exists on field ${this.name}`);
+    }
+
+    this.arguments = this.arguments ?? [];
+    this.arguments.push(argumentNode);
+    return this;
+  }
+
+  public removeArgument(arg: string) {
+    this.arguments = this.arguments?.filter((argument) => argument.name !== arg);
+    return this;
   }
 
   public serialize(): ConstDirectiveNode {

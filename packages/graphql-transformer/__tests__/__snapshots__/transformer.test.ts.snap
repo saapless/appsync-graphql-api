@@ -1,9 +1,29 @@
 // Jest Snapshot v1, https://goo.gl/fbAQLP
 
-exports[`createTransformer function transforms schema 1`] = `
+exports[`GraphQLTransformer runs schema transformations NodeInterfacePlugin trnsformations adds Query.node resolver 1`] = `
+"import { type Context, util } from "@aws-appsync/utils";
+import { get } from "@aws-appsync/utils/dynamodb";
+
+export function request(ctx: Context) {
+  return get({ key: { id: ctx.args.id } });
+}
+
+export function response(ctx: Context) {
+  const { error, result } = ctx;
+  
+  if (error) {
+    util.error(error.message, error.type)
+  }
+  
+  return result;
+}
+"
+`;
+
+exports[`GraphQLTransformer runs schema transformations creates valid schema 1`] = `
 "type Viewer {
   user: User
-  tasks: Task @connection
+  tasks: Task
 }
 
 interface Node {
@@ -11,29 +31,36 @@ interface Node {
   createdAt: AWSDateTime
   updatedAt: AWSDateTime
   _version: Int
-  _deleted: Boolean
+  _deleted: Boolean @readonly
+}
+
+enum UserStatus {
+  ACTIVE
+  DISABLED
+  SUSPENDED
 }
 
 type User implements Node @model {
   id: ID!
   firstName: String
   lastName: String
-  email: AWSEmail @auth(rules: [{allow: "owner"}])
+  email: AWSEmail
   picture: AWSURL
+  status: UserStatus @readonly
   createdAt: AWSDateTime
   updatedAt: AWSDateTime
   _version: Int
-  _deleted: Boolean
+  _deleted: Boolean @readonly
 }
 
-type Task implements Node @model {
+type Task implements Node @model(operations: [upsert, delete]) {
   id: ID!
   title: String!
   content: AWSJSON
   createdAt: AWSDateTime
   updatedAt: AWSDateTime
   _version: Int
-  _deleted: Boolean
+  _deleted: Boolean @readonly
 }
 
 scalar AWSDate
@@ -68,25 +95,168 @@ directive @aws_subscribe(mutations: [String!]!) on FIELD_DEFINITION
 
 type Query {
   node(id: ID!): Node
+  getUser(id: ID!): User
+  listUsers(filter: UserFilterInput, first: Int, after: String, sort: SortDirection): UserConnection
+}
+
+directive @auth on OBJECT | FIELD_DEFINITION
+
+enum ModelOperation {
+  create
+  update
+  upsert
+  delete
+  get
+  list
+}
+
+directive @model(operations: [ModelOperation!]) on OBJECT
+
+directive @readonly on OBJECT | FIELD_DEFINITION
+
+input ModelSizeInput {
+  ne: Int
+  eq: Int
+  le: Int
+  lt: Int
+  ge: Int
+  gt: Int
+  between: [Int!]
+}
+
+input ModelStringInput {
+  ne: String
+  eq: String
+  le: String
+  lt: String
+  ge: String
+  gt: String
+  in: [String!]
+  contains: String
+  notContains: String
+  between: [String!]
+  beginsWith: String
+  attributeExists: Boolean
+  size: ModelSizeInput
+}
+
+input ModelIntInput {
+  ne: Int
+  eq: Int
+  le: Int
+  lt: Int
+  ge: Int
+  gt: Int
+  in: [Int!]
+  between: [Int!]
+  attributeExists: Boolean
+}
+
+input ModelFloatInput {
+  ne: Float
+  eq: Float
+  le: Float
+  lt: Float
+  ge: Float
+  gt: Float
+  in: [Float!]
+  between: [Float!]
+  attributeExists: Boolean
+}
+
+input ModelBooleanInput {
+  ne: Boolean
+  eq: Boolean
+  attributeExists: Boolean
+}
+
+input ModelIDInput {
+  ne: ID
+  eq: ID
+  in: [ID!]
+  attributeExists: Boolean
+}
+
+input ModelListInput {
+  contains: String
+  notContains: String
+  size: ModelSizeInput
+}
+
+enum SortDirection {
+  ASC
+  DESC
+}
+
+input CreateUserInput {
+  id: id
+  firstName: String
+  lastName: String
+  email: AWSEmail
+  picture: AWSURL
+  createdAt: AWSDateTime
+  updatedAt: AWSDateTime
+  _version: _version
+}
+
+type Mutation {
+  createUser(input: CreateUserInput!): User
+  updateUser(input: UpdateUserInput!): User
+  deleteUser(input: DeleteUserInput!): User
+  upsertTask(input: UpsertTaskInput!): Task
+  deleteTask(input: DeleteTaskInput!): Task
+}
+
+input UpdateUserInput {
+  id: id!
+  firstName: String
+  lastName: String
+  email: AWSEmail
+  picture: AWSURL
+  createdAt: AWSDateTime
+  updatedAt: AWSDateTime
+  _version: _version!
+}
+
+input DeleteUserInput {
+  id: ID!
+  _version: Int!
+}
+
+input UserStatusInput {
+  eq: UserStatus
+  ne: UserStatus
+  in: [UserStatus!]
+  attributeExists: Boolean
+}
+
+input UserFilterInput {
+  id: ModelIDInput
+  firstName: ModelStringInput
+  lastName: ModelStringInput
+  email: ModelStringInput
+  picture: ModelStringInput
+  status: [object Object]Input
+  createdAt: ModelStringInput
+  updatedAt: ModelStringInput
+  _version: ModelIntInput
+  _deleted: ModelBooleanInput
+  and: [UserFilterInput]
+  or: [UserFilterInput]
+  not: UserFilterInput
+}
+
+input UpsertTaskInput {
+  id: id
+  title: String
+  content: AWSJSON
+  createdAt: AWSDateTime
+  updatedAt: AWSDateTime
+  _version: _version
+}
+
+input DeleteTaskInput {
+  id: ID!
+  _version: Int!
 }"
-`;
-
-exports[`createTransformer function transforms schema 2`] = `
-"import { type Context, util } from "@aws-appsync/utils";
-import { get } from "@aws-appsync/utils/dynamodb";
-
-export function request(ctx: Context) {
-  return get({ key: { id: ctx.args.id } });
-}
-
-export function response(ctx: Context) {
-  const { error, result } = ctx;
-  
-  if (error) {
-    util.error(error.message, error.type)
-  }
-  
-  return result;
-}
-"
 `;

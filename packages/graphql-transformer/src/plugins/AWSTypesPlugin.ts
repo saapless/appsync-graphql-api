@@ -32,18 +32,21 @@ export class AWSTypesPlugin extends TransformerPluginBase {
       .addNode(ScalarNode.create("AWSIPAddress"))
       .addNode(DirectiveDefinitionNode.create("aws_api_key", ["FIELD_DEFINITION", "OBJECT"]))
       .addNode(
-        DirectiveDefinitionNode.create("aws_auth", ["FIELD_DEFINITION", "OBJECT"], false, [
-          InputValueNode.create(
-            "cognito_groups",
-            NonNullTypeNode.create(ListTypeNode.create(NonNullTypeNode.create("String")))
-          ),
-        ])
+        DirectiveDefinitionNode.create(
+          "aws_auth",
+          ["FIELD_DEFINITION", "OBJECT"],
+          [
+            InputValueNode.create(
+              "cognito_groups",
+              NonNullTypeNode.create(ListTypeNode.create(NonNullTypeNode.create("String")))
+            ),
+          ]
+        )
       )
       .addNode(
         DirectiveDefinitionNode.create(
           "aws_cognito_user_pools",
           ["FIELD_DEFINITION", "OBJECT"],
-          false,
           [
             InputValueNode.create(
               "cognito_groups",
@@ -55,12 +58,16 @@ export class AWSTypesPlugin extends TransformerPluginBase {
       .addNode(DirectiveDefinitionNode.create("aws_lambda", ["FIELD_DEFINITION", "OBJECT"]))
       .addNode(DirectiveDefinitionNode.create("aws_oidc", ["FIELD_DEFINITION", "OBJECT"]))
       .addNode(
-        DirectiveDefinitionNode.create("aws_subscribe", ["FIELD_DEFINITION"], false, [
-          InputValueNode.create(
-            "mutations",
-            NonNullTypeNode.create(ListTypeNode.create(NonNullTypeNode.create("String")))
-          ),
-        ])
+        DirectiveDefinitionNode.create(
+          "aws_subscribe",
+          ["FIELD_DEFINITION"],
+          [
+            InputValueNode.create(
+              "mutations",
+              NonNullTypeNode.create(ListTypeNode.create(NonNullTypeNode.create("String")))
+            ),
+          ]
+        )
       );
   }
 

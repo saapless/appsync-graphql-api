@@ -68,6 +68,8 @@ export class NodeInterfacePlugin extends TransformerPluginBase {
     }
 
     // Add Query.node resolver
+    // TODO: Maybe move this in the `after` hook. Need to decide how will implement auth rules
+
     const field = queryNode.getField("node") as FieldNode;
 
     if (!field.hasDirective("resolver")) {
@@ -75,8 +77,8 @@ export class NodeInterfacePlugin extends TransformerPluginBase {
       resolver
         .addImport("@aws-appsync/utils", { value: "util" })
         .addImport("@aws-appsync/utils/dynamodb", { value: "get" })
-        .addRequestFunction(statement("return get({ key: { id: ctx.args.id } })"))
-        .addResponseFunction(
+        .setRequest(statement("return get({ key: { id: ctx.args.id } })"))
+        .setResponse(
           join(
             "\n",
             statement("const { error, result } = ctx"),
@@ -119,7 +121,7 @@ export class NodeInterfacePlugin extends TransformerPluginBase {
       definition.addInterface(nodeInterface.name);
     }
 
-    // Make sure that all fields declared by `Node` interface are declased by definition as well
+    // Make sure that all fields declared by `Node` interface are declared by definition as well
     const nodeFields = nodeInterface.fields ?? [];
 
     for (const field of nodeFields) {

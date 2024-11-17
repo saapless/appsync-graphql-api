@@ -7,6 +7,7 @@ import {
   TypeExtensionNode,
 } from "graphql";
 import { validateSDL } from "graphql/validation/validate";
+import { InvalidDefinitionError } from "../utils/errors";
 import { ObjectNode } from "./ObjectNode";
 import { InputObjectNode } from "./InputObjectNode";
 import { InterfaceNode } from "./InterfaceNode";
@@ -47,6 +48,36 @@ export class DocumentNode {
 
     this.definitions.push(node);
     return this;
+  }
+
+  public getQueryNode(): ObjectNode {
+    let node = this.getNode("Query");
+
+    if (!node) {
+      node = ObjectNode.create("Query");
+      this.addNode(node);
+    }
+
+    if (!(node instanceof ObjectNode)) {
+      throw new InvalidDefinitionError("Query node must be an object type");
+    }
+
+    return node;
+  }
+
+  public getMutationNode(): ObjectNode {
+    let node = this.getNode("Mutation");
+
+    if (!node) {
+      node = ObjectNode.create("Mutation");
+      this.addNode(node);
+    }
+
+    if (!(node instanceof ObjectNode)) {
+      throw new InvalidDefinitionError("Mutation node must be an object type");
+    }
+
+    return node;
   }
 
   public removeNode(name: string) {

@@ -11,7 +11,7 @@ import {
 } from "../parser";
 import { TransformerContext } from "../context";
 import { IPluginFactory, TransformerPluginBase } from "../plugins/TransformerPluginBase";
-// import { SchemaValidationError } from "../utils/errors";
+import { SchemaValidationError } from "../utils/errors";
 
 export interface GraphQLTransformerOptions {
   definition: string;
@@ -34,17 +34,17 @@ export class GraphQLTransformer {
   }
 
   public transform() {
-    // Run plugins before
+    // Run plugins before hook
     for (const plugin of this.plugins) {
       plugin.before();
     }
 
     // Should be safe to validate the schema here
-    // const errors = this.document.validate();
+    const errors = this.document.validate();
 
-    // if (errors.length) {
-    //   throw new SchemaValidationError(errors)
-    // }
+    if (errors.length) {
+      throw new SchemaValidationError(errors);
+    }
 
     // Run transformers
     for (const definition of this.document.definitions) {
@@ -67,6 +67,10 @@ export class GraphQLTransformer {
         default:
           continue;
       }
+    }
+
+    for (const plugin of this.plugins) {
+      plugin.after();
     }
 
     return this.context;

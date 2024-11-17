@@ -7,8 +7,8 @@ describe("resolver/FieldResolver", () => {
     resolver
       .addImport("@aws-appsync/utils", { value: "util" })
       .addImport("@aws-appsync/utils/dynamodb", { value: "get" })
-      .addRequestFunction(statement("return get({ key: { id: ctx.args.id } })"))
-      .addResponseFunction(
+      .setRequest(statement("return get({ key: { id: ctx.args.id } })"))
+      .setResponse(
         join(
           "\n",
           statement("const { error, result } = ctx"),

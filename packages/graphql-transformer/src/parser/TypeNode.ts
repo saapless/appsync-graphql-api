@@ -15,6 +15,10 @@ export class NamedTypeNode {
     this.loc = loc;
   }
 
+  public getTypeName() {
+    return this.name;
+  }
+
   public serialize(): INamedTypeNode {
     return {
       kind: Kind.NAMED_TYPE,
@@ -43,6 +47,10 @@ export class ListTypeNode {
   constructor(type: TypeNode, loc?: Location) {
     this.type = type;
     this.loc = loc;
+  }
+
+  getTypeName(): string {
+    return this.type.getTypeName();
   }
 
   public serialize(): IListTypeNode {
@@ -77,6 +85,10 @@ export class NonNullTypeNode {
   constructor(type: NamedTypeNode | ListTypeNode, loc?: Location) {
     this.type = type;
     this.loc = loc;
+  }
+
+  public getTypeName(): string {
+    return this.type.getTypeName();
   }
 
   public serialize(): INonNullTypeNode {

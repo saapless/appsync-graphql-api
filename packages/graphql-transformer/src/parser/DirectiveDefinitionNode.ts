@@ -75,8 +75,8 @@ export class DirectiveDefinitionNode {
   static create(
     name: string,
     locations: string[],
-    repeatable: boolean = false,
-    args?: InputValueNode[]
+    args?: InputValueNode[],
+    repeatable: boolean = false
   ) {
     return new DirectiveDefinitionNode(name, locations, repeatable, args);
   }
