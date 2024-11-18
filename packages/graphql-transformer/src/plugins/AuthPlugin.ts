@@ -1,5 +1,5 @@
 import { TransformerContext } from "../context";
-import { DefinitionNode, DirectiveDefinitionNode, ObjectNode } from "../parser";
+import { DefinitionNode, DirectiveDefinitionNode, InterfaceNode, ObjectNode } from "../parser";
 import { TransformerPluginBase } from "./TransformerPluginBase";
 
 export class AuthPlugin extends TransformerPluginBase {
@@ -10,13 +10,17 @@ export class AuthPlugin extends TransformerPluginBase {
 
   public before() {
     this.context.document.addNode(
-      DirectiveDefinitionNode.create("auth", ["OBJECT", "FIELD_DEFINITION"])
+      DirectiveDefinitionNode.create("auth", ["OBJECT", "FIELD_DEFINITION", "INTERFACE"])
     );
   }
 
   public match(definition: DefinitionNode) {
-    if (definition instanceof ObjectNode && definition.hasDirective("auth")) {
-      return true;
+    if (definition instanceof ObjectNode || definition instanceof InterfaceNode) {
+      if (definition.hasDirective("auth")) {
+        return true;
+      }
+
+      return definition.fields?.some((field) => field.hasDirective("auth")) ?? false;
     }
 
     return false;

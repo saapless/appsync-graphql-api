@@ -81,6 +81,10 @@ export class InterfaceNode {
     return this.directives?.some((directive) => directive.name === name) ?? false;
   }
 
+  public getDirective(name: string) {
+    return this.directives?.find((directive) => directive.name === name);
+  }
+
   public addDirective(directive: string | DirectiveNode | ConstDirectiveNode) {
     const node =
       directive instanceof DirectiveNode

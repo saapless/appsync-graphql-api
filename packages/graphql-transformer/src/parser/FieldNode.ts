@@ -4,9 +4,9 @@ import { DirectiveNode } from "./DirectiveNode";
 import { ListTypeNode, NamedTypeNode, NonNullTypeNode, TypeNode } from "./TypeNode";
 
 export class FieldNode {
-  kind: Kind.FIELD_DEFINITION = Kind.FIELD_DEFINITION;
-  name: string;
-  type: TypeNode;
+  readonly kind: Kind.FIELD_DEFINITION = Kind.FIELD_DEFINITION;
+  readonly name: string;
+  public type: TypeNode;
   arguments?: InputValueNode[] | undefined;
   directives?: DirectiveNode[] | undefined;
 
@@ -71,6 +71,11 @@ export class FieldNode {
 
   public removeDirective(name: string) {
     this.directives = this.directives?.filter((directive) => directive.name !== name);
+    return this;
+  }
+
+  public setType(type: TypeNode) {
+    this.type = type;
     return this;
   }
 

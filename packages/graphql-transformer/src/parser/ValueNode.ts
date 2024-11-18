@@ -10,7 +10,13 @@ import {
   ObjectValueNode,
 } from "graphql";
 
-type ValueType = string | number | boolean | null | { [key: string]: ValueType } | ValueType[];
+export type ValueType =
+  | string
+  | number
+  | boolean
+  | null
+  | { [key: string]: ValueType }
+  | ValueType[];
 
 /**
  * TODO:

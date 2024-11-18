@@ -5,18 +5,36 @@ import {
 } from "graphql";
 import { InputValueNode } from "./InputValueNode";
 
+type Location =
+  | "SCHEMA"
+  | "SCALAR"
+  | "OBJECT"
+  | "FIELD_DEFINITION"
+  | "ARGUMENT_DEFINITION"
+  | "INTERFACE"
+  | "UNION"
+  | "ENUM"
+  | "ENUM_VALUE"
+  | "INPUT_OBJECT"
+  | "INPUT_FIELD_DEFINITION";
+
 export class DirectiveDefinitionNode {
   kind: Kind.DIRECTIVE_DEFINITION = Kind.DIRECTIVE_DEFINITION;
   name: string;
   repeatable: boolean = false;
-  locations: string[];
+  locations: Location[];
   arguments?: InputValueNode[];
 
-  constructor(name: string, locations: string[], repeatable: boolean, args?: InputValueNode[]) {
+  constructor(
+    name: string,
+    locations: Location | Location[],
+    args?: InputValueNode | InputValueNode[],
+    repeatable: boolean = false
+  ) {
     this.name = name;
-    this.locations = locations;
+    this.locations = Array.isArray(locations) ? locations : [locations];
+    this.arguments = args instanceof InputValueNode ? [args] : args;
     this.repeatable = repeatable;
-    this.arguments = args;
   }
 
   public hasArgument(arg: string) {
@@ -66,18 +84,18 @@ export class DirectiveDefinitionNode {
   static fromDefinition(definition: IDirectiveDefinitionNode) {
     return new DirectiveDefinitionNode(
       definition.name.value,
-      definition.locations.map((node) => node.value),
-      definition.repeatable,
-      definition.arguments?.map((arg) => InputValueNode.fromDefinition(arg))
+      definition.locations.map((node) => node.value as Location),
+      definition.arguments?.map((arg) => InputValueNode.fromDefinition(arg)),
+      definition.repeatable
     );
   }
 
   static create(
     name: string,
-    locations: string[],
-    args?: InputValueNode[],
+    locations: Location | Location[],
+    args?: InputValueNode | InputValueNode[],
     repeatable: boolean = false
   ) {
-    return new DirectiveDefinitionNode(name, locations, repeatable, args);
+    return new DirectiveDefinitionNode(name, locations, args, repeatable);
   }
 }

@@ -24,7 +24,7 @@ export class ModelPlugin extends TransformerPluginBase {
     super(context);
   }
 
-  //#region Model Types
+  //#region Create Resources
 
   private _createModelSizeInput() {
     const input = InputObjectNode.create("ModelSizeInput", [
@@ -141,47 +141,6 @@ export class ModelPlugin extends TransformerPluginBase {
     this.context.document.addNode(enumNode);
   }
 
-  //#endregion
-
-  public before() {
-    this.context.document
-      .addNode(
-        EnumNode.create("ModelOperation", ["create", "update", "upsert", "delete", "get", "list"])
-      )
-      .addNode(
-        DirectiveDefinitionNode.create(
-          "model",
-          ["OBJECT"],
-          [
-            InputValueNode.create(
-              "operations",
-              ListTypeNode.create(NonNullTypeNode.create("ModelOperation"))
-            ),
-          ]
-        )
-      )
-      .addNode(DirectiveDefinitionNode.create("readonly", ["OBJECT", "FIELD_DEFINITION"]));
-
-    this._createModelSizeInput();
-    this._createModelStringInput();
-    this._createModelIntInput();
-    this._createModelFloatInput();
-    this._createModelBooleanInput();
-    this._createModelIDInput();
-    this._createModelListInput();
-    this._createSortDirection();
-  }
-
-  public match(definition: DefinitionNode) {
-    if (definition instanceof ObjectNode && definition.hasDirective("model")) {
-      return true;
-    }
-
-    return false;
-  }
-
-  //#region Create Fields
-
   /**
    * TODO:
    *  * User should be able to pass a list of default operations.
@@ -213,11 +172,9 @@ export class ModelPlugin extends TransformerPluginBase {
     const fieldName = `get${model.name}`;
     const queryNode = this.context.document.getQueryNode();
 
-    // 1. Add query field to schema;
-    if (queryNode.hasField(fieldName)) {
-      // Field already defined.
-      // TODO: Deal with this case.
-    } else {
+    // We allow users to implement custom definition for fields.
+    // So, if the field already exists, we skip creating it.
+    if (!queryNode.hasField(fieldName)) {
       const field = FieldNode.create(fieldName, NamedTypeNode.create(model.name), [
         InputValueNode.create("id", NonNullTypeNode.create(NamedTypeNode.create("ID"))),
       ]);
@@ -226,7 +183,6 @@ export class ModelPlugin extends TransformerPluginBase {
     }
 
     // 2 Create field resolver
-
     if (!this.context.resolvers.has(`Query.${fieldName}`)) {
       this.context.resolvers.set(`Query.${fieldName}`, FieldResolver.create("Query", fieldName));
     }
@@ -239,7 +195,8 @@ export class ModelPlugin extends TransformerPluginBase {
 
     if (!queryNode.hasField(fieldName)) {
       this._createFilterInput(model, `${model.name}FilterInput`);
-      const field = FieldNode.create(fieldName, NamedTypeNode.create(`${model.name}Connection`), [
+
+      const field = FieldNode.create(fieldName, NamedTypeNode.create(model.name), [
         InputValueNode.create("filter", NamedTypeNode.create(`${model.name}FilterInput`)),
         InputValueNode.create("first", NamedTypeNode.create("Int")),
         InputValueNode.create("after", NamedTypeNode.create("String")),
@@ -342,20 +299,6 @@ export class ModelPlugin extends TransformerPluginBase {
           case "ID":
             input.addField(InputValueNode.create(field.name, NamedTypeNode.create(`ModelIDInput`)));
             continue;
-          case "String":
-          case "AWSDate":
-          case "AWSDateTime":
-          case "AWSTime":
-          case "AWSTimestamp":
-          case "AWSEmail":
-          case "AWSJSON":
-          case "AWSURL":
-          case "AWSPhone":
-          case "AWSIPAddress":
-            input.addField(
-              InputValueNode.create(field.name, NamedTypeNode.create("ModelStringInput"))
-            );
-            continue;
           case "Int":
             input.addField(
               InputValueNode.create(field.name, NamedTypeNode.create("ModelIntInput"))
@@ -371,6 +314,20 @@ export class ModelPlugin extends TransformerPluginBase {
               InputValueNode.create(field.name, NamedTypeNode.create("ModelBooleanInput"))
             );
             continue;
+          case "String":
+          case "AWSDate":
+          case "AWSDateTime":
+          case "AWSTime":
+          case "AWSTimestamp":
+          case "AWSEmail":
+          case "AWSJSON":
+          case "AWSURL":
+          case "AWSPhone":
+          case "AWSIPAddress":
+            input.addField(
+              InputValueNode.create(field.name, NamedTypeNode.create("ModelStringInput"))
+            );
+            continue;
         }
 
         const typeDef = this.context.document.getNode(field.type.getTypeName());
@@ -382,7 +339,7 @@ export class ModelPlugin extends TransformerPluginBase {
         if (typeDef instanceof EnumNode) {
           this._createEnumInput(typeDef);
           input.addField(
-            InputValueNode.create(field.name, NamedTypeNode.create(`${field.type}Input`))
+            InputValueNode.create(field.name, NamedTypeNode.create(`${typeDef.name}Input`))
           );
         }
       }
@@ -422,6 +379,43 @@ export class ModelPlugin extends TransformerPluginBase {
   }
 
   //#endregion
+
+  public before() {
+    this.context.document
+      .addNode(
+        EnumNode.create("ModelOperation", ["create", "update", "upsert", "delete", "get", "list"])
+      )
+      .addNode(
+        DirectiveDefinitionNode.create(
+          "model",
+          ["OBJECT"],
+          [
+            InputValueNode.create(
+              "operations",
+              ListTypeNode.create(NonNullTypeNode.create("ModelOperation"))
+            ),
+          ]
+        )
+      )
+      .addNode(DirectiveDefinitionNode.create("readonly", ["OBJECT", "FIELD_DEFINITION"]));
+
+    this._createModelSizeInput();
+    this._createModelStringInput();
+    this._createModelIntInput();
+    this._createModelFloatInput();
+    this._createModelBooleanInput();
+    this._createModelIDInput();
+    this._createModelListInput();
+    this._createSortDirection();
+  }
+
+  public match(definition: DefinitionNode) {
+    if (definition instanceof ObjectNode && definition.hasDirective("model")) {
+      return true;
+    }
+
+    return false;
+  }
 
   public execute(definition: ObjectNode) {
     // 1. Add operation fields

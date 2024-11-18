@@ -1,5 +1,6 @@
 import { ConstArgumentNode, ConstDirectiveNode, Kind } from "graphql";
 import { ArgumentNode } from "./ArgumentNode";
+import { ValueType } from "./ValueNode";
 
 export class DirectiveNode {
   kind: Kind.DIRECTIVE = Kind.DIRECTIVE;
@@ -35,6 +36,16 @@ export class DirectiveNode {
   public removeArgument(arg: string) {
     this.arguments = this.arguments?.filter((argument) => argument.name !== arg);
     return this;
+  }
+
+  public getArgumentsJSON<
+    T extends Record<string, ValueType> = Record<string, ValueType>,
+  >(): Partial<T> {
+    return (
+      this.arguments?.reduce((acc, argument) => {
+        return { ...acc, ...argument.toJSON() };
+      }, {}) ?? {}
+    );
   }
 
   public serialize(): ConstDirectiveNode {

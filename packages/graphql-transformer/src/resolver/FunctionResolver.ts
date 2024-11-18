@@ -13,7 +13,7 @@ export class FunctionResolver extends Resolver {
     return {
       name: this.name,
       dataSource: this.dataSource,
-      source: this.print(),
+      code: this.print(),
     };
   }
 

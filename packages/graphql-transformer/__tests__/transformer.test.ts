@@ -1,3 +1,5 @@
+import { readFileSync } from "node:fs";
+import { join } from "node:path";
 import { createTransformer, GraphQLTransformer } from "../src/transformer";
 import { FieldResolver } from "../src/resolver";
 import {
@@ -8,58 +10,36 @@ import {
   ObjectNode,
   ScalarNode,
 } from "../src/parser";
+import { SchemaValidationError } from "../src/utils/errors";
 
-const schema = /* GraphQL */ `
-  type Viewer
-
-  interface Node {
-    id: ID!
-
-    # Metadata
-    createdAt: AWSDateTime
-    updatedAt: AWSDateTime
-    _version: Int
-    _deleted: Boolean @readonly
-  }
-
-  enum UserStatus {
-    ACTIVE
-    DISABLED
-    SUSPENDED
-  }
-
-  type User @model {
-    id: ID!
-    firstName: String
-    lastName: String
-    email: AWSEmail # @auth(rules: [{ allow: "owner" }])
-    picture: AWSURL
-    status: UserStatus @readonly
-  }
-
-  type Task @model(operations: [upsert, delete]) {
-    id: ID!
-    title: String!
-    content: AWSJSON
-  }
-
-  extend type Viewer {
-    user: User
-    tasks: Task # @connection
-  }
-`;
+// eslint-disable-next-line security/detect-non-literal-fs-filename
+const schema = readFileSync(join(__dirname, "./schema.graphql"), "utf-8");
 
 describe("GraphQLTransformer", () => {
   const transformer = createTransformer({ definition: schema });
 
   describe("createTransformer factory", () => {
+    it("throws if empty definition", () => {
+      expect(() => createTransformer({ definition: "" })).toThrow();
+    });
+
     it("creates new GraphQLTransformer instance", () => {
       expect(transformer).toBeDefined();
       expect(transformer).toBeInstanceOf(GraphQLTransformer);
     });
 
     it("adds default plugins list", () => {
-      expect(transformer.plugins).toHaveLength(4);
+      expect(transformer.plugins).toHaveLength(5);
+    });
+  });
+
+  describe("given invalid schema", () => {
+    it("throws SchemaValidationError", () => {
+      const transformer = createTransformer({
+        definition: schema.replace("type Viewer", "type Viewer2"),
+      });
+
+      expect(() => transformer.transform()).toThrow(SchemaValidationError);
     });
   });
 
@@ -185,10 +165,6 @@ describe("GraphQLTransformer", () => {
         expect(result.document.getNode("DeleteUserInput")).toBeDefined();
         expect(result.document.getNode("UpsertTaskInput")).toBeDefined();
         expect(result.document.getNode("DeleteTaskInput")).toBeDefined();
-
-        // TODO: Not sure if this will remain here or will be moved to the connections plugin.
-        // expect(result.document.getNode("UserConnection")).toBeDefined();
-        // expect(result.document.getNode("UserEdge")).toBeDefined();
       });
 
       it("created operation resolvers", () => {

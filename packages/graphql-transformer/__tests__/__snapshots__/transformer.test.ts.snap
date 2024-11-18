@@ -1,29 +1,23 @@
 // Jest Snapshot v1, https://goo.gl/fbAQLP
 
 exports[`GraphQLTransformer runs schema transformations NodeInterfacePlugin trnsformations adds Query.node resolver 1`] = `
-"import { type Context, util } from "@aws-appsync/utils";
-import { get } from "@aws-appsync/utils/dynamodb";
+"import { type Context } from "@aws-appsync/utils";
 
 export function request(ctx: Context) {
-  return get({ key: { id: ctx.args.id } });
+  return {}
 }
 
 export function response(ctx: Context) {
-  const { error, result } = ctx;
-  
-  if (error) {
-    util.error(error.message, error.type)
-  }
-  
-  return result;
+  return ctx.result
 }
 "
 `;
 
 exports[`GraphQLTransformer runs schema transformations creates valid schema 1`] = `
 "type Viewer {
-  user: User
-  tasks: Task
+  user: User @node
+  tasks: TaskConnection! @edges
+  labels: LabelConnection! @edges
 }
 
 interface Node {
@@ -55,12 +49,90 @@ type User implements Node @model {
 
 type Task implements Node @model(operations: [upsert, delete]) {
   id: ID!
-  title: String!
+  title: String
   content: AWSJSON
+  schedule: Schedule
+  rrule: RRule
+  recurrenceId: ID
+  occurrenceId: String
+  labels: LabelConnection! @connection(relation: "manyMany")
+  subtasks: TaskConnection! @edges
+  artifacts: ArtifactConnection! @edges(relation: "manyMany")
+  occurrences: TaskConnection! @edges(relation: "oneMany")
   createdAt: AWSDateTime
   updatedAt: AWSDateTime
   _version: Int
   _deleted: Boolean @readonly
+}
+
+type RRule {
+  dtStart: AWSDateTime
+  until: AWSDateTime
+  ruleStr: String
+}
+
+type Schedule {
+  startDate: DateTimeZone
+  duration: String
+  dueDate: DateTimeZone
+}
+
+type DateTimeZone {
+  date: AWSDateTime
+  timezone: String
+}
+
+type Label implements Node @model(operations: [upsert, delete]) {
+  id: ID!
+  name: String
+  color: String
+  createdAt: AWSDateTime
+  updatedAt: AWSDateTime
+  _version: Int
+  _deleted: Boolean @readonly
+}
+
+type File implements Node @model(operations: [upsert, delete]) {
+  name: String
+  size: Int
+  url: AWSURL
+  mimeType: String
+  id: ID!
+  createdAt: AWSDateTime
+  updatedAt: AWSDateTime
+  _version: Int
+  _deleted: Boolean @readonly
+}
+
+type TimeTracker implements Node @model(operations: [upsert, delete]) {
+  duration: String
+  logs: [TimeLog!]
+  id: ID!
+  createdAt: AWSDateTime
+  updatedAt: AWSDateTime
+  _version: Int
+  _deleted: Boolean @readonly
+}
+
+type TimeLog {
+  action: TimeLogAction!
+  timestamp: AWSTimestamp!
+}
+
+enum TimeLogAction {
+  START
+  PAUSE
+  END
+  LOG
+}
+
+union Artifact = File | TimeTracker
+
+type Query {
+  viewer: Viewer!
+  node(id: ID!): Node
+  getUser(id: ID!): User
+  listUsers(filter: UserFilterInput, first: Int, after: String, sort: SortDirection): User
 }
 
 scalar AWSDate
@@ -93,13 +165,7 @@ directive @aws_oidc on FIELD_DEFINITION | OBJECT
 
 directive @aws_subscribe(mutations: [String!]!) on FIELD_DEFINITION
 
-type Query {
-  node(id: ID!): Node
-  getUser(id: ID!): User
-  listUsers(filter: UserFilterInput, first: Int, after: String, sort: SortDirection): UserConnection
-}
-
-directive @auth on OBJECT | FIELD_DEFINITION
+directive @auth on OBJECT | FIELD_DEFINITION | INTERFACE
 
 enum ModelOperation {
   create
@@ -188,6 +254,46 @@ enum SortDirection {
   DESC
 }
 
+enum ConnectionRelationType {
+  oneOne
+  oneMany
+  manyOne
+  manyMany
+}
+
+directive @connection(relation: ConnectionRelationType) on FIELD_DEFINITION | OBJECT
+
+directive @node(key: String) on FIELD_DEFINITION
+
+directive @edges(key: String, relation: ConnectionRelationType) on FIELD_DEFINITION
+
+type PageInfo {
+  hasNextPage: Boolean
+  hasPreviousPage: Boolean
+  startCursor: String
+  endCursor: String
+}
+
+type TaskConnection {
+  edges: [TaskEdge!]!
+  pageInfo: PageInfo!
+}
+
+type TaskEdge {
+  cursor: String
+  node: Task
+}
+
+type LabelConnection {
+  edges: [LabelEdge!]!
+  pageInfo: PageInfo!
+}
+
+type LabelEdge {
+  cursor: String
+  node: Label
+}
+
 input CreateUserInput {
   id: id
   firstName: String
@@ -205,6 +311,12 @@ type Mutation {
   deleteUser(input: DeleteUserInput!): User
   upsertTask(input: UpsertTaskInput!): Task
   deleteTask(input: DeleteTaskInput!): Task
+  upsertLabel(input: UpsertLabelInput!): Label
+  deleteLabel(input: DeleteLabelInput!): Label
+  upsertFile(input: UpsertFileInput!): File
+  deleteFile(input: DeleteFileInput!): File
+  upsertTimeTracker(input: UpsertTimeTrackerInput!): TimeTracker
+  deleteTimeTracker(input: DeleteTimeTrackerInput!): TimeTracker
 }
 
 input UpdateUserInput {
@@ -236,7 +348,7 @@ input UserFilterInput {
   lastName: ModelStringInput
   email: ModelStringInput
   picture: ModelStringInput
-  status: [object Object]Input
+  status: UserStatusInput
   createdAt: ModelStringInput
   updatedAt: ModelStringInput
   _version: ModelIntInput
@@ -246,16 +358,96 @@ input UserFilterInput {
   not: UserFilterInput
 }
 
+input DateTimeZoneInput {
+  date: AWSDateTime
+  timezone: String
+}
+
+input ScheduleInput {
+  startDate: DateTimeZoneInput
+  duration: String
+  dueDate: DateTimeZoneInput
+}
+
+input RRuleInput {
+  dtStart: AWSDateTime
+  until: AWSDateTime
+  ruleStr: String
+}
+
 input UpsertTaskInput {
   id: id
   title: String
   content: AWSJSON
+  schedule: ScheduleInput
+  rrule: RRuleInput
+  recurrenceId: ID
+  occurrenceId: String
   createdAt: AWSDateTime
   updatedAt: AWSDateTime
   _version: _version
 }
 
 input DeleteTaskInput {
+  id: ID!
+  _version: Int!
+}
+
+type ArtifactConnection {
+  edges: [ArtifactEdge!]!
+  pageInfo: PageInfo!
+}
+
+type ArtifactEdge {
+  cursor: String
+  node: Artifact
+}
+
+input UpsertLabelInput {
+  id: id
+  name: String
+  color: String
+  createdAt: AWSDateTime
+  updatedAt: AWSDateTime
+  _version: _version
+}
+
+input DeleteLabelInput {
+  id: ID!
+  _version: Int!
+}
+
+input UpsertFileInput {
+  name: String
+  size: Int
+  url: AWSURL
+  mimeType: String
+  id: id
+  createdAt: AWSDateTime
+  updatedAt: AWSDateTime
+  _version: _version
+}
+
+input DeleteFileInput {
+  id: ID!
+  _version: Int!
+}
+
+input TimeLogInput {
+  action: TimeLogAction
+  timestamp: AWSTimestamp
+}
+
+input UpsertTimeTrackerInput {
+  duration: String
+  logs: TimeLogInput
+  id: id
+  createdAt: AWSDateTime
+  updatedAt: AWSDateTime
+  _version: _version
+}
+
+input DeleteTimeTrackerInput {
   id: ID!
   _version: Int!
 }"

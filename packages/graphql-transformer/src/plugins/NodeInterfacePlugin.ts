@@ -1,4 +1,3 @@
-import { Kind } from "graphql";
 import { TransformerContext } from "../context";
 import {
   DefinitionNode,
@@ -11,7 +10,7 @@ import {
 } from "../parser";
 import { FieldResolver } from "../resolver";
 import { block, expression, join, statement } from "../resolver/ast/utils";
-import { InvalidDefinitionError } from "../utils/errors";
+import { InvalidDefinitionError, TransformPluginExecutionError } from "../utils/errors";
 import { TransformerPluginBase } from "./TransformerPluginBase";
 
 export class NodeInterfacePlugin extends TransformerPluginBase {
@@ -101,17 +100,12 @@ export class NodeInterfacePlugin extends TransformerPluginBase {
     return false;
   }
 
-  execute(definition: DefinitionNode): void {
-    if (!(definition instanceof ObjectNode)) {
-      throw new Error(
-        `Invalid execute call. Expected node kind ${Kind.OBJECT_TYPE_DEFINITION}, received ${definition.kind}`
-      );
-    }
-
+  execute(definition: ObjectNode): void {
     const nodeInterface = this.context.document.getNode("Node") as InterfaceNode;
 
     if (!nodeInterface) {
-      throw new Error(
+      throw new TransformPluginExecutionError(
+        this.name,
         "Node Interface not found. Make sure you run `plugin.before()` before executing."
       );
     }

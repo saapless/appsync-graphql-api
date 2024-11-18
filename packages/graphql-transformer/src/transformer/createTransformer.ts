@@ -1,4 +1,11 @@
-import { AWSTypesPlugin, AuthPlugin, NodeInterfacePlugin, ModelPlugin } from "../plugins";
+import {
+  AWSTypesPlugin,
+  AuthPlugin,
+  NodeInterfacePlugin,
+  ModelPlugin,
+  ConnectionPlugin,
+} from "../plugins";
+
 import { GraphQLTransformer, GraphQLTransformerOptions } from "./GraphQLTransformer";
 
 export function createTransformer(options: Partial<GraphQLTransformerOptions>) {
@@ -7,7 +14,13 @@ export function createTransformer(options: Partial<GraphQLTransformerOptions>) {
   }
 
   if (!options.plugins) {
-    options.plugins = [AWSTypesPlugin, NodeInterfacePlugin, AuthPlugin, ModelPlugin];
+    options.plugins = [
+      AWSTypesPlugin,
+      NodeInterfacePlugin,
+      AuthPlugin,
+      ModelPlugin,
+      ConnectionPlugin,
+    ];
   }
 
   return new GraphQLTransformer({

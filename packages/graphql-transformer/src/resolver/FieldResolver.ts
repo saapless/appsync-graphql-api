@@ -26,7 +26,7 @@ export class FieldResolver extends Resolver {
       fieldName: this.fieldName,
       dataSource: this.dataSource,
       pipelineFunctions: this.pipelineFunctions,
-      node: this.print(),
+      code: this.print(),
     };
   }
 

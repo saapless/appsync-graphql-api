@@ -27,18 +27,19 @@ export type DefinitionNode =
 
 export class DocumentNode {
   kind: Kind.DOCUMENT = Kind.DOCUMENT;
-  definitions: DefinitionNode[];
+  // TODO move this to a map.
+  definitions: Map<string, DefinitionNode>;
 
-  constructor(definitions: DefinitionNode[] = []) {
-    this.definitions = definitions;
+  constructor() {
+    this.definitions = new Map();
   }
 
   public hasNode(name: string) {
-    return this.definitions.some((definition) => definition.name === name);
+    return this.definitions.has(name);
   }
 
   public getNode(name: string) {
-    return this.definitions.find((definition) => definition.name === name);
+    return this.definitions.get(name);
   }
 
   public addNode(node: DefinitionNode) {
@@ -46,7 +47,7 @@ export class DocumentNode {
       throw new Error(`Node with name ${node.name} already exists`);
     }
 
-    this.definitions.push(node);
+    this.definitions.set(node.name, node);
     return this;
   }
 
@@ -81,7 +82,7 @@ export class DocumentNode {
   }
 
   public removeNode(name: string) {
-    this.definitions = this.definitions.filter((definition) => definition.name !== name);
+    this.definitions.delete(name);
     return this;
   }
 
@@ -98,13 +99,13 @@ export class DocumentNode {
   public serialize(): DocumentDefinitionNode {
     return {
       kind: Kind.DOCUMENT,
-      definitions: this.definitions.map((definition) => definition.serialize()),
+      definitions: Array.from(this.definitions.values()).map((def) => def.serialize()),
     };
   }
 
   static fromDefinition(definition: DocumentDefinitionNode) {
     const { definitions } = definition;
-    const document = new DocumentNode([]);
+    const document = new DocumentNode();
 
     const extensions: TypeExtensionNode[] = [];
 
