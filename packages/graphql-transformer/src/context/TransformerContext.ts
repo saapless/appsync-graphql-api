@@ -1,5 +1,5 @@
 import { DocumentNode } from "../parser";
-import { Resolver } from "../resolver";
+import { ResolverBase } from "../resolver";
 
 interface TransformerContextConfig {
   document: DocumentNode;
@@ -7,7 +7,7 @@ interface TransformerContextConfig {
 
 export class TransformerContext {
   document: DocumentNode;
-  resolvers: Map<string, Resolver> = new Map();
+  resolvers: Map<string, ResolverBase> = new Map();
 
   constructor(config: TransformerContextConfig) {
     this.document = config.document;

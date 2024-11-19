@@ -1,12 +1,7 @@
-import {
-  FunctionDefinition,
-  ImportStatementDefinition,
-  ImportValue,
-  NodeKind,
-  printAST,
-} from "./ast";
+import { FunctionDefinition, ImportStatementDefinition, ImportValue, NodeKind } from "./language";
+import { printAST } from "./printer";
 
-export class CodeNode {
+export class CodeDocument {
   kind: NodeKind.CODE_DOCUMENT = NodeKind.CODE_DOCUMENT;
   imports: ImportStatementDefinition[] = [];
   requestFunction: FunctionDefinition;
@@ -128,6 +123,6 @@ export class CodeNode {
   }
 
   static create() {
-    return new CodeNode();
+    return new CodeDocument();
   }
 }

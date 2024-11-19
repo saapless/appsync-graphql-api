@@ -59,6 +59,7 @@ export class ConnectionPlugin extends TransformerPluginBase {
 
   private _isUnionOfNodes(node: UnionNode) {
     if (!node.types) return false;
+
     return node.types.every((type) => {
       const nodeType = this.context.document.getNode(type.getTypeName());
       if (!nodeType) return false;

@@ -1,4 +1,4 @@
-import { printAST, CodeASTNode, NodeKind } from "../../src/resolver/ast";
+import { printAST, CodeASTNode, NodeKind } from "../../src/resolver";
 
 const ast = {
   kind: NodeKind.CODE_DOCUMENT,

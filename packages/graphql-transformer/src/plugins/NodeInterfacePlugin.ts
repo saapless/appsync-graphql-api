@@ -8,8 +8,7 @@ import {
   NonNullTypeNode,
   ObjectNode,
 } from "../parser";
-import { FieldResolver } from "../resolver";
-import { block, expression, join, statement } from "../resolver/ast/utils";
+import { FieldResolver, block, expression, join, statement } from "../resolver";
 import { InvalidDefinitionError, TransformPluginExecutionError } from "../utils/errors";
 import { TransformerPluginBase } from "./TransformerPluginBase";
 

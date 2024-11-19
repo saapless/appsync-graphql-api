@@ -29,7 +29,7 @@ describe("GraphQLTransformer", () => {
     });
 
     it("adds default plugins list", () => {
-      expect(transformer.plugins).toHaveLength(5);
+      expect(transformer.plugins).toHaveLength(6);
     });
   });
 

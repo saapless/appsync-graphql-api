@@ -1,20 +1,21 @@
-import { ImportValue } from "./ast/language";
-import { CodeNode } from "./CodeNode";
+import { CodeDocument, ImportValue } from "./code";
+import { ExecutionTemplate } from "./ExecutionTemplate";
 
 export enum ResolverKind {
   FIELD_RESOLVER = "FieldResolver",
   FUNCTION_RESOLVER = "FunctionResolver",
 }
 
-export abstract class Resolver {
+export abstract class ResolverBase extends ExecutionTemplate {
   abstract readonly kind: ResolverKind;
   public readonly isReadonly: boolean = false;
   public readonly dataSource?: string;
   private readonly _name: string;
-  private readonly _code?: CodeNode;
+  private readonly _code?: CodeDocument;
   private readonly _source?: string;
 
   constructor(name: string, dataSource?: string, source?: string) {
+    super();
     this._name = name;
     this.dataSource = dataSource;
 
@@ -22,7 +23,7 @@ export abstract class Resolver {
       this._source = source;
       this.isReadonly = true;
     } else {
-      this._code = CodeNode.create();
+      this._code = CodeDocument.create();
     }
   }
 

@@ -1,7 +1,8 @@
-import { CodeNode } from "../../src/resolver";
+import { CodeDocument } from "../../src/resolver";
+
 describe("CodeNode", () => {
   it("should generate node", () => {
-    const codeNode = CodeNode.create();
+    const codeNode = CodeDocument.create();
     expect(codeNode.serialize()).toMatchSnapshot();
   });
 });

@@ -15,3 +15,8 @@ Highly opinionated GraphQL SDL transformers.
   - `@auth`
   - `@connection`
   - `@resolver`
+  - `@dataSource`
+
+## Resolvers
+
+Stages: `REQUEST` -> `AUTH` -> `LOAD` -> `RESPONSE`

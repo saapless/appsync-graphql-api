@@ -4,6 +4,7 @@ import {
   NodeInterfacePlugin,
   ModelPlugin,
   ConnectionPlugin,
+  DataLoaderPlugin,
 } from "../plugins";
 
 import { GraphQLTransformer, GraphQLTransformerOptions } from "./GraphQLTransformer";
@@ -20,6 +21,7 @@ export function createTransformer(options: Partial<GraphQLTransformerOptions>) {
       AuthPlugin,
       ModelPlugin,
       ConnectionPlugin,
+      DataLoaderPlugin,
     ];
   }
 

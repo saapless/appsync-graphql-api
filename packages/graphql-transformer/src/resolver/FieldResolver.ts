@@ -1,6 +1,6 @@
-import { Resolver, ResolverKind } from "./ResolverBase";
+import { ResolverBase, ResolverKind } from "./ResolverBase";
 
-export class FieldResolver extends Resolver {
+export class FieldResolver extends ResolverBase {
   public readonly kind = ResolverKind.FIELD_RESOLVER;
   public readonly typeName: string;
   public readonly fieldName: string;

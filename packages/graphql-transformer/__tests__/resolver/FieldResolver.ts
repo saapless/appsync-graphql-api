@@ -1,5 +1,4 @@
-import { FieldResolver } from "../../src/resolver";
-import { block, expression, join, statement } from "../../src/resolver/ast/utils";
+import { FieldResolver, block, expression, join, statement } from "../../src/resolver";
 
 describe("resolver/FieldResolver", () => {
   const resolver = FieldResolver.create("Query", "node");

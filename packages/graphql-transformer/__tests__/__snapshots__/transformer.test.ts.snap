@@ -274,6 +274,8 @@ type PageInfo {
   endCursor: String
 }
 
+directive @dataSource(source: String!) on OBJECT
+
 type TaskConnection {
   edges: [TaskEdge!]!
   pageInfo: PageInfo!
