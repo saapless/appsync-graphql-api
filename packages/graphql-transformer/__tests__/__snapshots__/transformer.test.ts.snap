@@ -1,17 +1,6 @@
 // Jest Snapshot v1, https://goo.gl/fbAQLP
 
-exports[`GraphQLTransformer runs schema transformations NodeInterfacePlugin trnsformations adds Query.node resolver 1`] = `
-"import { type Context } from "@aws-appsync/utils";
-
-export function request(ctx: Context) {
-  return {}
-}
-
-export function response(ctx: Context) {
-  return ctx.result
-}
-"
-`;
+exports[`GraphQLTransformer runs schema transformations NodeInterfacePlugin trnsformations adds Query.node resolver 1`] = `""`;
 
 exports[`GraphQLTransformer runs schema transformations creates valid schema 1`] = `
 "type Viewer {

@@ -1,6 +1,6 @@
 import { CodeDocument } from "../../src/resolver";
 
-describe("CodeNode", () => {
+describe("CodeDocument", () => {
   it("should generate node", () => {
     const codeNode = CodeDocument.create();
     expect(codeNode.serialize()).toMatchSnapshot();

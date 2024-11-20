@@ -8,7 +8,7 @@ import {
   NonNullTypeNode,
   ObjectNode,
 } from "../parser";
-import { FieldResolver, block, expression, join, statement } from "../resolver";
+import { FieldResolver, _call, _chain, _id, _obj, _prop, _return } from "../resolver";
 import { InvalidDefinitionError, TransformPluginExecutionError } from "../utils/errors";
 import { TransformerPluginBase } from "./TransformerPluginBase";
 
@@ -73,17 +73,17 @@ export class NodeInterfacePlugin extends TransformerPluginBase {
     if (!field.hasDirective("resolver")) {
       const resolver = FieldResolver.create("Query", "node");
       resolver
-        .addImport("@aws-appsync/utils", { value: "util" })
-        .addImport("@aws-appsync/utils/dynamodb", { value: "get" })
-        .setRequest(statement("return get({ key: { id: ctx.args.id } })"))
-        .setResponse(
-          join(
-            "\n",
-            statement("const { error, result } = ctx"),
-            join(" ", "if", expression("error"), block("util.error(error.message, error.type)")),
-            statement("return result")
-          )
-        );
+        .addImport("@aws-appsync/utils", "util")
+        .addImport("@aws-appsync/utils/dynamodb", "get")
+        .setRequest(
+          _return(_call(_id("get"), [_obj(_prop("key", _obj(_prop("id", _chain("ctx.args.id")))))]))
+        )
+        .setResponse
+        // _const(_object([_]))
+        // statement("const { error, result } = ctx"),
+        // join(" ", "if", expression("error"), block("util.error(error.message, error.type)")),
+        // statement("return result")
+        ();
 
       this.context.resolvers.set("Query.node", resolver);
     }

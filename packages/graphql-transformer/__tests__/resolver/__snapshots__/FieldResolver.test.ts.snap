@@ -1,0 +1,11 @@
+// Jest Snapshot v1, https://goo.gl/fbAQLP
+
+exports[`resolver/FieldResolver should create resolver code 1`] = `
+{
+  "code": "",
+  "dataSource": undefined,
+  "fieldName": "node",
+  "pipelineFunctions": undefined,
+  "typeName": "Query",
+}
+`;

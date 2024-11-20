@@ -8,7 +8,7 @@ import {
   NamedTypeNode,
   NonNullTypeNode,
   ObjectNode,
-} from "../src/parser";
+} from "../../src/parser";
 
 const schema = /* GraphQL */ `
   type Viewer

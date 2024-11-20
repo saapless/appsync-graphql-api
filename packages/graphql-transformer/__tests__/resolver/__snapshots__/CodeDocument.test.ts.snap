@@ -1,0 +1,8 @@
+// Jest Snapshot v1, https://goo.gl/fbAQLP
+
+exports[`CodeDocument should generate node 1`] = `
+{
+  "_kind": "CodeDocument",
+  "body": [],
+}
+`;

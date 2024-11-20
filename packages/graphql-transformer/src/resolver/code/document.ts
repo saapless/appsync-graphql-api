@@ -1,67 +1,26 @@
-import { FunctionDefinition, ImportStatementDefinition, ImportValue, NodeKind } from "./language";
+import {
+  NodeKind,
+  DocumentDefinition,
+  CodeDeclaration,
+  Statement,
+  _export,
+  _func,
+  _id,
+  ImportSpecifier,
+  _import,
+  ImportDeclaration,
+} from "./ast";
 import { printAST } from "./printer";
 
 export class CodeDocument {
-  kind: NodeKind.CODE_DOCUMENT = NodeKind.CODE_DOCUMENT;
-  imports: ImportStatementDefinition[] = [];
-  requestFunction: FunctionDefinition;
-  responseFunction: FunctionDefinition;
+  public readonly kind: NodeKind.CODE_DOCUMENT = NodeKind.CODE_DOCUMENT;
+  public readonly body: CodeDeclaration[] = [];
+  constructor() {}
 
-  constructor() {
-    this.imports = [
-      {
-        kind: NodeKind.IMPORT_STATEMENT,
-        named: [
-          {
-            kind: NodeKind.IMPORT_VALUE,
-            value: "Context",
-            type: true,
-          },
-        ],
-        from: "@aws-appsync/utils",
-      },
-    ];
-    this.requestFunction = {
-      kind: NodeKind.FUNCTION_DEFINITION,
-      name: "request",
-      exports: true,
-      parameters: [
-        {
-          kind: NodeKind.FUNCTION_PARAMETER,
-          name: "ctx",
-          type: "Context",
-        },
-      ],
-      body: {
-        kind: NodeKind.CODE_BLOCK,
-        value: "return {}",
-      },
-    };
-
-    this.responseFunction = {
-      kind: NodeKind.FUNCTION_DEFINITION,
-      name: "response",
-      exports: true,
-      parameters: [
-        {
-          kind: NodeKind.FUNCTION_PARAMETER,
-          name: "ctx",
-          type: "Context",
-        },
-      ],
-      body: {
-        kind: NodeKind.CODE_BLOCK,
-        value: "return ctx.result",
-      },
-    };
-  }
-
-  public serialize() {
+  public serialize(): DocumentDefinition {
     return {
-      kind: this.kind,
-      imports: this.imports,
-      requestFunction: this.requestFunction,
-      responseFunction: this.responseFunction,
+      _kind: this.kind,
+      body: this.body,
     };
   }
 
@@ -69,56 +28,78 @@ export class CodeDocument {
     return printAST(this.serialize());
   }
 
-  public addRequestFunction(value: string) {
-    this.requestFunction.body = {
-      kind: NodeKind.CODE_BLOCK,
-      value,
-    };
+  public hasDeclaration(name: string): boolean {
+    return this.body.some((node) => {
+      if (node._kind === NodeKind.FUNCTION_DECLARATION) {
+        return node.name.name === name;
+      }
+
+      if (node._kind === NodeKind.VARIABLE_DECLRATION) {
+        return node.name === name;
+      }
+
+      if (node._kind === NodeKind.EXPORT_NAMED_DECLARATION && node.declaration) {
+        return node.declaration._kind === NodeKind.FUNCTION_DECLARATION
+          ? node.declaration.name.name === name
+          : node.declaration.name === name;
+      }
+    });
+  }
+
+  public addRequestFunction(...statements: Statement[]) {
+    if (this.hasDeclaration("request")) {
+      throw new Error("Request function already exists");
+    }
+
+    this.body.push(_export(_func("request", [_id("ctx")], statements)));
+    return this;
+  }
+
+  public addResponseFunction(...statements: Statement[]) {
+    if (this.hasDeclaration("response")) {
+      throw new Error("Response function already exists");
+    }
+
+    this.body.push(_export(_func("response", [_id("ctx")], statements)));
 
     return this;
   }
 
-  public addResponseFunction(value: string) {
-    this.responseFunction.body = {
-      kind: NodeKind.CODE_BLOCK,
-      value,
-    };
-
-    return this;
+  private _getImportFrom(from: string): ImportDeclaration | undefined {
+    return this.body.find(
+      (node) => node._kind === NodeKind.IMPORT_DECLARATION && node.from === from
+    ) as ImportDeclaration;
   }
 
-  private _getImportFrom(from: string) {
-    return this.imports.find((imp) => imp.from === from);
-  }
-
-  public addImport(from: string, value: Omit<ImportValue, "kind">, defaultImport = false) {
+  public addImport(from: string, ...specifier: ImportSpecifier[]) {
     const current = this._getImportFrom(from);
+
     if (!current) {
-      this.imports.push({
-        kind: NodeKind.IMPORT_STATEMENT,
-        from,
-        default: defaultImport ? { kind: NodeKind.IMPORT_VALUE, ...value } : undefined,
-        named: !defaultImport ? [{ kind: NodeKind.IMPORT_VALUE, ...value }] : undefined,
-      });
-
+      this.body.push(_import(from, ...specifier));
       return this;
     }
 
-    if (defaultImport && current.default) {
-      throw new Error(`Default import already exists for ${from}`);
+    const isDefault = specifier.some((spec) => spec._kind === NodeKind.MODULE_DEFAULT_SPECIFIER);
+    const isNamespace = specifier.some(
+      (spec) => spec._kind === NodeKind.MODULE_NAMESPACE_SPECIFIER
+    );
+
+    if (isDefault && isNamespace) {
+      throw new Error("Cannot have both default and namespace specifier");
     }
 
-    if (current.named?.find((imp) => imp.value === value.value)) {
-      return this;
+    const hasDefault = current.specifiers.some(
+      (spec) => spec._kind === NodeKind.MODULE_DEFAULT_SPECIFIER
+    );
+    const hasNamespace = current.specifiers.some(
+      (spec) => spec._kind === NodeKind.MODULE_NAMESPACE_SPECIFIER
+    );
+
+    if ((isDefault || isNamespace) && (hasDefault || hasNamespace)) {
+      throw new Error(`Cannot have multiple default or namespace imports for module ${from}`);
     }
 
-    if (defaultImport) {
-      current.default = { kind: NodeKind.IMPORT_VALUE, ...value };
-    } else {
-      current.named = current.named ?? [];
-      current.named.push({ kind: NodeKind.IMPORT_VALUE, ...value });
-    }
-
+    current.specifiers.push(...specifier);
     return this;
   }
 

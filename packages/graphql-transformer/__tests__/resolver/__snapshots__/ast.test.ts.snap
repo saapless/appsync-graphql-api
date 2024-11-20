@@ -1,0 +1,86 @@
+// Jest Snapshot v1, https://goo.gl/fbAQLP
+
+exports[`template ast parser utility functions create function declaration ast 1`] = `
+{
+  "_kind": "ExportNamedDeclaration",
+  "declaration": {
+    "_kind": "FunctionDeclaration",
+    "body": {
+      "_kind": "BlockStatement",
+      "body": [
+        {
+          "_kind": "ReturnStatement",
+          "value": {
+            "_kind": "CallExpression",
+            "arguments": [
+              {
+                "_kind": "ObjectExpression",
+                "properties": [
+                  {
+                    "_kind": "Property",
+                    "name": "key",
+                    "value": {
+                      "_kind": "ObjectExpression",
+                      "properties": [
+                        {
+                          "_kind": "Property",
+                          "name": "id",
+                          "value": {
+                            "_kind": "MemberExpression",
+                            "computed": false,
+                            "object": {
+                              "_kind": "MemberExpression",
+                              "computed": false,
+                              "object": {
+                                "_kind": "Identifier",
+                                "name": "ctx",
+                              },
+                              "optional": false,
+                              "property": {
+                                "_kind": "Identifier",
+                                "name": "args",
+                              },
+                            },
+                            "optional": false,
+                            "property": {
+                              "_kind": "Identifier",
+                              "name": "id",
+                            },
+                          },
+                        },
+                      ],
+                    },
+                  },
+                ],
+              },
+            ],
+            "callee": {
+              "_kind": "Identifier",
+              "name": "get",
+            },
+            "optional": false,
+          },
+        },
+      ],
+    },
+    "name": {
+      "_kind": "Identifier",
+      "name": "request",
+    },
+    "parameters": [
+      {
+        "_kind": "Identifier",
+        "name": "ctx",
+      },
+    ],
+  },
+  "specifiers": undefined,
+}
+`;
+
+exports[`template ast parser utility functions create function declaration ast 2`] = `
+"export function request(ctx) {
+  return get({ key: { id: ctx.args.id } })
+}
+"
+`;
