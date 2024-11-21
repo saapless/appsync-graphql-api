@@ -49,6 +49,7 @@ const printReducer: ASTPrintReducer = {
     join("", node.callee, node.optional ? "?." : "", wrap("(", join(", ", node.arguments), ")")),
   CodeDocument: (node) => join("\n", ...node.body),
   ConditionalExpression: (node) => join(" ", node.test, "?", node.consequent, ":", node.alternate),
+  ExportDeclaration: (node) => join(" ", "export", node.specifier),
   EmptyStatement: () => "\n",
   ForInStatement: (node) =>
     join(" ", "for", wrap("(", join(" ", node.left, "in", node.right), ")"), node.body),
@@ -75,7 +76,11 @@ const printReducer: ASTPrintReducer = {
   ImportDeclaration: (node) => {
     return statement(join(" ", "import", join(", ", node.specifiers), "from", node.from));
   },
-  Literal: (node) => (node.type === "string" ? `"${node.value}"` : node.value),
+  Literal: (node) => {
+    if (node.type === "string") return `"${node.value}"`;
+    if (node.type === "template") return `\`${node.value}\``;
+    return node.value;
+  },
   LogicalExpression: (node) => join(` ${node.operator} `, node.left, node.right),
   MemberExpression: (node) => join(node.optional ? "?." : ".", node.object, node.property),
   ModuleDefaultSpecifier: (node) => node.value,
@@ -83,7 +88,8 @@ const printReducer: ASTPrintReducer = {
     if (siblings != null && index != null) {
       if (siblings.length === 1) return wrap("{ ", join(" as ", node.value, node.alias), " }");
       if (index === 0) return wrap("{ ", join(" as ", node.value, node.alias));
-      if (index === siblings.length - 1) return join(" as ", node.value, node.alias, " }");
+      if (index === siblings.length - 1)
+        return wrap("", join(" as ", node.value, node.alias), " }");
     }
 
     return join(" as ", node.value, node.alias);
@@ -105,7 +111,9 @@ const printReducer: ASTPrintReducer = {
     join(" ", "switch", wrap("(", node.discriminant, ")"), block(...node.cases)),
   UnaryExpression: (node) =>
     wrap(node.operator === "!" ? node.operator : `${node.operator} `, node.argument),
-  VariableDeclaration: (node) => join(" ", node.type, join(" = ", node.name, node.value)),
+  VariableDeclaration: (node) => {
+    return join(" ", node.type, join(" = ", node.name, node.value));
+  },
 };
 
 export function printAST<T extends ASTNode>(

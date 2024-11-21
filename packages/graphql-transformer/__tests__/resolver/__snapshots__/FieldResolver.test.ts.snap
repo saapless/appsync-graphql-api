@@ -2,5 +2,9 @@
 
 exports[`resolver/FieldResolver should create resolver code 1`] = `
 "import { util } from "@aws-appsync/utils";
-import { get } from "@aws-appsync/utils/dynamodb";"
+import { get } from "@aws-appsync/utils/dynamodb";
+export function request(ctx) {
+  return get({ key: { id: ctx.args.id } })
+}
+"
 `;

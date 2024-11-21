@@ -40,7 +40,7 @@ export interface Node {
 
 // #region Literal
 
-export type LiteralType = "string" | "number" | "boolean" | "null" | "undefined";
+export type LiteralType = "string" | "number" | "boolean" | "null" | "undefined" | "template";
 
 export interface StringLiteral extends Node {
   _kind: NodeKind.LITERAL;
@@ -112,12 +112,27 @@ function _undef(): UndefinedLiteral {
   };
 }
 
+export interface TemplateLiteral extends Node {
+  _kind: NodeKind.LITERAL;
+  type: "template";
+  value: string;
+}
+
+function _tick(template: string): TemplateLiteral {
+  return {
+    _kind: NodeKind.LITERAL,
+    type: "template",
+    value: template,
+  };
+}
+
 export const literal = {
   str: _str,
   num: _num,
   bool: _bool,
   null: _null,
   undef: _undef,
+  tick: _tick,
 };
 
 export type Literal =
@@ -125,7 +140,8 @@ export type Literal =
   | NumberLiteral
   | BooleanLiteral
   | NullLiteral
-  | UndefinedLiteral;
+  | UndefinedLiteral
+  | TemplateLiteral;
 
 // #endregion Literal
 
@@ -181,6 +197,10 @@ export interface Property extends Node {
   name: string;
   value: PropertyValue;
 }
+
+type Operand = Literal | Definition | Expression;
+
+type Argument = Literal | DefinitionPattern;
 
 export function _prop(name: string, value: PropertyValue): Property {
   return { _kind: NodeKind.PROPERTY, name, value };
@@ -243,16 +263,14 @@ export const definition = {
 
 // #region Expressions
 
-type Operand = Literal | Definition | Expression;
-
 export interface ArrowFunctionExpression extends Node {
   _kind: NodeKind.ARROW_FUNCTION_EXPRESSION;
-  parameters: DefinitionPattern[];
+  parameters: Argument[];
   body: Operand | BlockStatement;
 }
 
 function _arrow(
-  params: DefinitionPattern | DefinitionPattern[],
+  params: Argument | Argument[],
   body: Operand | BlockStatement
 ): ArrowFunctionExpression {
   return {
@@ -522,15 +540,11 @@ function _ternary(
 export interface CallExpression extends Node {
   _kind: NodeKind.CALL_EXPRESSION;
   callee: Operand;
-  arguments: Array<DefinitionPattern>;
+  arguments: Array<Argument>;
   optional: boolean;
 }
 
-function _call(
-  callee: Operand,
-  args: DefinitionPattern | DefinitionPattern[],
-  optional = false
-): CallExpression {
+function _call(callee: Operand, args: Argument | Argument[], optional = false): CallExpression {
   return {
     _kind: NodeKind.CALL_EXPRESSION,
     callee: callee,
@@ -579,10 +593,12 @@ export const expression = {
 // #region Statement
 export interface BlockStatement extends Node {
   _kind: NodeKind.BLOCK_STATEMENT;
-  body: Statement[];
+  body: Array<Statement | Expression | Definition | Literal>;
 }
 
-export function _block(...statements: Statement[]): BlockStatement {
+export function _block(
+  ...statements: Array<Statement | Expression | Definition | Literal>
+): BlockStatement {
   return { _kind: NodeKind.BLOCK_STATEMENT, body: statements };
 }
 
@@ -614,13 +630,13 @@ export function _break(): BreakStatement {
 export interface IfStatement extends Node {
   _kind: NodeKind.IF_STATEMENT;
   condition: Expression | Definition;
-  consequent: Statement;
+  consequent: Statement | Expression;
   alternate?: Statement;
 }
 
 export function _if(
   condition: Expression | Definition,
-  consequent: Statement,
+  consequent: Statement | Expression,
   altername?: Statement
 ): IfStatement {
   return {
@@ -746,36 +762,51 @@ export const statement = {
 
 export interface VariableDeclaration extends Node {
   _kind: NodeKind.VARIABLE_DECLRATION;
-  name: string;
+  name: Identifier | ObjectDefinition | ArrayDefinition;
   value?: Expression | Definition | Literal;
   type: "var" | "let" | "const";
 }
 
 export function _var(name: string, value: Expression | Definition | Literal): VariableDeclaration {
-  return { _kind: NodeKind.VARIABLE_DECLRATION, name, value, type: "var" };
+  return {
+    _kind: NodeKind.VARIABLE_DECLRATION,
+    name: typeof name === "string" ? _ref(name) : name,
+    value,
+    type: "var",
+  };
 }
 
 export function _let(name: string, value: Expression | Definition | Literal): VariableDeclaration {
-  return { _kind: NodeKind.VARIABLE_DECLRATION, name, value, type: "let" };
+  return {
+    _kind: NodeKind.VARIABLE_DECLRATION,
+    name: typeof name === "string" ? _ref(name) : name,
+    value,
+    type: "let",
+  };
 }
 
 export function _const(
-  name: string,
+  name: string | Identifier | ObjectDefinition | ArrayDefinition,
   value?: Expression | Definition | Literal
 ): VariableDeclaration {
-  return { _kind: NodeKind.VARIABLE_DECLRATION, name, value, type: "const" };
+  return {
+    _kind: NodeKind.VARIABLE_DECLRATION,
+    name: typeof name === "string" ? _ref(name) : name,
+    value,
+    type: "const",
+  };
 }
 
 export interface FunctionDeclaration extends Node {
   _kind: NodeKind.FUNCTION_DECLARATION;
   name: Identifier;
-  parameters: DefinitionPattern[];
+  parameters: Argument[];
   body: BlockStatement;
 }
 
 function _func(
   name: string,
-  params: DefinitionPattern | DefinitionPattern[],
+  params: Argument | Argument[],
   body: Statement | Statement[]
 ): FunctionDeclaration {
   return {
@@ -830,8 +861,11 @@ export interface ModuleDefaultSpecifier extends Node {
   value: Identifier;
 }
 
-function _default(value: Identifier): ModuleDefaultSpecifier {
-  return { _kind: NodeKind.MODULE_DEFAULT_SPECIFIER, value };
+function _default(value: string | Identifier): ModuleDefaultSpecifier {
+  return {
+    _kind: NodeKind.MODULE_DEFAULT_SPECIFIER,
+    value: typeof value === "string" ? _ref(value) : value,
+  };
 }
 
 export type ModuleSpecifier =
@@ -911,6 +945,7 @@ export type ASTNode =
   | StringLiteral
   | SwitchCase
   | SwitchStatement
+  | TemplateLiteral
   | UnaryExpression
   | UndefinedLiteral
   | VariableDeclaration;

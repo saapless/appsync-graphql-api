@@ -32,14 +32,16 @@ export class CodeDocument {
         return node.name.name === name;
       }
 
-      if (node._kind === NodeKind.VARIABLE_DECLRATION) {
-        return node.name === name;
+      if (node._kind === NodeKind.VARIABLE_DECLRATION && node.name._kind === NodeKind.IDENTIFIER) {
+        return node.name.name === name;
       }
 
       if (node._kind === NodeKind.EXPORT_DECLARATION && node.specifier) {
         return node.specifier._kind === NodeKind.FUNCTION_DECLARATION
           ? node.specifier.name.name === name
-          : node.specifier.name === name;
+          : node.specifier.name._kind === NodeKind.IDENTIFIER
+            ? node.specifier.name.name === name
+            : false;
       }
     });
   }

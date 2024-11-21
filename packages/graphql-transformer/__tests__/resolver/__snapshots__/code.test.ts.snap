@@ -1,0 +1,464 @@
+// Jest Snapshot v1, https://goo.gl/fbAQLP
+
+exports[`resolver code printer CodeDocument prints document template 1`] = `
+"import { util, runtime } from "@aws-appsync/utils";
+import * as ddb from "@aws-appsync/utils/dynamodb";
+export function request(ctx) {
+  const { args: { input }, identity } = ctx
+  if (!ctx.identity) {
+    return runtime.earlyReturn(null)
+  }
+  
+  const id = input.id ?? util.autoId()
+  const createdAt = input.createdAt ?? util.time.nowISO8601()
+  const updatedAt = input.updatedAt ?? createdAt
+  const item = { ...input, id: id, createdAt: createdAt, updatedAt: updatedAt, userId: identity.sub, __typename: "Task", _sk: \`Task\${id}\`, _version: 1 }
+  return ddb.put({ key: { id: item.id }, item: item, condition: { id: { attributeExists: false } } })
+}
+
+export function response(ctx) {
+  const { error, result } = ctx
+  if (error) {
+    util.error(error.message, erorr.type)
+  }
+  
+  return result
+}
+"
+`;
+
+exports[`resolver code printer CodeDocument serialize document ast 1`] = `
+{
+  "_kind": "CodeDocument",
+  "body": [
+    {
+      "_kind": "ImportDeclaration",
+      "from": {
+        "_kind": "Literal",
+        "type": "string",
+        "value": "@aws-appsync/utils",
+      },
+      "specifiers": [
+        {
+          "_kind": "ModuleNamedSpecifier",
+          "alias": undefined,
+          "value": {
+            "_kind": "Identifier",
+            "name": "util",
+          },
+        },
+        {
+          "_kind": "ModuleNamedSpecifier",
+          "alias": undefined,
+          "value": {
+            "_kind": "Identifier",
+            "name": "runtime",
+          },
+        },
+      ],
+    },
+    {
+      "_kind": "ImportDeclaration",
+      "from": {
+        "_kind": "Literal",
+        "type": "string",
+        "value": "@aws-appsync/utils/dynamodb",
+      },
+      "specifiers": [
+        {
+          "_kind": "ModuleNamespaceSpecifier",
+          "alias": {
+            "_kind": "Identifier",
+            "name": "ddb",
+          },
+        },
+      ],
+    },
+    {
+      "_kind": "ExportDeclaration",
+      "specifier": {
+        "_kind": "FunctionDeclaration",
+        "body": {
+          "_kind": "BlockStatement",
+          "body": [
+            {
+              "_kind": "VariableDeclaration",
+              "name": {
+                "_kind": "Object",
+                "properties": [
+                  {
+                    "_kind": "Property",
+                    "name": "args",
+                    "value": {
+                      "_kind": "Object",
+                      "properties": [
+                        {
+                          "_kind": "Identifier",
+                          "name": "input",
+                        },
+                      ],
+                    },
+                  },
+                  {
+                    "_kind": "Identifier",
+                    "name": "identity",
+                  },
+                ],
+              },
+              "type": "const",
+              "value": {
+                "_kind": "Identifier",
+                "name": "ctx",
+              },
+            },
+            {
+              "_kind": "IfStatement",
+              "alternate": undefined,
+              "condition": {
+                "_kind": "UnaryExpression",
+                "argument": {
+                  "_kind": "Identifier",
+                  "name": "ctx.identity",
+                },
+                "operator": "!",
+              },
+              "consequent": {
+                "_kind": "BlockStatement",
+                "body": [
+                  {
+                    "_kind": "ReturnStatement",
+                    "value": {
+                      "_kind": "CallExpression",
+                      "arguments": [
+                        {
+                          "_kind": "Literal",
+                          "type": "null",
+                          "value": "null",
+                        },
+                      ],
+                      "callee": {
+                        "_kind": "Identifier",
+                        "name": "runtime.earlyReturn",
+                      },
+                      "optional": false,
+                    },
+                  },
+                ],
+              },
+            },
+            {
+              "_kind": "VariableDeclaration",
+              "name": {
+                "_kind": "Identifier",
+                "name": "id",
+              },
+              "type": "const",
+              "value": {
+                "_kind": "LogicalExpression",
+                "left": {
+                  "_kind": "Identifier",
+                  "name": "input.id",
+                },
+                "operator": "??",
+                "right": {
+                  "_kind": "CallExpression",
+                  "arguments": [],
+                  "callee": {
+                    "_kind": "Identifier",
+                    "name": "util.autoId",
+                  },
+                  "optional": false,
+                },
+              },
+            },
+            {
+              "_kind": "VariableDeclaration",
+              "name": {
+                "_kind": "Identifier",
+                "name": "createdAt",
+              },
+              "type": "const",
+              "value": {
+                "_kind": "LogicalExpression",
+                "left": {
+                  "_kind": "Identifier",
+                  "name": "input.createdAt",
+                },
+                "operator": "??",
+                "right": {
+                  "_kind": "CallExpression",
+                  "arguments": [],
+                  "callee": {
+                    "_kind": "Identifier",
+                    "name": "util.time.nowISO8601",
+                  },
+                  "optional": false,
+                },
+              },
+            },
+            {
+              "_kind": "VariableDeclaration",
+              "name": {
+                "_kind": "Identifier",
+                "name": "updatedAt",
+              },
+              "type": "const",
+              "value": {
+                "_kind": "LogicalExpression",
+                "left": {
+                  "_kind": "Identifier",
+                  "name": "input.updatedAt",
+                },
+                "operator": "??",
+                "right": {
+                  "_kind": "Identifier",
+                  "name": "createdAt",
+                },
+              },
+            },
+            {
+              "_kind": "VariableDeclaration",
+              "name": {
+                "_kind": "Identifier",
+                "name": "item",
+              },
+              "type": "const",
+              "value": {
+                "_kind": "Object",
+                "properties": [
+                  {
+                    "_kind": "SpreadElement",
+                    "argument": {
+                      "_kind": "Identifier",
+                      "name": "input",
+                    },
+                  },
+                  {
+                    "_kind": "Property",
+                    "name": "id",
+                    "value": {
+                      "_kind": "Identifier",
+                      "name": "id",
+                    },
+                  },
+                  {
+                    "_kind": "Property",
+                    "name": "createdAt",
+                    "value": {
+                      "_kind": "Identifier",
+                      "name": "createdAt",
+                    },
+                  },
+                  {
+                    "_kind": "Property",
+                    "name": "updatedAt",
+                    "value": {
+                      "_kind": "Identifier",
+                      "name": "updatedAt",
+                    },
+                  },
+                  {
+                    "_kind": "Property",
+                    "name": "userId",
+                    "value": {
+                      "_kind": "Identifier",
+                      "name": "identity.sub",
+                    },
+                  },
+                  {
+                    "_kind": "Property",
+                    "name": "__typename",
+                    "value": {
+                      "_kind": "Literal",
+                      "type": "string",
+                      "value": "Task",
+                    },
+                  },
+                  {
+                    "_kind": "Property",
+                    "name": "_sk",
+                    "value": {
+                      "_kind": "Literal",
+                      "type": "template",
+                      "value": "Task\${id}",
+                    },
+                  },
+                  {
+                    "_kind": "Property",
+                    "name": "_version",
+                    "value": {
+                      "_kind": "Literal",
+                      "type": "number",
+                      "value": "1",
+                    },
+                  },
+                ],
+              },
+            },
+            {
+              "_kind": "ReturnStatement",
+              "value": {
+                "_kind": "CallExpression",
+                "arguments": [
+                  {
+                    "_kind": "Object",
+                    "properties": [
+                      {
+                        "_kind": "Property",
+                        "name": "key",
+                        "value": {
+                          "_kind": "Object",
+                          "properties": [
+                            {
+                              "_kind": "Property",
+                              "name": "id",
+                              "value": {
+                                "_kind": "Identifier",
+                                "name": "item.id",
+                              },
+                            },
+                          ],
+                        },
+                      },
+                      {
+                        "_kind": "Property",
+                        "name": "item",
+                        "value": {
+                          "_kind": "Identifier",
+                          "name": "item",
+                        },
+                      },
+                      {
+                        "_kind": "Property",
+                        "name": "condition",
+                        "value": {
+                          "_kind": "Object",
+                          "properties": [
+                            {
+                              "_kind": "Property",
+                              "name": "id",
+                              "value": {
+                                "_kind": "Object",
+                                "properties": [
+                                  {
+                                    "_kind": "Property",
+                                    "name": "attributeExists",
+                                    "value": {
+                                      "_kind": "Literal",
+                                      "type": "boolean",
+                                      "value": "false",
+                                    },
+                                  },
+                                ],
+                              },
+                            },
+                          ],
+                        },
+                      },
+                    ],
+                  },
+                ],
+                "callee": {
+                  "_kind": "Identifier",
+                  "name": "ddb.put",
+                },
+                "optional": false,
+              },
+            },
+          ],
+        },
+        "name": {
+          "_kind": "Identifier",
+          "name": "request",
+        },
+        "parameters": [
+          {
+            "_kind": "Identifier",
+            "name": "ctx",
+          },
+        ],
+      },
+    },
+    {
+      "_kind": "ExportDeclaration",
+      "specifier": {
+        "_kind": "FunctionDeclaration",
+        "body": {
+          "_kind": "BlockStatement",
+          "body": [
+            {
+              "_kind": "VariableDeclaration",
+              "name": {
+                "_kind": "Object",
+                "properties": [
+                  {
+                    "_kind": "Identifier",
+                    "name": "error",
+                  },
+                  {
+                    "_kind": "Identifier",
+                    "name": "result",
+                  },
+                ],
+              },
+              "type": "const",
+              "value": {
+                "_kind": "Identifier",
+                "name": "ctx",
+              },
+            },
+            {
+              "_kind": "IfStatement",
+              "alternate": undefined,
+              "condition": {
+                "_kind": "Identifier",
+                "name": "error",
+              },
+              "consequent": {
+                "_kind": "BlockStatement",
+                "body": [
+                  {
+                    "_kind": "CallExpression",
+                    "arguments": [
+                      {
+                        "_kind": "Identifier",
+                        "name": "error.message",
+                      },
+                      {
+                        "_kind": "Identifier",
+                        "name": "erorr.type",
+                      },
+                    ],
+                    "callee": {
+                      "_kind": "Identifier",
+                      "name": "util.error",
+                    },
+                    "optional": false,
+                  },
+                ],
+              },
+            },
+            {
+              "_kind": "ReturnStatement",
+              "value": {
+                "_kind": "Identifier",
+                "name": "result",
+              },
+            },
+          ],
+        },
+        "name": {
+          "_kind": "Identifier",
+          "name": "response",
+        },
+        "parameters": [
+          {
+            "_kind": "Identifier",
+            "name": "ctx",
+          },
+        ],
+      },
+    },
+  ],
+}
+`;
