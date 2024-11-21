@@ -65,7 +65,7 @@ export class CodeDocument {
 
   private _getImportFrom(from: string): ImportDeclaration | undefined {
     return this.body.find(
-      (node) => node._kind === NodeKind.IMPORT_DECLARATION && node.from === from
+      (node) => node._kind === NodeKind.IMPORT_DECLARATION && node.from.value === from
     ) as ImportDeclaration;
   }
 

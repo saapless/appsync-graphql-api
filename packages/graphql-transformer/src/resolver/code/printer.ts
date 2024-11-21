@@ -51,9 +51,9 @@ const printReducer: ASTPrintReducer = {
   ConditionalExpression: (node) => join(" ", node.test, "?", node.consequent, ":", node.alternate),
   EmptyStatement: () => "\n",
   ForInStatement: (node) =>
-    join(" ", "for", wrap("(", join(" ", node.left, "in", node.right)), node.body),
+    join(" ", "for", wrap("(", join(" ", node.left, "in", node.right), ")"), node.body),
   ForOfStatement: (node) =>
-    join(" ", "for", wrap("(", join(" ", node.left, "of", node.right)), node.body),
+    join(" ", "for", wrap("(", join(" ", node.left, "of", node.right), ")"), node.body),
   FunctionDeclaration: (node) =>
     join(
       " ",
@@ -68,24 +68,44 @@ const printReducer: ASTPrintReducer = {
       "if",
       expression(node.condition),
       node.alternate ? node.consequent.trimEnd() : node.consequent,
-      node.alternate ? join(" ", "else", node.alternate) : ""
+      node.alternate
     ),
-  ImportDeclaration: (node) => join(" ", "import", "from", node.from),
-  Literal: (node) => node.value,
+  ElseStatement: (node) =>
+    join(" ", "else", node.consequent.startsWith("if") ? node.consequent : block(node.consequent)),
+  ImportDeclaration: (node) => {
+    return statement(join(" ", "import", join(", ", node.specifiers), "from", node.from));
+  },
+  Literal: (node) => (node.type === "string" ? `"${node.value}"` : node.value),
   LogicalExpression: (node) => join(` ${node.operator} `, node.left, node.right),
   MemberExpression: (node) => join(node.optional ? "?." : ".", node.object, node.property),
   ModuleDefaultSpecifier: (node) => node.value,
-  ModuleNamedSpecifier: (node) => join(" as ", node.value, node.alias),
+  ModuleNamedSpecifier: (node, { siblings, index }) => {
+    if (siblings != null && index != null) {
+      if (siblings.length === 1) return wrap("{ ", join(" as ", node.value, node.alias), " }");
+      if (index === 0) return wrap("{ ", join(" as ", node.value, node.alias));
+      if (index === siblings.length - 1) return join(" as ", node.value, node.alias, " }");
+    }
+
+    return join(" as ", node.value, node.alias);
+  },
   ModuleNamespaceSpecifier: (node) => join(" as ", "*", node.alias),
   Object: (node) => wrap("{ ", join(", ", node.properties), " }"),
   Property: (node) => join(": ", node.name, node.value),
   RestElement: (node) => wrap("...", node.argument),
   ReturnStatement: (node) => wrap("return ", node.value),
   SpreadElement: (node) => wrap("...", node.argument),
-  SwitchCase: (node) => join("case ", node.test, ":", ...node.consequent),
-  SwitchStatement: (node) => join("switch ", node.discriminant, block(...node.cases)),
-  UnaryExpression: (node) => join(node.operator, node.argument),
-  VariableDeclaration: (node) => wrap(node.type, join(" = ", node.name, node.value)),
+  SwitchCase: (node) =>
+    join(
+      "",
+      node.test ? "case " : "default",
+      join("", node.test, ":\n"),
+      indent(node.consequent.join("\n"))
+    ),
+  SwitchStatement: (node) =>
+    join(" ", "switch", wrap("(", node.discriminant, ")"), block(...node.cases)),
+  UnaryExpression: (node) =>
+    wrap(node.operator === "!" ? node.operator : `${node.operator} `, node.argument),
+  VariableDeclaration: (node) => join(" ", node.type, join(" = ", node.name, node.value)),
 };
 
 export function printAST<T extends ASTNode>(
@@ -148,7 +168,7 @@ function expression(value: string) {
 }
 
 function statement(value: string) {
-  return wrap("", value, `${value.endsWith(";") ? "" : ";"}\n`);
+  return wrap("", value, `${value.endsWith(";") ? "" : ";"}`);
 }
 
 // #endregion Utils

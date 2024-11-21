@@ -8,6 +8,7 @@ export enum NodeKind {
   CALL_EXPRESSION = "CallExpression",
   CODE_DOCUMENT = "CodeDocument",
   CONDITIONAL_EXPRESSION = "ConditionalExpression",
+  ELSE_STATEMENT = "ElseStatement",
   EMPTY_STATEMENT = "EmptyStatement",
   EXPORT_DECLARATION = "ExportDeclaration",
   FOR_IN_STATEMENT = "ForInStatement",
@@ -197,9 +198,8 @@ function _obj(
 ): ObjectDefinition {
   const properties = props
     .map((prop) => {
-      if (isNode(props)) return prop;
-
-      return Object.entries(props).map(([key, value]) => _prop(key, value as PropertyValue));
+      if (isNode(prop)) return prop;
+      return Object.entries(prop).map(([key, value]) => _prop(key, value as PropertyValue));
     })
     .flat();
 
@@ -211,10 +211,12 @@ function _obj(
 
 export interface ArrayDefinition extends Node {
   _kind: NodeKind.ARRAY;
-  elements: Array<DefinitionPattern | SpreadElement | RestElement>;
+  elements: Array<DefinitionPattern | SpreadElement | RestElement | Literal>;
 }
 
-function _arr(...elements: Array<DefinitionPattern | SpreadElement | RestElement>) {
+function _arr(
+  ...elements: Array<DefinitionPattern | SpreadElement | RestElement | Literal>
+): ArrayDefinition {
   return {
     _kind: NodeKind.ARRAY,
     elements,
@@ -241,16 +243,18 @@ export const definition = {
 
 // #region Expressions
 
+type Operand = Literal | Definition | Expression;
+
 export interface ArrowFunctionExpression extends Node {
   _kind: NodeKind.ARROW_FUNCTION_EXPRESSION;
   parameters: DefinitionPattern[];
-  body: Expression | BlockStatement;
+  body: Operand | BlockStatement;
 }
 
 function _arrow(
   params: DefinitionPattern | DefinitionPattern[],
-  body: Expression | BlockStatement
-) {
+  body: Operand | BlockStatement
+): ArrowFunctionExpression {
   return {
     _kind: NodeKind.ARROW_FUNCTION_EXPRESSION,
     parameters: Array.isArray(params) ? params : [params],
@@ -263,10 +267,10 @@ export type UnaryOperator = "!" | "typeof" | "delete";
 export interface UnaryExpression extends Node {
   _kind: NodeKind.UNARY_EXPRESSION;
   operator: UnaryOperator;
-  argument: Expression;
+  argument: Operand;
 }
 
-export function _not(arg: Expression): UnaryExpression {
+export function _not(arg: Operand): UnaryExpression {
   return {
     _kind: NodeKind.UNARY_EXPRESSION,
     operator: "!",
@@ -274,7 +278,7 @@ export function _not(arg: Expression): UnaryExpression {
   };
 }
 
-export function _typeof(arg: Expression): UnaryExpression {
+export function _typeof(arg: Operand): UnaryExpression {
   return {
     _kind: NodeKind.UNARY_EXPRESSION,
     operator: "typeof",
@@ -282,7 +286,7 @@ export function _typeof(arg: Expression): UnaryExpression {
   };
 }
 
-export function _delete(arg: Expression): UnaryExpression {
+export function _delete(arg: Operand): UnaryExpression {
   return {
     _kind: NodeKind.UNARY_EXPRESSION,
     operator: "delete",
@@ -310,15 +314,11 @@ export type BinaryOperator =
 export interface BinaryExpression extends Node {
   _kind: NodeKind.BINARY_EXPRESSION;
   operator: BinaryOperator;
-  left: DefinitionPattern;
-  right: Expression | Literal | Definition;
+  left: Operand;
+  right: Operand;
 }
 
-function _eq(
-  left: DefinitionPattern,
-  right: Expression | Literal | Definition,
-  loose = false
-): BinaryExpression {
+function _eq(left: Operand, right: Operand, loose = false): BinaryExpression {
   return {
     _kind: NodeKind.BINARY_EXPRESSION,
     operator: loose ? "==" : "===",
@@ -327,7 +327,7 @@ function _eq(
   };
 }
 
-function _neq(left: DefinitionPattern, right: Expression, loose = false): BinaryExpression {
+function _neq(left: Operand, right: Operand, loose = false): BinaryExpression {
   return {
     _kind: NodeKind.BINARY_EXPRESSION,
     operator: loose ? "!=" : "!==",
@@ -336,7 +336,7 @@ function _neq(left: DefinitionPattern, right: Expression, loose = false): Binary
   };
 }
 
-function _gt(left: DefinitionPattern, right: Expression): BinaryExpression {
+function _gt(left: Operand, right: Operand): BinaryExpression {
   return {
     _kind: NodeKind.BINARY_EXPRESSION,
     operator: ">",
@@ -345,7 +345,7 @@ function _gt(left: DefinitionPattern, right: Expression): BinaryExpression {
   };
 }
 
-function _gte(left: DefinitionPattern, right: Expression): BinaryExpression {
+function _gte(left: Operand, right: Operand): BinaryExpression {
   return {
     _kind: NodeKind.BINARY_EXPRESSION,
     operator: ">=",
@@ -354,7 +354,7 @@ function _gte(left: DefinitionPattern, right: Expression): BinaryExpression {
   };
 }
 
-function _lt(left: DefinitionPattern, right: Expression): BinaryExpression {
+function _lt(left: Operand, right: Operand): BinaryExpression {
   return {
     _kind: NodeKind.BINARY_EXPRESSION,
     operator: "<",
@@ -363,7 +363,7 @@ function _lt(left: DefinitionPattern, right: Expression): BinaryExpression {
   };
 }
 
-function _lte(left: DefinitionPattern, right: Expression): BinaryExpression {
+function _lte(left: Operand, right: Operand): BinaryExpression {
   return {
     _kind: NodeKind.BINARY_EXPRESSION,
     operator: "<=",
@@ -372,7 +372,7 @@ function _lte(left: DefinitionPattern, right: Expression): BinaryExpression {
   };
 }
 
-function _add(left: DefinitionPattern, right: Expression): BinaryExpression {
+function _add(left: Operand, right: Operand): BinaryExpression {
   return {
     _kind: NodeKind.BINARY_EXPRESSION,
     operator: "+",
@@ -381,7 +381,7 @@ function _add(left: DefinitionPattern, right: Expression): BinaryExpression {
   };
 }
 
-function _substract(left: DefinitionPattern, right: Expression): BinaryExpression {
+function _substract(left: Operand, right: Operand): BinaryExpression {
   return {
     _kind: NodeKind.BINARY_EXPRESSION,
     operator: "-",
@@ -390,7 +390,7 @@ function _substract(left: DefinitionPattern, right: Expression): BinaryExpressio
   };
 }
 
-function _multiply(left: DefinitionPattern, right: Expression): BinaryExpression {
+function _multiply(left: Operand, right: Operand): BinaryExpression {
   return {
     _kind: NodeKind.BINARY_EXPRESSION,
     operator: "*",
@@ -399,7 +399,7 @@ function _multiply(left: DefinitionPattern, right: Expression): BinaryExpression
   };
 }
 
-function _divide(left: DefinitionPattern, right: Expression): BinaryExpression {
+function _divide(left: Operand, right: Operand): BinaryExpression {
   return {
     _kind: NodeKind.BINARY_EXPRESSION,
     operator: "/",
@@ -408,7 +408,7 @@ function _divide(left: DefinitionPattern, right: Expression): BinaryExpression {
   };
 }
 
-function _modulo(left: DefinitionPattern, right: Expression): BinaryExpression {
+function _modulo(left: Operand, right: Operand): BinaryExpression {
   return {
     _kind: NodeKind.BINARY_EXPRESSION,
     operator: "%",
@@ -420,11 +420,11 @@ function _modulo(left: DefinitionPattern, right: Expression): BinaryExpression {
 export interface AssignmentExpression extends Node {
   _kind: NodeKind.ASSIGNMENT_EXPRESSION;
   operator: "=";
-  left: DefinitionPattern;
-  right: Expression;
+  left: Operand;
+  right: Operand;
 }
 
-export function _assign(left: DefinitionPattern, right: Expression): AssignmentExpression {
+export function _assign(left: Operand, right: Operand): AssignmentExpression {
   return {
     _kind: NodeKind.ASSIGNMENT_EXPRESSION,
     operator: "=",
@@ -436,11 +436,11 @@ export function _assign(left: DefinitionPattern, right: Expression): AssignmentE
 export interface LogicalExpression extends Node {
   _kind: NodeKind.LOGICAL_EXPRESSION;
   operator: "&&" | "||" | "??";
-  left: Expression;
-  right: Expression;
+  left: Operand;
+  right: Operand;
 }
 
-export function _and(left: Expression, right: Expression): LogicalExpression {
+export function _and(left: Operand, right: Operand): LogicalExpression {
   return {
     _kind: NodeKind.LOGICAL_EXPRESSION,
     operator: "&&",
@@ -449,7 +449,7 @@ export function _and(left: Expression, right: Expression): LogicalExpression {
   };
 }
 
-export function _or(left: Expression, right: Expression): LogicalExpression {
+export function _or(left: Operand, right: Operand): LogicalExpression {
   return {
     _kind: NodeKind.LOGICAL_EXPRESSION,
     operator: "||",
@@ -458,7 +458,7 @@ export function _or(left: Expression, right: Expression): LogicalExpression {
   };
 }
 
-export function _coalesce(left: Expression, right: Expression): LogicalExpression {
+export function _coalesce(left: Operand, right: Operand): LogicalExpression {
   return {
     _kind: NodeKind.LOGICAL_EXPRESSION,
     operator: "??",
@@ -469,17 +469,13 @@ export function _coalesce(left: Expression, right: Expression): LogicalExpressio
 
 export interface MemberExpression extends Node {
   _kind: NodeKind.MEMBER_EXPRESSION;
-  object: Identifier | MemberExpression;
+  object: Operand;
   property: Identifier;
   computed: boolean;
   optional: boolean;
 }
 
-function _member(
-  object: Identifier | MemberExpression,
-  property: Identifier,
-  optional = false
-): MemberExpression {
+function _member(object: Operand, property: Identifier, optional = false): MemberExpression {
   return {
     _kind: NodeKind.MEMBER_EXPRESSION,
     object: object,
@@ -506,14 +502,14 @@ function _chain(value: string): MemberExpression | Identifier {
 export interface ConditionalExpression extends Node {
   _kind: NodeKind.CONDITIONAL_EXPRESSION;
   test: Expression;
-  consequent: Expression;
-  alternate: Expression;
+  consequent: Operand;
+  alternate: Operand;
 }
 
 function _ternary(
   test: Expression,
-  consequent: Expression,
-  alternate: Expression
+  consequent: Operand,
+  alternate: Operand
 ): ConditionalExpression {
   return {
     _kind: NodeKind.CONDITIONAL_EXPRESSION,
@@ -525,20 +521,20 @@ function _ternary(
 
 export interface CallExpression extends Node {
   _kind: NodeKind.CALL_EXPRESSION;
-  callee: Expression | Identifier;
-  arguments: Array<Expression | SpreadElement | ObjectDefinition | ArrayDefinition>;
+  callee: Operand;
+  arguments: Array<DefinitionPattern>;
   optional: boolean;
 }
 
 function _call(
-  callee: Expression | Identifier,
-  args: (Expression | SpreadElement | ObjectDefinition | ArrayDefinition)[],
+  callee: Operand,
+  args: DefinitionPattern | DefinitionPattern[],
   optional = false
 ): CallExpression {
   return {
     _kind: NodeKind.CALL_EXPRESSION,
     callee: callee,
-    arguments: args,
+    arguments: Array.isArray(args) ? args : [args],
     optional,
   };
 }
@@ -573,7 +569,6 @@ export const expression = {
   and: _and,
   or: _or,
   coalesce: _coalesce,
-  member: _member,
   chain: _chain,
   ternary: _ternary,
   call: _call,
@@ -618,31 +613,46 @@ export function _break(): BreakStatement {
 
 export interface IfStatement extends Node {
   _kind: NodeKind.IF_STATEMENT;
-  condition: Expression;
+  condition: Expression | Definition;
   consequent: Statement;
   alternate?: Statement;
 }
 
 export function _if(
-  condition: Expression,
-  consequent: Statement | Statement[],
+  condition: Expression | Definition,
+  consequent: Statement,
   altername?: Statement
 ): IfStatement {
   return {
     _kind: NodeKind.IF_STATEMENT,
     condition,
     consequent: Array.isArray(consequent) ? _block(...consequent) : _block(consequent),
-    alternate: altername ? altername : undefined,
+    alternate: altername ? _else(altername) : undefined,
+  };
+}
+
+export interface ElseStatement {
+  _kind: NodeKind.ELSE_STATEMENT;
+  consequent: Statement;
+}
+
+function _else(consequent: Statement): ElseStatement {
+  return {
+    _kind: NodeKind.ELSE_STATEMENT,
+    consequent,
   };
 }
 
 export interface SwitchStatement extends Node {
   _kind: NodeKind.SWITCH_STATEMENT;
   cases: SwitchCase[];
-  discriminant?: Expression;
+  discriminant: Expression | Identifier;
 }
 
-export function _switch(discriminant: Expression, cases: SwitchCase[]): SwitchStatement {
+export function _switch(
+  discriminant: Expression | Identifier,
+  cases: SwitchCase[]
+): SwitchStatement {
   return {
     _kind: NodeKind.SWITCH_STATEMENT,
     cases,
@@ -652,15 +662,18 @@ export function _switch(discriminant: Expression, cases: SwitchCase[]): SwitchSt
 
 export interface SwitchCase extends Node {
   _kind: NodeKind.SWITCH_CASE;
-  test?: Expression;
-  consequent: Statement[];
+  test?: Operand;
+  consequent: (Statement | Expression)[];
 }
 
-export function _case(test: Expression | null, consequent: Statement[]): SwitchCase {
+export function _case(
+  test: Operand | null,
+  consequent: Statement | Expression | (Statement | Expression)[]
+): SwitchCase {
   return {
     _kind: NodeKind.SWITCH_CASE,
     test: test ?? undefined,
-    consequent,
+    consequent: Array.isArray(consequent) ? consequent : [consequent],
   };
 }
 
@@ -712,7 +725,8 @@ export type Statement =
   | IfStatement
   | SwitchStatement
   | ForOfStatement
-  | Declaration;
+  | Declaration
+  | ElseStatement;
 
 export const statement = {
   block: _block,
@@ -733,19 +747,22 @@ export const statement = {
 export interface VariableDeclaration extends Node {
   _kind: NodeKind.VARIABLE_DECLRATION;
   name: string;
-  value: Expression;
+  value?: Expression | Definition | Literal;
   type: "var" | "let" | "const";
 }
 
-export function _var(name: string, value: Expression): VariableDeclaration {
+export function _var(name: string, value: Expression | Definition | Literal): VariableDeclaration {
   return { _kind: NodeKind.VARIABLE_DECLRATION, name, value, type: "var" };
 }
 
-export function _let(name: string, value: Expression): VariableDeclaration {
+export function _let(name: string, value: Expression | Definition | Literal): VariableDeclaration {
   return { _kind: NodeKind.VARIABLE_DECLRATION, name, value, type: "let" };
 }
 
-export function _const(name: string, value: Expression): VariableDeclaration {
+export function _const(
+  name: string,
+  value?: Expression | Definition | Literal
+): VariableDeclaration {
   return { _kind: NodeKind.VARIABLE_DECLRATION, name, value, type: "const" };
 }
 
@@ -824,12 +841,12 @@ export type ModuleSpecifier =
 
 export interface ImportDeclaration extends Node {
   _kind: NodeKind.IMPORT_DECLARATION;
-  from: string;
+  from: StringLiteral;
   specifiers: ModuleSpecifier[];
 }
 
 function _import(from: string, ...specifiers: ModuleSpecifier[]): ImportDeclaration {
-  return { _kind: NodeKind.IMPORT_DECLARATION, from, specifiers };
+  return { _kind: NodeKind.IMPORT_DECLARATION, from: _str(from), specifiers };
 }
 
 export interface ExportDeclaration extends Node {
@@ -870,6 +887,7 @@ export type ASTNode =
   | CallExpression
   | ConditionalExpression
   | DocumentDefinition
+  | ElseStatement
   | EmptyStatement
   | ExportDeclaration
   | ForInStatement
@@ -901,7 +919,11 @@ export function isNode(object: unknown): object is ASTNode {
   if (object == null) return false;
   if (typeof object !== "object") return false;
   if (Array.isArray(object)) return object.some((child) => isNode(child));
-  return Object.hasOwn(object, "_kind");
+  return (
+    "_kind" in object &&
+    typeof object._kind === "string" &&
+    Object.values(NodeKind).includes(object._kind as NodeKind)
+  );
 }
 
 export const tc = {
