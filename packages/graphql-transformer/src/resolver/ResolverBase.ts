@@ -1,4 +1,4 @@
-import { _named, CodeDocument, Statement } from "./code";
+import { CodeDocument, Statement, tc } from "./code";
 import { ExecutionTemplate } from "./ExecutionTemplate";
 
 export enum ResolverKind {
@@ -40,7 +40,7 @@ export abstract class ResolverBase extends ExecutionTemplate {
       throw this._throwReadonly();
     }
 
-    this._code.addImport(from, _named(value, alias));
+    this._code.addImport(from, tc.named(value, alias));
     return this;
   }
 

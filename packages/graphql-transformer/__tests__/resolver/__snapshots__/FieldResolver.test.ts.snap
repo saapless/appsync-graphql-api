@@ -1,11 +1,10 @@
 // Jest Snapshot v1, https://goo.gl/fbAQLP
 
 exports[`resolver/FieldResolver should create resolver code 1`] = `
-{
-  "code": "",
-  "dataSource": undefined,
-  "fieldName": "node",
-  "pipelineFunctions": undefined,
-  "typeName": "Query",
+"import from @aws-appsync/utils
+import from @aws-appsync/utils/dynamodb
+export function request(ctx) {
+  return get({ key: { id: ctx.args.id } })
 }
+"
 `;

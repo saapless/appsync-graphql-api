@@ -1,0 +1,14 @@
+// Jest Snapshot v1, https://goo.gl/fbAQLP
+
+exports[`Resolver code compiler the \`tc\` ast utility print function definition 1`] = `
+"function getTodo(id) {
+  return { uuid: id }
+}
+"
+`;
+
+exports[`Resolver code compiler the \`tc\` ast utility print if statement 1`] = `
+"if (id === 1) {
+  return { uuid: id }
+} else return null"
+`;

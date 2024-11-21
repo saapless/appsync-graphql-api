@@ -4,11 +4,9 @@ import {
   CodeDeclaration,
   Statement,
   _export,
-  _func,
-  _id,
-  ImportSpecifier,
-  _import,
   ImportDeclaration,
+  tc,
+  ModuleSpecifier,
 } from "./ast";
 import { printAST } from "./printer";
 
@@ -38,10 +36,10 @@ export class CodeDocument {
         return node.name === name;
       }
 
-      if (node._kind === NodeKind.EXPORT_NAMED_DECLARATION && node.declaration) {
-        return node.declaration._kind === NodeKind.FUNCTION_DECLARATION
-          ? node.declaration.name.name === name
-          : node.declaration.name === name;
+      if (node._kind === NodeKind.EXPORT_DECLARATION && node.specifier) {
+        return node.specifier._kind === NodeKind.FUNCTION_DECLARATION
+          ? node.specifier.name.name === name
+          : node.specifier.name === name;
       }
     });
   }
@@ -51,7 +49,7 @@ export class CodeDocument {
       throw new Error("Request function already exists");
     }
 
-    this.body.push(_export(_func("request", [_id("ctx")], statements)));
+    this.body.push(_export(tc.func("request", [tc.ref("ctx")], statements)));
     return this;
   }
 
@@ -60,7 +58,7 @@ export class CodeDocument {
       throw new Error("Response function already exists");
     }
 
-    this.body.push(_export(_func("response", [_id("ctx")], statements)));
+    this.body.push(_export(tc.func("response", [tc.ref("ctx")], statements)));
 
     return this;
   }
@@ -71,11 +69,11 @@ export class CodeDocument {
     ) as ImportDeclaration;
   }
 
-  public addImport(from: string, ...specifier: ImportSpecifier[]) {
+  public addImport(from: string, ...specifier: ModuleSpecifier[]) {
     const current = this._getImportFrom(from);
 
     if (!current) {
-      this.body.push(_import(from, ...specifier));
+      this.body.push(tc.import(from, ...specifier));
       return this;
     }
 
