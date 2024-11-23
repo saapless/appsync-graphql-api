@@ -28,14 +28,14 @@ describe("NodeInterfacePlugin", () => {
     const plugin = new NodeInterfacePlugin(context);
     plugin.before();
 
-    it("adds interface definition", () => {
+    it("added interface definition", () => {
       const nodeInterface = context.document.getNode("Node") as InterfaceNode;
 
       expect(nodeInterface).toBeInstanceOf(InterfaceNode);
       expect(nodeInterface.hasField("id")).toBeTruthy();
     });
 
-    it("adds `Query.node` field", () => {
+    it("added `Query.node` field", () => {
       const queryNode = context.document.getNode("Query") as ObjectNode;
       expect(queryNode).toBeInstanceOf(ObjectNode);
       expect(queryNode.hasField("node")).toBeTruthy();

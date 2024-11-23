@@ -50,12 +50,7 @@ export class NodeInterfacePlugin extends TransformerPluginBase {
     }
 
     // Ensure Query.node field is defined
-    let queryNode = this.context.document.getNode("Query") as ObjectNode;
-
-    if (!queryNode) {
-      queryNode = ObjectNode.create("Query");
-      this.context.document.addNode(queryNode);
-    }
+    const queryNode = this.context.document.getQueryNode();
 
     if (!queryNode.hasField("node")) {
       queryNode.addField(
@@ -75,19 +70,15 @@ export class NodeInterfacePlugin extends TransformerPluginBase {
       resolver
         .addImport("@aws-appsync/utils", "util")
         .addImport("@aws-appsync/utils/dynamodb", "get")
-        .setRequest(
+        .setStage(
+          "LOAD",
           tc.return(
             tc.call(tc.ref("get"), [
               tc.obj(tc.prop("key", tc.obj(tc.prop("id", tc.chain("ctx.args.id"))))),
             ])
           )
         )
-        .setResponse
-        // _const(_object([_]))
-        // statement("const { error, result } = ctx"),
-        // join(" ", "if", expression("error"), block("util.error(error.message, error.type)")),
-        // statement("return result")
-        ();
+        .setStage("RETURN", tc.return(tc.ref("ctx.result")));
 
       this.context.resolvers.set("Query.node", resolver);
     }

@@ -1,60 +1,22 @@
-export enum PhaseKind {
-  REQUEST = "Request",
-  AUTH = "Auth",
-  RESPONSE = "Response",
+/**
+ * @internal
+ * not in use
+ */
+
+import { Statement } from "./code";
+
+enum StageKind {
+  INIT = "Initiate",
+  AUTH = "Authorize",
+  LOAD = "Load",
+  RETURN = "Return",
 }
 
-export enum StageKind {
-  INITIATE = "Initiate",
-  EVALUATE = "Evaluate",
-  EXECUTE = "Execute",
-}
-
-export class ExecutionPhase {
-  public readonly kind: PhaseKind;
-  public readonly stages: Map<StageKind, PhaseStage>;
-
-  constructor(kind: PhaseKind) {
-    this.kind = kind;
-    this.stages = new Map();
-  }
-
-  public addStage(stage: PhaseStage) {
-    this.stages.set(stage.kind, stage);
-    return this;
-  }
-
-  public hasStage(stage: keyof typeof StageKind) {
-    return this.stages.has(StageKind[`${stage}`]);
-  }
-
-  public getStage(stage: keyof typeof StageKind) {
-    return this.stages.get(StageKind[`${stage}`]);
-  }
-
-  public serialize() {
-    return {
-      kind: this.kind,
-      stages: Array.from(this.stages.entries()).reduce(
-        (agg, [kind, stage]) => {
-          agg[`${kind}`] = stage.serialize();
-          return agg;
-        },
-        {} as Record<StageKind, { kind: StageKind; statements: string[] }>
-      ),
-    };
-  }
-
-  static create(kind: keyof typeof PhaseKind) {
-    return new ExecutionPhase(PhaseKind[`${kind}`]);
-  }
-}
-
-export class PhaseStage {
+class ExecutionStage {
   public readonly kind: StageKind;
-  public readonly statements: string[];
+  public readonly statements: Statement[];
 
-  constructor(kind: StageKind, statements: string[]) {
+  constructor(kind: StageKind, statements: Statement[]) {
     this.kind = kind;
     this.statements = statements;
   }
@@ -66,28 +28,25 @@ export class PhaseStage {
     };
   }
 
-  static create(kind: keyof typeof StageKind, statements: string | string[] = []) {
-    return new PhaseStage(
+  static create(kind: keyof typeof StageKind, statements: Statement | Statement[] = []) {
+    return new ExecutionStage(
       StageKind[`${kind}`],
-      typeof statements === "string" ? [statements] : statements
+      Array.isArray(statements) ? statements : [statements]
     );
   }
 }
 
 export class ExecutionTemplate {
-  public readonly phases: Map<PhaseKind, ExecutionPhase>;
+  public readonly stages: Map<StageKind, ExecutionStage>;
   constructor() {
-    this.phases = new Map();
+    this.stages = new Map();
   }
 
-  addStage(phase: keyof typeof PhaseKind, stage: PhaseStage) {
-    let phaseObject = this.phases.get(PhaseKind[`${phase}`]);
+  protected _hasStage(stage: keyof typeof StageKind) {
+    return this.stages.has(StageKind[`${stage}`]);
+  }
 
-    if (!phaseObject) {
-      phaseObject = ExecutionPhase.create(phase);
-      this.phases.set(PhaseKind[`${phase}`], phaseObject);
-    }
-
-    return phaseObject.addStage(stage);
+  protected _addStage(stage: keyof typeof StageKind, statements: Statement[]) {
+    this.stages.set(StageKind[`${stage}`], ExecutionStage.create(stage, statements));
   }
 }

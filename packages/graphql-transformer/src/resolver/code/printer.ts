@@ -43,7 +43,7 @@ const printReducer: ASTPrintReducer = {
     join(" => ", wrap("(", join(", ", node.parameters), ")"), node.body),
   AssignmentExpression: (node) => join(` ${node.operator} `, node.left, node.right),
   BinaryExpression: (node) => join(` ${node.operator} `, node.left, node.right),
-  BlockStatement: (node) => block(...node.body),
+  BlockStatement: (node) => block(...node.statements),
   BreakStatement: () => statement("break"),
   CallExpression: (node) =>
     join("", node.callee, node.optional ? "?." : "", wrap("(", join(", ", node.arguments), ")")),

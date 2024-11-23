@@ -1,9 +1,464 @@
 // Jest Snapshot v1, https://goo.gl/fbAQLP
 
-exports[`GraphQLTransformer runs schema transformations NodeInterfacePlugin trnsformations adds Query.node resolver 1`] = `""`;
+exports[`GraphQLTransformer runs schema transformations respond with valid output 1`] = `
+{
+  "fieldResolvers": {
+    "ArtifactEdge.node": {
+      "code": "export function request(ctx) {
 
-exports[`GraphQLTransformer runs schema transformations creates valid schema 1`] = `
-"type Viewer {
+}
+
+export function response(ctx) {
+  const { error, result } = ctx
+  if (error) {
+    util.error(error.message, erorr.type)
+  }
+  
+  return result
+}
+",
+      "dataSource": undefined,
+      "fieldName": "node",
+      "pipelineFunctions": undefined,
+      "typeName": "ArtifactEdge",
+    },
+    "LabelEdge.node": {
+      "code": "export function request(ctx) {
+
+}
+
+export function response(ctx) {
+  const { error, result } = ctx
+  if (error) {
+    util.error(error.message, erorr.type)
+  }
+  
+  return result
+}
+",
+      "dataSource": undefined,
+      "fieldName": "node",
+      "pipelineFunctions": undefined,
+      "typeName": "LabelEdge",
+    },
+    "Mutation.createUser": {
+      "code": "export function request(ctx) {
+
+}
+
+export function response(ctx) {
+  const { error, result } = ctx
+  if (error) {
+    util.error(error.message, erorr.type)
+  }
+  
+  return result
+}
+",
+      "dataSource": undefined,
+      "fieldName": "createUser",
+      "pipelineFunctions": undefined,
+      "typeName": "Mutation",
+    },
+    "Mutation.deleteFile": {
+      "code": "export function request(ctx) {
+
+}
+
+export function response(ctx) {
+  const { error, result } = ctx
+  if (error) {
+    util.error(error.message, erorr.type)
+  }
+  
+  return result
+}
+",
+      "dataSource": undefined,
+      "fieldName": "deleteFile",
+      "pipelineFunctions": undefined,
+      "typeName": "Mutation",
+    },
+    "Mutation.deleteLabel": {
+      "code": "export function request(ctx) {
+
+}
+
+export function response(ctx) {
+  const { error, result } = ctx
+  if (error) {
+    util.error(error.message, erorr.type)
+  }
+  
+  return result
+}
+",
+      "dataSource": undefined,
+      "fieldName": "deleteLabel",
+      "pipelineFunctions": undefined,
+      "typeName": "Mutation",
+    },
+    "Mutation.deleteTask": {
+      "code": "export function request(ctx) {
+
+}
+
+export function response(ctx) {
+  const { error, result } = ctx
+  if (error) {
+    util.error(error.message, erorr.type)
+  }
+  
+  return result
+}
+",
+      "dataSource": undefined,
+      "fieldName": "deleteTask",
+      "pipelineFunctions": undefined,
+      "typeName": "Mutation",
+    },
+    "Mutation.deleteTimeTracker": {
+      "code": "export function request(ctx) {
+
+}
+
+export function response(ctx) {
+  const { error, result } = ctx
+  if (error) {
+    util.error(error.message, erorr.type)
+  }
+  
+  return result
+}
+",
+      "dataSource": undefined,
+      "fieldName": "deleteTimeTracker",
+      "pipelineFunctions": undefined,
+      "typeName": "Mutation",
+    },
+    "Mutation.deleteUser": {
+      "code": "export function request(ctx) {
+
+}
+
+export function response(ctx) {
+  const { error, result } = ctx
+  if (error) {
+    util.error(error.message, erorr.type)
+  }
+  
+  return result
+}
+",
+      "dataSource": undefined,
+      "fieldName": "deleteUser",
+      "pipelineFunctions": undefined,
+      "typeName": "Mutation",
+    },
+    "Mutation.updateUser": {
+      "code": "export function request(ctx) {
+
+}
+
+export function response(ctx) {
+  const { error, result } = ctx
+  if (error) {
+    util.error(error.message, erorr.type)
+  }
+  
+  return result
+}
+",
+      "dataSource": undefined,
+      "fieldName": "updateUser",
+      "pipelineFunctions": undefined,
+      "typeName": "Mutation",
+    },
+    "Mutation.upsertFile": {
+      "code": "export function request(ctx) {
+
+}
+
+export function response(ctx) {
+  const { error, result } = ctx
+  if (error) {
+    util.error(error.message, erorr.type)
+  }
+  
+  return result
+}
+",
+      "dataSource": undefined,
+      "fieldName": "upsertFile",
+      "pipelineFunctions": undefined,
+      "typeName": "Mutation",
+    },
+    "Mutation.upsertLabel": {
+      "code": "export function request(ctx) {
+
+}
+
+export function response(ctx) {
+  const { error, result } = ctx
+  if (error) {
+    util.error(error.message, erorr.type)
+  }
+  
+  return result
+}
+",
+      "dataSource": undefined,
+      "fieldName": "upsertLabel",
+      "pipelineFunctions": undefined,
+      "typeName": "Mutation",
+    },
+    "Mutation.upsertTask": {
+      "code": "export function request(ctx) {
+
+}
+
+export function response(ctx) {
+  const { error, result } = ctx
+  if (error) {
+    util.error(error.message, erorr.type)
+  }
+  
+  return result
+}
+",
+      "dataSource": undefined,
+      "fieldName": "upsertTask",
+      "pipelineFunctions": undefined,
+      "typeName": "Mutation",
+    },
+    "Mutation.upsertTimeTracker": {
+      "code": "export function request(ctx) {
+
+}
+
+export function response(ctx) {
+  const { error, result } = ctx
+  if (error) {
+    util.error(error.message, erorr.type)
+  }
+  
+  return result
+}
+",
+      "dataSource": undefined,
+      "fieldName": "upsertTimeTracker",
+      "pipelineFunctions": undefined,
+      "typeName": "Mutation",
+    },
+    "Query.getUser": {
+      "code": "export function request(ctx) {
+
+}
+
+export function response(ctx) {
+  const { error, result } = ctx
+  if (error) {
+    util.error(error.message, erorr.type)
+  }
+  
+  return result
+}
+",
+      "dataSource": undefined,
+      "fieldName": "getUser",
+      "pipelineFunctions": undefined,
+      "typeName": "Query",
+    },
+    "Query.listUsers": {
+      "code": "export function request(ctx) {
+
+}
+
+export function response(ctx) {
+  const { error, result } = ctx
+  if (error) {
+    util.error(error.message, erorr.type)
+  }
+  
+  return result
+}
+",
+      "dataSource": undefined,
+      "fieldName": "listUsers",
+      "pipelineFunctions": undefined,
+      "typeName": "Query",
+    },
+    "Query.node": {
+      "code": "import { util } from "@aws-appsync/utils";
+import { get } from "@aws-appsync/utils/dynamodb";
+export function request(ctx) {
+  return get({ key: { id: ctx.args.id } })
+}
+
+export function response(ctx) {
+  return ctx.result
+}
+",
+      "dataSource": undefined,
+      "fieldName": "node",
+      "pipelineFunctions": undefined,
+      "typeName": "Query",
+    },
+    "Task.artifacts": {
+      "code": "export function request(ctx) {
+
+}
+
+export function response(ctx) {
+  const { error, result } = ctx
+  if (error) {
+    util.error(error.message, erorr.type)
+  }
+  
+  return result
+}
+",
+      "dataSource": undefined,
+      "fieldName": "artifacts",
+      "pipelineFunctions": undefined,
+      "typeName": "Task",
+    },
+    "Task.labels": {
+      "code": "export function request(ctx) {
+
+}
+
+export function response(ctx) {
+  const { error, result } = ctx
+  if (error) {
+    util.error(error.message, erorr.type)
+  }
+  
+  return result
+}
+",
+      "dataSource": undefined,
+      "fieldName": "labels",
+      "pipelineFunctions": undefined,
+      "typeName": "Task",
+    },
+    "Task.occurrences": {
+      "code": "export function request(ctx) {
+
+}
+
+export function response(ctx) {
+  const { error, result } = ctx
+  if (error) {
+    util.error(error.message, erorr.type)
+  }
+  
+  return result
+}
+",
+      "dataSource": undefined,
+      "fieldName": "occurrences",
+      "pipelineFunctions": undefined,
+      "typeName": "Task",
+    },
+    "Task.subtasks": {
+      "code": "export function request(ctx) {
+
+}
+
+export function response(ctx) {
+  const { error, result } = ctx
+  if (error) {
+    util.error(error.message, erorr.type)
+  }
+  
+  return result
+}
+",
+      "dataSource": undefined,
+      "fieldName": "subtasks",
+      "pipelineFunctions": undefined,
+      "typeName": "Task",
+    },
+    "TaskEdge.node": {
+      "code": "export function request(ctx) {
+
+}
+
+export function response(ctx) {
+  const { error, result } = ctx
+  if (error) {
+    util.error(error.message, erorr.type)
+  }
+  
+  return result
+}
+",
+      "dataSource": undefined,
+      "fieldName": "node",
+      "pipelineFunctions": undefined,
+      "typeName": "TaskEdge",
+    },
+    "Viewer.labels": {
+      "code": "export function request(ctx) {
+
+}
+
+export function response(ctx) {
+  const { error, result } = ctx
+  if (error) {
+    util.error(error.message, erorr.type)
+  }
+  
+  return result
+}
+",
+      "dataSource": undefined,
+      "fieldName": "labels",
+      "pipelineFunctions": undefined,
+      "typeName": "Viewer",
+    },
+    "Viewer.tasks": {
+      "code": "export function request(ctx) {
+
+}
+
+export function response(ctx) {
+  const { error, result } = ctx
+  if (error) {
+    util.error(error.message, erorr.type)
+  }
+  
+  return result
+}
+",
+      "dataSource": undefined,
+      "fieldName": "tasks",
+      "pipelineFunctions": undefined,
+      "typeName": "Viewer",
+    },
+    "Viewer.user": {
+      "code": "export function request(ctx) {
+
+}
+
+export function response(ctx) {
+  const { error, result } = ctx
+  if (error) {
+    util.error(error.message, erorr.type)
+  }
+  
+  return result
+}
+",
+      "dataSource": undefined,
+      "fieldName": "user",
+      "pipelineFunctions": undefined,
+      "typeName": "Viewer",
+    },
+  },
+  "pipelineFunctions": {},
+  "schema": "type Viewer {
   user: User @node
   tasks: TaskConnection! @edges
   labels: LabelConnection! @edges
@@ -441,5 +896,6 @@ input UpsertTimeTrackerInput {
 input DeleteTimeTrackerInput {
   id: ID!
   _version: Int!
-}"
+}",
+}
 `;

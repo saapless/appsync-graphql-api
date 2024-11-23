@@ -2,11 +2,18 @@ import { TransformerContext } from "../context";
 import { IPluginFactory, TransformerPluginBase } from "../plugins";
 import { DocumentNode } from "../parser";
 import { SchemaValidationError } from "../utils/errors";
+import { FieldResolver, FunctionResolver } from "../resolver";
 
 export interface GraphQLTransformerOptions {
   definition: string;
   plugins: IPluginFactory[];
 }
+
+export type TransformerOutput = {
+  schema: string;
+  fieldResolvers: Record<string, unknown>;
+  pipelineFunctions: Record<string, unknown>;
+};
 
 export class GraphQLTransformer {
   readonly document: DocumentNode;
@@ -32,7 +39,23 @@ export class GraphQLTransformer {
       plugin.after();
     }
 
-    return this.context;
+    const output: TransformerOutput = {
+      schema: this.document.print(),
+      fieldResolvers: {},
+      pipelineFunctions: {},
+    };
+
+    for (const [name, resolver] of this.context.resolvers.entries()) {
+      if (resolver instanceof FunctionResolver) {
+        output.pipelineFunctions[`${name}`] = resolver.serialize();
+      }
+
+      if (resolver instanceof FieldResolver) {
+        output.fieldResolvers[`${name}`] = resolver.serialize();
+      }
+    }
+
+    return output;
   }
 
   public transform() {
@@ -51,6 +74,9 @@ export class GraphQLTransformer {
       }
     }
 
+    // Print source schema and resolvers.
+    // Cleaup schema
+    // Generate output
     return this._generateOutput();
   }
 }

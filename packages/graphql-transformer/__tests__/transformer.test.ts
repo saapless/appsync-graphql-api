@@ -45,14 +45,14 @@ describe("GraphQLTransformer", () => {
 
   describe("runs schema transformations", () => {
     const result = transformer.transform();
+    const context = transformer.context;
 
-    it("creates valid schema", () => {
-      const schema = result.document.print();
-      expect(schema).toMatchSnapshot();
+    it("respond with valid output", () => {
+      expect(result).toMatchSnapshot();
     });
 
     it("copies extended fields", () => {
-      const viewerType = result.document.getNode("Viewer") as ObjectNode;
+      const viewerType = context.document.getNode("Viewer") as ObjectNode;
 
       expect(viewerType.getField("user")).toBeInstanceOf(FieldNode);
       expect(viewerType.getField("tasks")).toBeInstanceOf(FieldNode);
@@ -73,7 +73,7 @@ describe("GraphQLTransformer", () => {
         ];
 
         scalars.forEach((scalar) => {
-          expect(result.document.getNode(scalar)).toBeInstanceOf(ScalarNode);
+          expect(context.document.getNode(scalar)).toBeInstanceOf(ScalarNode);
         });
       });
 
@@ -88,14 +88,14 @@ describe("GraphQLTransformer", () => {
         ];
 
         directives.forEach((directive) => {
-          expect(result.document.getNode(directive)).toBeInstanceOf(DirectiveDefinitionNode);
+          expect(context.document.getNode(directive)).toBeInstanceOf(DirectiveDefinitionNode);
         });
       });
     });
 
     describe("NodeInterfacePlugin trnsformations", () => {
       it("adds valid `node` field to Query", () => {
-        const nodeField = (result.document.getNode("Query") as ObjectNode)?.getField("node");
+        const nodeField = (context.document.getNode("Query") as ObjectNode)?.getField("node");
         const nodeFieldTypename = (nodeField?.type as NamedTypeNode).name;
 
         expect(nodeField).toBeDefined();
@@ -107,15 +107,13 @@ describe("GraphQLTransformer", () => {
       });
 
       it("adds Query.node resolver", () => {
-        const nodeResolver = result.resolvers.get("Query.node");
-
+        const nodeResolver = context.resolvers.get("Query.node");
         expect(nodeResolver).toBeInstanceOf(FieldResolver);
-        expect(nodeResolver?.print()).toMatchSnapshot();
       });
 
       it("extends models with Node interface", () => {
-        const userNode = result.document.getNode("User") as ObjectNode;
-        const taskNode = result.document.getNode("Task") as ObjectNode;
+        const userNode = context.document.getNode("User") as ObjectNode;
+        const taskNode = context.document.getNode("Task") as ObjectNode;
 
         expect(userNode.hasInterface("Node")).toBeTruthy();
         expect(taskNode.hasInterface("Node")).toBeTruthy();
@@ -124,15 +122,15 @@ describe("GraphQLTransformer", () => {
 
     describe("ModelPlugin", () => {
       it("adds @model directive definition", () => {
-        const modelDirective = result.document.getNode("model");
-        const operationsEnum = result.document.getNode("ModelOperation");
+        const modelDirective = context.document.getNode("model");
+        const operationsEnum = context.document.getNode("ModelOperation");
 
         expect(modelDirective).toBeInstanceOf(DirectiveDefinitionNode);
         expect(operationsEnum).toBeInstanceOf(EnumNode);
       });
 
       it("created query fields for model", () => {
-        const queryNode = result.document.getQueryNode();
+        const queryNode = context.document.getQueryNode();
 
         expect(queryNode.getField("getUser")).toBeDefined();
         expect(queryNode.getField("listUsers")).toBeDefined();
@@ -143,7 +141,7 @@ describe("GraphQLTransformer", () => {
         expect(queryNode.getField("listTasks")).not.toBeDefined();
       });
       it("created mutation fields for model", () => {
-        const mutationNode = result.document.getMutationNode();
+        const mutationNode = context.document.getMutationNode();
 
         expect(mutationNode.getField("createUser")).toBeDefined();
         expect(mutationNode.getField("updateUser")).toBeDefined();
@@ -159,23 +157,23 @@ describe("GraphQLTransformer", () => {
       });
 
       it("created operation inputs & types", () => {
-        expect(result.document.getNode("UserFilterInput")).toBeDefined();
-        expect(result.document.getNode("CreateUserInput")).toBeDefined();
-        expect(result.document.getNode("UpdateUserInput")).toBeDefined();
-        expect(result.document.getNode("DeleteUserInput")).toBeDefined();
-        expect(result.document.getNode("UpsertTaskInput")).toBeDefined();
-        expect(result.document.getNode("DeleteTaskInput")).toBeDefined();
+        expect(context.document.getNode("UserFilterInput")).toBeDefined();
+        expect(context.document.getNode("CreateUserInput")).toBeDefined();
+        expect(context.document.getNode("UpdateUserInput")).toBeDefined();
+        expect(context.document.getNode("DeleteUserInput")).toBeDefined();
+        expect(context.document.getNode("UpsertTaskInput")).toBeDefined();
+        expect(context.document.getNode("DeleteTaskInput")).toBeDefined();
       });
 
       it("created operation resolvers", () => {
-        expect(result.resolvers.get("Query.getUser")).toBeDefined();
-        expect(result.resolvers.get("Query.listUsers")).toBeDefined();
+        expect(context.resolvers.get("Query.getUser")).toBeDefined();
+        expect(context.resolvers.get("Query.listUsers")).toBeDefined();
 
-        expect(result.resolvers.get("Mutation.createUser")).toBeDefined();
-        expect(result.resolvers.get("Mutation.updateUser")).toBeDefined();
-        expect(result.resolvers.get("Mutation.deleteUser")).toBeDefined();
-        expect(result.resolvers.get("Mutation.upsertTask")).toBeDefined();
-        expect(result.resolvers.get("Mutation.deleteTask")).toBeDefined();
+        expect(context.resolvers.get("Mutation.createUser")).toBeDefined();
+        expect(context.resolvers.get("Mutation.updateUser")).toBeDefined();
+        expect(context.resolvers.get("Mutation.deleteUser")).toBeDefined();
+        expect(context.resolvers.get("Mutation.upsertTask")).toBeDefined();
+        expect(context.resolvers.get("Mutation.deleteTask")).toBeDefined();
       });
     });
   });

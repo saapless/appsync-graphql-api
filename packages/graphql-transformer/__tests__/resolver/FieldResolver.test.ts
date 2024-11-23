@@ -6,7 +6,9 @@ describe("resolver/FieldResolver", () => {
     resolver
       .addImport("@aws-appsync/utils", "util")
       .addImport("@aws-appsync/utils/dynamodb", "get")
-      .setRequest(
+      .setStage("INIT", tc.call(tc.ref("console.log"), [tc.ref("ctx")]))
+      .setStage(
+        "LOAD",
         tc.return(
           tc.call(tc.ref("get"), [
             tc.obj(tc.prop("key", tc.obj(tc.prop("id", tc.chain("ctx.args.id"))))),

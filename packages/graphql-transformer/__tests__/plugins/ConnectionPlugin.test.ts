@@ -33,7 +33,8 @@ const schema = /* GraphQL */ `
 
 describe("ConnectionPlugin", () => {
   const transformer = createTransformer({ definition: schema, plugins: [ConnectionPlugin] });
-  const { document, resolvers } = transformer.transform();
+  transformer.transform();
+  const { document, resolvers } = transformer.context;
 
   it("adds connection directives", () => {
     expect(document.getNode("connection")).toBeDefined();

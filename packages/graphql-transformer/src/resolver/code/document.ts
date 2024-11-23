@@ -2,11 +2,11 @@ import {
   NodeKind,
   DocumentDefinition,
   CodeDeclaration,
-  Statement,
   _export,
   ImportDeclaration,
   tc,
   ModuleSpecifier,
+  Block,
 } from "./ast";
 import { printAST } from "./printer";
 
@@ -46,7 +46,7 @@ export class CodeDocument {
     });
   }
 
-  public addRequestFunction(...statements: Statement[]) {
+  public addRequestFunction(...statements: Block[]) {
     if (this.hasDeclaration("request")) {
       throw new Error("Request function already exists");
     }
@@ -55,7 +55,7 @@ export class CodeDocument {
     return this;
   }
 
-  public addResponseFunction(...statements: Statement[]) {
+  public addResponseFunction(...statements: Block[]) {
     if (this.hasDeclaration("response")) {
       throw new Error("Response function already exists");
     }

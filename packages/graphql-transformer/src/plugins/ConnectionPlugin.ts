@@ -148,7 +148,7 @@ export class ConnectionPlugin extends TransformerPluginBase {
   }
 
   private _createNodeConnection(parent: ObjectNode | InterfaceNode, field: FieldNode) {
-    if (!this.context.resolvers.has(`${ObjectNode.name}.${field.name}`)) {
+    if (!this.context.resolvers.has(`${parent.name}.${field.name}`)) {
       this.context.resolvers.set(
         `${parent.name}.${field.name}`,
         FieldResolver.create(parent.name, field.name)

@@ -80,7 +80,7 @@ exports[`resolver code printer CodeDocument serialize document ast 1`] = `
         "_kind": "FunctionDeclaration",
         "body": {
           "_kind": "BlockStatement",
-          "body": [
+          "statements": [
             {
               "_kind": "VariableDeclaration",
               "name": {
@@ -124,7 +124,7 @@ exports[`resolver code printer CodeDocument serialize document ast 1`] = `
               },
               "consequent": {
                 "_kind": "BlockStatement",
-                "body": [
+                "statements": [
                   {
                     "_kind": "ReturnStatement",
                     "value": {
@@ -385,7 +385,7 @@ exports[`resolver code printer CodeDocument serialize document ast 1`] = `
         "_kind": "FunctionDeclaration",
         "body": {
           "_kind": "BlockStatement",
-          "body": [
+          "statements": [
             {
               "_kind": "VariableDeclaration",
               "name": {
@@ -416,7 +416,7 @@ exports[`resolver code printer CodeDocument serialize document ast 1`] = `
               },
               "consequent": {
                 "_kind": "BlockStatement",
-                "body": [
+                "statements": [
                   {
                     "_kind": "CallExpression",
                     "arguments": [

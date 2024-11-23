@@ -18,6 +18,7 @@ enum UserStatus {
 
 type User @model {
   id: ID!
+
   firstName: String
   lastName: String
   email: AWSEmail
@@ -27,6 +28,7 @@ type User @model {
 
 type Task @model(operations: [upsert, delete]) {
   id: ID!
+
   title: String
   content: AWSJSON
   schedule: Schedule

@@ -202,7 +202,7 @@ type Operand = Literal | Definition | Expression;
 
 type Argument = Literal | DefinitionPattern;
 
-export function _prop(name: string, value: PropertyValue): Property {
+function _prop(name: string, value: PropertyValue): Property {
   return { _kind: NodeKind.PROPERTY, name, value };
 }
 
@@ -266,13 +266,10 @@ export const definition = {
 export interface ArrowFunctionExpression extends Node {
   _kind: NodeKind.ARROW_FUNCTION_EXPRESSION;
   parameters: Argument[];
-  body: Operand | BlockStatement;
+  body: Block | Literal;
 }
 
-function _arrow(
-  params: Argument | Argument[],
-  body: Operand | BlockStatement
-): ArrowFunctionExpression {
+function _arrow(params: Argument | Argument[], body: Block | Literal): ArrowFunctionExpression {
   return {
     _kind: NodeKind.ARROW_FUNCTION_EXPRESSION,
     parameters: Array.isArray(params) ? params : [params],
@@ -288,7 +285,7 @@ export interface UnaryExpression extends Node {
   argument: Operand;
 }
 
-export function _not(arg: Operand): UnaryExpression {
+function _not(arg: Operand): UnaryExpression {
   return {
     _kind: NodeKind.UNARY_EXPRESSION,
     operator: "!",
@@ -296,7 +293,7 @@ export function _not(arg: Operand): UnaryExpression {
   };
 }
 
-export function _typeof(arg: Operand): UnaryExpression {
+function _typeof(arg: Operand): UnaryExpression {
   return {
     _kind: NodeKind.UNARY_EXPRESSION,
     operator: "typeof",
@@ -304,7 +301,7 @@ export function _typeof(arg: Operand): UnaryExpression {
   };
 }
 
-export function _delete(arg: Operand): UnaryExpression {
+function _delete(arg: Operand): UnaryExpression {
   return {
     _kind: NodeKind.UNARY_EXPRESSION,
     operator: "delete",
@@ -435,6 +432,24 @@ function _modulo(left: Operand, right: Operand): BinaryExpression {
   };
 }
 
+function _union(left: Operand, right: Operand): BinaryExpression {
+  return {
+    _kind: NodeKind.BINARY_EXPRESSION,
+    operator: "|",
+    left,
+    right,
+  };
+}
+
+function _intersect(left: Operand, right: Operand): BinaryExpression {
+  return {
+    _kind: NodeKind.BINARY_EXPRESSION,
+    operator: "&",
+    left,
+    right,
+  };
+}
+
 export interface AssignmentExpression extends Node {
   _kind: NodeKind.ASSIGNMENT_EXPRESSION;
   operator: "=";
@@ -458,7 +473,7 @@ export interface LogicalExpression extends Node {
   right: Operand;
 }
 
-export function _and(left: Operand, right: Operand): LogicalExpression {
+function _and(left: Operand, right: Operand): LogicalExpression {
   return {
     _kind: NodeKind.LOGICAL_EXPRESSION,
     operator: "&&",
@@ -467,7 +482,7 @@ export function _and(left: Operand, right: Operand): LogicalExpression {
   };
 }
 
-export function _or(left: Operand, right: Operand): LogicalExpression {
+function _or(left: Operand, right: Operand): LogicalExpression {
   return {
     _kind: NodeKind.LOGICAL_EXPRESSION,
     operator: "||",
@@ -476,7 +491,7 @@ export function _or(left: Operand, right: Operand): LogicalExpression {
   };
 }
 
-export function _coalesce(left: Operand, right: Operand): LogicalExpression {
+function _coalesce(left: Operand, right: Operand): LogicalExpression {
   return {
     _kind: NodeKind.LOGICAL_EXPRESSION,
     operator: "??",
@@ -579,6 +594,8 @@ export const expression = {
   multiply: _multiply,
   divide: _divide,
   modulo: _modulo,
+  union: _union,
+  intersect: _intersect,
   assign: _assign,
   and: _and,
   or: _or,
@@ -591,22 +608,22 @@ export const expression = {
 // #endregion Expression
 
 // #region Statement
+export type Block = Statement | Expression | Definition;
+
 export interface BlockStatement extends Node {
   _kind: NodeKind.BLOCK_STATEMENT;
-  body: Array<Statement | Expression | Definition | Literal>;
+  statements: Array<Block>;
 }
 
-export function _block(
-  ...statements: Array<Statement | Expression | Definition | Literal>
-): BlockStatement {
-  return { _kind: NodeKind.BLOCK_STATEMENT, body: statements };
+function _block(...statements: Array<Block>): BlockStatement {
+  return { _kind: NodeKind.BLOCK_STATEMENT, statements };
 }
 
 export interface EmptyStatement extends Node {
   _kind: NodeKind.EMPTY_STATEMENT;
 }
 
-export function _empty(): EmptyStatement {
+function _empty(): EmptyStatement {
   return { _kind: NodeKind.EMPTY_STATEMENT };
 }
 
@@ -615,7 +632,7 @@ export interface ReturnStatement extends Node {
   value: Expression | Literal | Definition;
 }
 
-export function _return(value: Expression | Literal | Definition): ReturnStatement {
+function _return(value: Expression | Literal | Definition): ReturnStatement {
   return { _kind: NodeKind.RETURN_STATEMENT, value };
 }
 
@@ -623,21 +640,21 @@ export interface BreakStatement extends Node {
   _kind: NodeKind.BREAK_STATEMENT;
 }
 
-export function _break(): BreakStatement {
+function _break(): BreakStatement {
   return { _kind: NodeKind.BREAK_STATEMENT };
 }
 
 export interface IfStatement extends Node {
   _kind: NodeKind.IF_STATEMENT;
   condition: Expression | Definition;
-  consequent: Statement | Expression;
-  alternate?: Statement;
+  consequent: Block;
+  alternate?: Block;
 }
 
-export function _if(
+function _if(
   condition: Expression | Definition,
-  consequent: Statement | Expression,
-  altername?: Statement
+  consequent: Block,
+  altername?: Block
 ): IfStatement {
   return {
     _kind: NodeKind.IF_STATEMENT,
@@ -649,10 +666,10 @@ export function _if(
 
 export interface ElseStatement {
   _kind: NodeKind.ELSE_STATEMENT;
-  consequent: Statement;
+  consequent: Block;
 }
 
-function _else(consequent: Statement): ElseStatement {
+function _else(consequent: Block): ElseStatement {
   return {
     _kind: NodeKind.ELSE_STATEMENT,
     consequent,
@@ -665,10 +682,7 @@ export interface SwitchStatement extends Node {
   discriminant: Expression | Identifier;
 }
 
-export function _switch(
-  discriminant: Expression | Identifier,
-  cases: SwitchCase[]
-): SwitchStatement {
+function _switch(discriminant: Expression | Identifier, cases: SwitchCase[]): SwitchStatement {
   return {
     _kind: NodeKind.SWITCH_STATEMENT,
     cases,
@@ -682,7 +696,7 @@ export interface SwitchCase extends Node {
   consequent: (Statement | Expression)[];
 }
 
-export function _case(
+function _case(
   test: Operand | null,
   consequent: Statement | Expression | (Statement | Expression)[]
 ): SwitchCase {
@@ -697,13 +711,13 @@ export interface ForOfStatement extends Node {
   _kind: NodeKind.FOR_OF_STATEMENT;
   left: VariableDeclaration | Identifier;
   right: Expression;
-  body: Statement;
+  body: Block;
 }
 
-export function _forOf(
+function _forOf(
   left: VariableDeclaration | Identifier,
   right: Expression,
-  body: Statement
+  body: Block
 ): ForOfStatement {
   return {
     _kind: NodeKind.FOR_OF_STATEMENT,
@@ -717,13 +731,13 @@ export interface ForInStatement extends Node {
   _kind: NodeKind.FOR_IN_STATEMENT;
   left: VariableDeclaration | Identifier;
   right: Expression;
-  body: Statement;
+  body: Block;
 }
 
-export function _forIn(
+function _forIn(
   left: VariableDeclaration | Identifier,
   right: Expression,
-  body: Statement
+  body: Block
 ): ForInStatement {
   return {
     _kind: NodeKind.FOR_IN_STATEMENT,
@@ -785,7 +799,7 @@ export function _let(name: string, value: Expression | Definition | Literal): Va
   };
 }
 
-export function _const(
+function _const(
   name: string | Identifier | ObjectDefinition | ArrayDefinition,
   value?: Expression | Definition | Literal
 ): VariableDeclaration {
@@ -807,7 +821,7 @@ export interface FunctionDeclaration extends Node {
 function _func(
   name: string,
   params: Argument | Argument[],
-  body: Statement | Statement[]
+  body: Block | Block[]
 ): FunctionDeclaration {
   return {
     _kind: NodeKind.FUNCTION_DECLARATION,
