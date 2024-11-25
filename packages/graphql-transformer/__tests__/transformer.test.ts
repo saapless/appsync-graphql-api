@@ -2,14 +2,7 @@ import { readFileSync } from "node:fs";
 import { join } from "node:path";
 import { createTransformer, GraphQLTransformer } from "../src/transformer";
 import { FieldResolver } from "../src/resolver";
-import {
-  DirectiveDefinitionNode,
-  EnumNode,
-  FieldNode,
-  NamedTypeNode,
-  ObjectNode,
-  ScalarNode,
-} from "../src/parser";
+import { FieldNode, NamedTypeNode, ObjectNode } from "../src/parser";
 import { SchemaValidationError } from "../src/utils/errors";
 
 // eslint-disable-next-line security/detect-non-literal-fs-filename
@@ -58,41 +51,6 @@ describe("GraphQLTransformer", () => {
       expect(viewerType.getField("tasks")).toBeInstanceOf(FieldNode);
     });
 
-    describe("AWSTypesPlugin transformations", () => {
-      it("adds AWS specific scalars", () => {
-        const scalars = [
-          "AWSDate",
-          "AWSTime",
-          "AWSDateTime",
-          "AWSTimestamp",
-          "AWSEmail",
-          "AWSJSON",
-          "AWSURL",
-          "AWSPhone",
-          "AWSIPAddress",
-        ];
-
-        scalars.forEach((scalar) => {
-          expect(context.document.getNode(scalar)).toBeInstanceOf(ScalarNode);
-        });
-      });
-
-      it("adds AWS specific directives", () => {
-        const directives = [
-          "aws_api_key",
-          "aws_auth",
-          "aws_cognito_user_pools",
-          "aws_lambda",
-          "aws_oidc",
-          "aws_subscribe",
-        ];
-
-        directives.forEach((directive) => {
-          expect(context.document.getNode(directive)).toBeInstanceOf(DirectiveDefinitionNode);
-        });
-      });
-    });
-
     describe("NodeInterfacePlugin trnsformations", () => {
       it("adds valid `node` field to Query", () => {
         const nodeField = (context.document.getNode("Query") as ObjectNode)?.getField("node");
@@ -121,14 +79,6 @@ describe("GraphQLTransformer", () => {
     });
 
     describe("ModelPlugin", () => {
-      it("adds @model directive definition", () => {
-        const modelDirective = context.document.getNode("model");
-        const operationsEnum = context.document.getNode("ModelOperation");
-
-        expect(modelDirective).toBeInstanceOf(DirectiveDefinitionNode);
-        expect(operationsEnum).toBeInstanceOf(EnumNode);
-      });
-
       it("created query fields for model", () => {
         const queryNode = context.document.getQueryNode();
 
@@ -157,7 +107,6 @@ describe("GraphQLTransformer", () => {
       });
 
       it("created operation inputs & types", () => {
-        expect(context.document.getNode("UserFilterInput")).toBeDefined();
         expect(context.document.getNode("CreateUserInput")).toBeDefined();
         expect(context.document.getNode("UpdateUserInput")).toBeDefined();
         expect(context.document.getNode("DeleteUserInput")).toBeDefined();

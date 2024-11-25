@@ -2,6 +2,32 @@ import { TransformerContext } from "../context";
 import { DefinitionNode, DirectiveDefinitionNode, InterfaceNode, ObjectNode } from "../parser";
 import { TransformerPluginBase } from "./TransformerPluginBase";
 
+type AuthClaimModel = {
+  key: string;
+  ref?: string;
+  in?: string[];
+  eq?: string;
+};
+
+type AuthClaimInput = AuthClaimModel | { and: AuthClaimModel[] };
+
+export type AuthDirectiveArgs = {
+  allow?: "public" | "owner";
+  operations?: string[];
+  provider?: "iam" | "oidc" | "userPools" | "lambda";
+  claim?: AuthClaimInput | { not: AuthClaimInput } | { or: AuthClaimModel[] };
+};
+
+/**
+ * Directives:
+ * * `@auth(rules: [AuthRule!])`
+ *
+ * Actions:
+ * * Handle `@auth` rules or default auth config;
+ * * Handle build in aws auth rules;
+ * * Add auth stages to resolvers;
+ */
+
 export class AuthPlugin extends TransformerPluginBase {
   public readonly name = "AuthPlugin";
   constructor(context: TransformerContext) {
@@ -26,7 +52,7 @@ export class AuthPlugin extends TransformerPluginBase {
     return false;
   }
 
-  public execute() {
+  public execute(definition: ObjectNode | InterfaceNode) {
     return;
   }
 

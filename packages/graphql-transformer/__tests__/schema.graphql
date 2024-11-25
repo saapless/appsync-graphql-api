@@ -39,8 +39,8 @@ type Task @model(operations: [upsert, delete]) {
   # Connections
   labels: Label @connection(relation: "manyMany")
   subtasks: Task @edges
-  artifacts: Artifact @edges(relation: "manyMany")
-  occurrences: Task @edges(relation: "oneMany")
+  artifacts: Artifact @edges
+  occurrences: Task @edges
 }
 
 type RRule {

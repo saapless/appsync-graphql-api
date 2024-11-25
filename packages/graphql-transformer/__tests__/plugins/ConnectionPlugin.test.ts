@@ -1,7 +1,7 @@
-import { DirectiveDefinitionNode, ObjectNode } from "../../src/parser";
+import { TransformerContext } from "../../src";
+import { DirectiveDefinitionNode, DocumentNode, ObjectNode } from "../../src/parser";
 import { ConnectionPlugin } from "../../src/plugins";
 import { FieldResolver } from "../../src/resolver";
-import { createTransformer } from "../../src/transformer";
 
 const schema = /* GraphQL */ `
   type User {
@@ -32,41 +32,50 @@ const schema = /* GraphQL */ `
 `;
 
 describe("ConnectionPlugin", () => {
-  const transformer = createTransformer({ definition: schema, plugins: [ConnectionPlugin] });
-  transformer.transform();
-  const { document, resolvers } = transformer.context;
+  const context = new TransformerContext({ document: DocumentNode.fromSource(schema) });
+  const plugin = ConnectionPlugin.create(context);
 
-  it("adds connection directives", () => {
-    expect(document.getNode("connection")).toBeDefined();
-    expect(document.getNode("connection")).toBeInstanceOf(DirectiveDefinitionNode);
-    expect(document.getNode("edges")).toBeDefined();
-    expect(document.getNode("edges")).toBeInstanceOf(DirectiveDefinitionNode);
-    expect(document.getNode("node")).toBeDefined();
-    expect(document.getNode("node")).toBeInstanceOf(DirectiveDefinitionNode);
+  describe("on run `before` hook", () => {
+    beforeAll(() => plugin.before());
+
+    it("adds connection directives", () => {
+      expect(context.document.getNode("connection")).toBeInstanceOf(DirectiveDefinitionNode);
+      expect(context.document.getNode("edges")).toBeInstanceOf(DirectiveDefinitionNode);
+      expect(context.document.getNode("node")).toBeInstanceOf(DirectiveDefinitionNode);
+    });
   });
 
-  it("adds connection types", () => {
-    expect(document.getNode("TodoConnection")).toBeDefined();
-    expect(document.getNode("TodoConnection")).toBeInstanceOf(ObjectNode);
-    expect(document.getNode("TodoEdge")).toBeDefined();
-    expect(document.getNode("TodoEdge")).toBeInstanceOf(ObjectNode);
-    expect(document.getNode("ResourceConnection")).toBeDefined();
-    expect(document.getNode("ResourceConnection")).toBeInstanceOf(ObjectNode);
-    expect(document.getNode("ResourceEdge")).toBeDefined();
-    expect(document.getNode("ResourceEdge")).toBeInstanceOf(ObjectNode);
+  describe("on executing Query node", () => {
+    beforeAll(() => {
+      plugin.execute(context.document.getQueryNode());
+    });
+
+    it.todo("throws error on `edge` directive");
+    it.todo("throws error on `node` directive");
   });
 
-  it("updates field types", () => {
-    const todo = document.getNode("Todo") as ObjectNode;
-    const query = document.getQueryNode();
+  describe("on execute object node", () => {
+    beforeAll(() => {
+      plugin.execute(context.document.getNode("Todo") as ObjectNode);
+    });
 
-    expect(todo.getField("resources")?.type.getTypeName()).toBe("ResourceConnection");
-    expect(query.getField("todos")?.type.getTypeName()).toBe("TodoConnection");
-  });
+    it("creates connection types", () => {
+      expect(context.document.getNode("ResourceConnection")).toBeInstanceOf(ObjectNode);
+      expect(context.document.getNode("ResourceEdge")).toBeInstanceOf(ObjectNode);
+    });
 
-  it("creates field resolvers", () => {
-    expect(resolvers.get("Todo.resources")).toBeInstanceOf(FieldResolver);
-    expect(resolvers.get("Query.todos")).toBeInstanceOf(FieldResolver);
-    expect(resolvers.get("Query.me")).toBeInstanceOf(FieldResolver);
+    it("updates field types", () => {
+      const todoNode = context.document.getNode("Todo") as ObjectNode;
+
+      expect(todoNode.getField("resources")?.type.getTypeName()).toBe("ResourceConnection");
+      expect(todoNode.getField("resources")?.hasArgument("filter")).toBe(false);
+      expect(todoNode.getField("resources")?.hasArgument("first")).toBe(true);
+      expect(todoNode.getField("resources")?.hasArgument("after")).toBe(true);
+      expect(todoNode.getField("resources")?.hasArgument("sort")).toBe(true);
+    });
+
+    it("creates field resolvers", () => {
+      expect(context.resolvers.get("Todo.resources")).toBeInstanceOf(FieldResolver);
+    });
   });
 });

@@ -1,20 +1,9 @@
-/**
- * @type {import('ts-jest').JestConfigWithTsJest}
- */
+import { createDefaultEsmPreset } from "ts-jest";
+
+/** @type {import('ts-jest').JestConfigWithTsJest} */
 
 const config = {
-  preset: "ts-jest/presets/default-esm",
-  testEnvironment: "node",
-  extensionsToTreatAsEsm: [".ts"],
-  transform: {
-    "^.+\\.(ts|tsx)$": [
-      "ts-jest",
-      {
-        useESM: true,
-        tsconfig: "./tsconfig.json",
-      },
-    ],
-  },
+  ...createDefaultEsmPreset(),
 };
 
 export default config;

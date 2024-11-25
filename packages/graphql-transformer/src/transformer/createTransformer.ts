@@ -6,21 +6,22 @@ import {
   ConnectionPlugin,
   DataLoaderPlugin,
 } from "../plugins";
+import { TransformExecutionError } from "../utils/errors";
 
 import { GraphQLTransformer, GraphQLTransformerOptions } from "./GraphQLTransformer";
 
 export function createTransformer(options: Partial<GraphQLTransformerOptions>) {
   if (!options.definition) {
-    throw new Error("Definition is required");
+    throw new TransformExecutionError("Definition is required");
   }
 
   if (!options.plugins) {
     options.plugins = [
       AWSTypesPlugin,
       NodeInterfacePlugin,
-      AuthPlugin,
       ModelPlugin,
       ConnectionPlugin,
+      AuthPlugin,
       DataLoaderPlugin,
     ];
   }

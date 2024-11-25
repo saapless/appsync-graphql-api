@@ -1,18 +1,22 @@
-export function dedent<T extends TemplateStringsArray>(segments: T) {
-  console.log(segments);
-  const lines = segments
-    .reduce((acc, segment) => acc + segment, "") // get raw string
-    .trimEnd()
-    .split("\n");
+const WORD_MATCH_EXP = /(?<=[A-Z])(?=[A-Z][a-z])|(?<=[^A-Z])(?=[A-Z])|(?<=[A-Za-z])(?=[^A-Za-z])/;
 
-  // Find the minimum number of leading spaces across all lines
-  const minLeadingSpaces = lines.reduce((acc, line) => {
-    // Find the number of leading spaces for this line
-    const leadingSpaces = line?.match(/^ */)?.[0].length ?? Infinity;
-    // if it has less leading spaces than the previous minimum, set it as the new minimum
-    return leadingSpaces < acc ? leadingSpaces : acc;
-  }, Infinity);
+function normalize(...string: string[]): string[] {
+  return string
+    .map((s) => s.split(/[-_\s\b\W]/))
+    .filter(Boolean)
+    .flat()
+    .map((s) => s.split(WORD_MATCH_EXP))
+    .flat()
+    .map((s) => s.toLowerCase());
+}
 
-  // Trim lines, join them and return the result
-  return lines.map((line) => line.substring(minLeadingSpaces)).join("\n");
+export function pascalCase(...string: string[]): string {
+  return normalize(...string)
+    .map((s) => s.charAt(0).toUpperCase() + s.slice(1))
+    .join("");
+}
+
+export function camelCase(...string: string[]): string {
+  const pascal = pascalCase(...string);
+  return pascal.charAt(0).toLowerCase() + pascal.slice(1);
 }

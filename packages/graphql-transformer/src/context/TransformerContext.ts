@@ -6,8 +6,8 @@ interface TransformerContextConfig {
 }
 
 export class TransformerContext {
-  document: DocumentNode;
-  resolvers: Map<string, ResolverBase> = new Map();
+  public readonly document: DocumentNode;
+  public readonly resolvers: Map<string, ResolverBase> = new Map();
 
   constructor(config: TransformerContextConfig) {
     this.document = config.document;

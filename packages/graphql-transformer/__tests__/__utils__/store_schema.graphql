@@ -1,0 +1,75 @@
+type Product
+  @model
+  @auth(allow: public, operations: [get, list])
+  @auth(claim: { not: { key: "custom:workspace_role", eq: "User" } }, operations: [write]) {
+  # Attributes
+  name: String
+  description: String
+  price: Float
+
+  # Connections
+  category: Category
+  images: Image
+}
+
+type Category @model {
+  # Attributes
+  name: String
+  description: string
+
+  # Connections
+  products: Product
+}
+
+type Image @model {
+  name: String
+  url: String
+}
+
+type Cart @model {
+  products: Product
+}
+
+type Order @model {
+  # Attributes
+  status: OrderStatus
+
+  # Connections
+  products: Product
+  transaction: Transaction
+}
+
+enum OrderStatus {
+  CREATED
+  CHECKOUT_INITIATED
+  CHECKOUT_COMPLETED
+  SHIPPED
+  DELIVERED
+}
+
+type Transaction @model {
+  # Attributes
+  amount: Float
+  status: TransactionStatus
+
+  # Connections
+  order: Order
+}
+
+enum TransactionStatus {
+  PENDING
+  COMPLETED
+  REGECTED
+}
+
+type User @model {
+  # Attributes
+  firstName: String
+  lastName: String
+  email: String
+
+  # Connections
+  cart: Cart
+  orders: Order
+  wishlist: Product
+}

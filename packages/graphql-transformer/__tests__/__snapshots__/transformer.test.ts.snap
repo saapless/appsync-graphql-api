@@ -3,44 +3,6 @@
 exports[`GraphQLTransformer runs schema transformations respond with valid output 1`] = `
 {
   "fieldResolvers": {
-    "ArtifactEdge.node": {
-      "code": "export function request(ctx) {
-
-}
-
-export function response(ctx) {
-  const { error, result } = ctx
-  if (error) {
-    util.error(error.message, erorr.type)
-  }
-  
-  return result
-}
-",
-      "dataSource": undefined,
-      "fieldName": "node",
-      "pipelineFunctions": undefined,
-      "typeName": "ArtifactEdge",
-    },
-    "LabelEdge.node": {
-      "code": "export function request(ctx) {
-
-}
-
-export function response(ctx) {
-  const { error, result } = ctx
-  if (error) {
-    util.error(error.message, erorr.type)
-  }
-  
-  return result
-}
-",
-      "dataSource": undefined,
-      "fieldName": "node",
-      "pipelineFunctions": undefined,
-      "typeName": "LabelEdge",
-    },
     "Mutation.createUser": {
       "code": "export function request(ctx) {
 
@@ -380,25 +342,6 @@ export function response(ctx) {
       "pipelineFunctions": undefined,
       "typeName": "Task",
     },
-    "TaskEdge.node": {
-      "code": "export function request(ctx) {
-
-}
-
-export function response(ctx) {
-  const { error, result } = ctx
-  if (error) {
-    util.error(error.message, erorr.type)
-  }
-  
-  return result
-}
-",
-      "dataSource": undefined,
-      "fieldName": "node",
-      "pipelineFunctions": undefined,
-      "typeName": "TaskEdge",
-    },
     "Viewer.labels": {
       "code": "export function request(ctx) {
 
@@ -459,9 +402,10 @@ export function response(ctx) {
   },
   "pipelineFunctions": {},
   "schema": "type Viewer {
-  user: User @node
-  tasks: TaskConnection! @edges
-  labels: LabelConnection! @edges
+  user: User @connection(relation: oneOne, key: "userId", ref: "source.userId", index: null)
+  tasks(filter: TaskFilterInput, first: Int, after: String, sort: [ModelSortDirection!]): TaskConnection! @edges
+  labels(filter: LabelFilterInput, first: Int, after: String, sort: [ModelSortDirection!]): LabelConnection! @edges
+  userId: ID @writeonly
 }
 
 interface Node {
@@ -499,10 +443,10 @@ type Task implements Node @model(operations: [upsert, delete]) {
   rrule: RRule
   recurrenceId: ID
   occurrenceId: String
-  labels: LabelConnection! @connection(relation: "manyMany")
-  subtasks: TaskConnection! @edges
-  artifacts: ArtifactConnection! @edges(relation: "manyMany")
-  occurrences: TaskConnection! @edges(relation: "oneMany")
+  labels(filter: LabelFilterInput, first: Int, after: String, sort: [ModelSortDirection!]): LabelConnection! @connection(relation: "manyMany")
+  subtasks(filter: TaskFilterInput, first: Int, after: String, sort: [ModelSortDirection!]): TaskConnection! @edges
+  artifacts(first: Int, after: String, sort: [ModelSortDirection!]): ArtifactConnection! @edges
+  occurrences(filter: TaskFilterInput, first: Int, after: String, sort: [ModelSortDirection!]): TaskConnection! @edges
   createdAt: AWSDateTime
   updatedAt: AWSDateTime
   _version: Int
@@ -576,53 +520,8 @@ type Query {
   viewer: Viewer!
   node(id: ID!): Node
   getUser(id: ID!): User
-  listUsers(filter: UserFilterInput, first: Int, after: String, sort: SortDirection): User
+  listUsers: User @connection(relation: oneMany, key: "__typename", index: "byTypename")
 }
-
-scalar AWSDate
-
-scalar AWSTime
-
-scalar AWSDateTime
-
-scalar AWSTimestamp
-
-scalar AWSEmail
-
-scalar AWSJSON
-
-scalar AWSPhone
-
-scalar AWSURL
-
-scalar AWSIPAddress
-
-directive @aws_api_key on FIELD_DEFINITION | OBJECT
-
-directive @aws_auth(cognito_groups: [String!]!) on FIELD_DEFINITION | OBJECT
-
-directive @aws_cognito_user_pools(cognito_groups: [String!]!) on FIELD_DEFINITION | OBJECT
-
-directive @aws_lambda on FIELD_DEFINITION | OBJECT
-
-directive @aws_oidc on FIELD_DEFINITION | OBJECT
-
-directive @aws_subscribe(mutations: [String!]!) on FIELD_DEFINITION
-
-directive @auth on OBJECT | FIELD_DEFINITION | INTERFACE
-
-enum ModelOperation {
-  create
-  update
-  upsert
-  delete
-  get
-  list
-}
-
-directive @model(operations: [ModelOperation!]) on OBJECT
-
-directive @readonly on OBJECT | FIELD_DEFINITION
 
 input ModelSizeInput {
   ne: Int
@@ -701,15 +600,16 @@ enum SortDirection {
 enum ConnectionRelationType {
   oneOne
   oneMany
-  manyOne
   manyMany
 }
 
-directive @connection(relation: ConnectionRelationType) on FIELD_DEFINITION | OBJECT
+directive @connection(relation: ConnectionRelationType, key: String, ref: String, index: String) on FIELD_DEFINITION | OBJECT
 
-directive @node(key: String) on FIELD_DEFINITION
+directive @node(key: String, ref: String, index: String) on FIELD_DEFINITION
 
-directive @edges(key: String, relation: ConnectionRelationType) on FIELD_DEFINITION
+directive @edges(key: String, ref: String, index: String) on FIELD_DEFINITION
+
+directive @ignoreConnection on FIELD_DEFINITION
 
 type PageInfo {
   hasNextPage: Boolean
@@ -717,6 +617,8 @@ type PageInfo {
   startCursor: String
   endCursor: String
 }
+
+directive @auth on OBJECT | FIELD_DEFINITION | INTERFACE
 
 directive @dataSource(source: String!) on OBJECT
 
@@ -730,6 +632,17 @@ type TaskEdge {
   node: Task
 }
 
+input TaskFilterInput {
+  id: ModelIDInput
+  title: ModelStringInput
+  content: ModelStringInput
+  recurrenceId: ModelIDInput
+  occurrenceId: ModelStringInput
+  and: [TaskFilterInput]
+  or: [TaskFilterInput]
+  not: TaskFilterInput
+}
+
 type LabelConnection {
   edges: [LabelEdge!]!
   pageInfo: PageInfo!
@@ -738,6 +651,15 @@ type LabelConnection {
 type LabelEdge {
   cursor: String
   node: Label
+}
+
+input LabelFilterInput {
+  id: ModelIDInput
+  name: ModelStringInput
+  color: ModelStringInput
+  and: [LabelFilterInput]
+  or: [LabelFilterInput]
+  not: LabelFilterInput
 }
 
 input CreateUserInput {
@@ -766,42 +688,19 @@ type Mutation {
 }
 
 input UpdateUserInput {
-  id: id!
+  id: id
   firstName: String
   lastName: String
   email: AWSEmail
   picture: AWSURL
   createdAt: AWSDateTime
   updatedAt: AWSDateTime
-  _version: _version!
+  _version: _version
 }
 
 input DeleteUserInput {
   id: ID!
   _version: Int!
-}
-
-input UserStatusInput {
-  eq: UserStatus
-  ne: UserStatus
-  in: [UserStatus!]
-  attributeExists: Boolean
-}
-
-input UserFilterInput {
-  id: ModelIDInput
-  firstName: ModelStringInput
-  lastName: ModelStringInput
-  email: ModelStringInput
-  picture: ModelStringInput
-  status: UserStatusInput
-  createdAt: ModelStringInput
-  updatedAt: ModelStringInput
-  _version: ModelIntInput
-  _deleted: ModelBooleanInput
-  and: [UserFilterInput]
-  or: [UserFilterInput]
-  not: UserFilterInput
 }
 
 input DateTimeZoneInput {

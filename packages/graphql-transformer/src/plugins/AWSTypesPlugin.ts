@@ -55,6 +55,7 @@ export class AWSTypesPlugin extends TransformerPluginBase {
           ]
         )
       )
+      .addNode(DirectiveDefinitionNode.create("aws_iam", ["FIELD_DEFINITION", "OBJECT"]))
       .addNode(DirectiveDefinitionNode.create("aws_lambda", ["FIELD_DEFINITION", "OBJECT"]))
       .addNode(DirectiveDefinitionNode.create("aws_oidc", ["FIELD_DEFINITION", "OBJECT"]))
       .addNode(
@@ -77,6 +78,26 @@ export class AWSTypesPlugin extends TransformerPluginBase {
 
   public execute() {
     return;
+  }
+
+  public after(): void {
+    this.context.document
+      .removeNode("AWSDate")
+      .removeNode("AWSTime")
+      .removeNode("AWSDateTime")
+      .removeNode("AWSTimestamp")
+      .removeNode("AWSEmail")
+      .removeNode("AWSJSON")
+      .removeNode("AWSPhone")
+      .removeNode("AWSURL")
+      .removeNode("AWSIPAddress")
+      .removeNode("aws_api_key")
+      .removeNode("aws_auth")
+      .removeNode("aws_cognito_user_pools")
+      .removeNode("aws_iam")
+      .removeNode("aws_lambda")
+      .removeNode("aws_oidc")
+      .removeNode("aws_subscribe");
   }
 
   static create(context: TransformerContext) {

@@ -6,7 +6,6 @@ import {
   InterfaceNode,
   NonNullTypeNode,
   ObjectNode,
-  UnionNode,
 } from "../parser";
 import { TransformerPluginBase } from "./TransformerPluginBase";
 
@@ -27,11 +26,7 @@ export class DataLoaderPlugin extends TransformerPluginBase {
   }
 
   public match(definition: DefinitionNode) {
-    if (
-      definition instanceof ObjectNode ||
-      definition instanceof InterfaceNode ||
-      definition instanceof UnionNode
-    ) {
+    if (definition instanceof ObjectNode || definition instanceof InterfaceNode) {
       return true;
     }
 

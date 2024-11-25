@@ -8,6 +8,7 @@ import {
   EnumValueNode,
   ListValueNode,
   ObjectValueNode,
+  NullValueNode,
 } from "graphql";
 
 export type ValueType =
@@ -53,7 +54,7 @@ export class ValueNode {
     };
   }
 
-  static null() {
+  static null(): NullValueNode {
     return {
       kind: Kind.NULL,
     };
