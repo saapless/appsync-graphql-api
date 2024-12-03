@@ -4,6 +4,7 @@ import { TransformerContext } from "../context";
 import { IPluginFactory, TransformerPluginBase } from "../plugins";
 import { DocumentNode } from "../parser";
 import { SchemaValidationError } from "../utils/errors";
+import { ensureOutputDirectory } from "../utils/output";
 
 export interface GraphQLTransformerOptions {
   definition: string;
@@ -101,8 +102,9 @@ export class GraphQLTransformer {
     if (this.options.mode === "development") {
       const { outputDirectory } = this.options;
 
+      const outputPath = ensureOutputDirectory(outputDirectory);
       // eslint-disable-next-line security/detect-non-literal-fs-filename
-      writeFileSync(path.resolve(outputDirectory, "schema.graphql"), this.document.print(), {
+      writeFileSync(path.resolve(outputPath, "schema.graphql"), this.document.print(), {
         encoding: "utf-8",
       });
 

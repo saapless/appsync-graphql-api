@@ -1,6 +1,46 @@
-import { camelCase, pluralize } from "../../src/utils/strings";
+import { camelCase, pascalCase, pluralize } from "../../src/utils/strings";
 
 describe("string utils", () => {
+  describe("pascalCase util", () => {
+    it("should handle snake_case strings", () => {
+      expect(pascalCase("user_name")).toBe("UserName");
+      expect(pascalCase("first_name_last_name")).toBe("FirstNameLastName");
+      expect(pascalCase("aws_api_gateway")).toBe("AwsApiGateway");
+      expect(pascalCase("_private_field")).toBe("PrivateField");
+    });
+    it("should handle kebab-case strings", () => {
+      expect(pascalCase("user-profile")).toBe("UserProfile");
+      expect(pascalCase("aws-lambda-function")).toBe("AwsLambdaFunction");
+      expect(pascalCase("graphql-schema")).toBe("GraphqlSchema");
+      expect(pascalCase("-prefix-value")).toBe("PrefixValue");
+    });
+    it("should handle camelCase strings", () => {
+      expect(pascalCase("userProfile")).toBe("UserProfile");
+      expect(pascalCase("graphQLSchema")).toBe("GraphQlSchema");
+      expect(pascalCase("awsAppSync")).toBe("AwsAppSync");
+      expect(pascalCase("httpResponse")).toBe("HttpResponse");
+    });
+    it("should handle mixed format strings", () => {
+      expect(pascalCase("User_profile-type")).toBe("UserProfileType");
+      expect(pascalCase("AWS-lambda_FUNCTION")).toBe("AwsLambdaFunction");
+      expect(pascalCase("graphQL_Api-endpoint")).toBe("GraphQlApiEndpoint");
+      expect(pascalCase("REST_api-Gateway")).toBe("RestApiGateway");
+    });
+    it("should handle multiple string inputs", () => {
+      expect(pascalCase("user", "profile", "data")).toBe("UserProfileData");
+      expect(pascalCase("aws", "lambda", "function")).toBe("AwsLambdaFunction");
+      expect(pascalCase("graphql", "schema", "type")).toBe("GraphqlSchemaType");
+      expect(pascalCase("api_gateway", "rest-endpoint")).toBe("ApiGatewayRestEndpoint");
+    });
+    it("should handle edge cases", () => {
+      expect(pascalCase("")).toBe("");
+      expect(pascalCase("   ")).toBe("");
+      expect(pascalCase("a")).toBe("A");
+      expect(pascalCase("Z")).toBe("Z");
+      expect(pascalCase("123_test")).toBe("123Test");
+      expect(pascalCase("TEST_VALUE")).toBe("TestValue");
+    });
+  });
   describe("camelCase util", () => {
     it("should handle snake_case strings", () => {
       expect(camelCase("user_name")).toBe("userName");
@@ -90,7 +130,7 @@ describe("string utils", () => {
       expect(pluralize("box")).toBe("boxes");
     });
 
-    it.skip("should return the same word when no plural rule matches", () => {
+    it("should return the same word when no plural rule matches", () => {
       expect(pluralize("data")).toBe("data");
       expect(pluralize("sheep")).toBe("sheep");
     });
@@ -148,7 +188,7 @@ describe("string utils", () => {
       expect(pluralize("titmouse")).toBe("titmice");
     });
 
-    it.skip("should correctly handle words ending in -eaux", () => {
+    it("should correctly handle words ending in -eaux", () => {
       expect(pluralize("tableau")).toBe("tableaux");
       expect(pluralize("beau")).toBe("beaux");
     });

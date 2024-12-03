@@ -218,6 +218,7 @@ export class ModelPlugin extends TransformerPluginBase {
         DirectiveNode.create("connection", [
           ArgumentNode.create("relation", ValueNode.enum("oneMany")),
           ArgumentNode.create("key", ValueNode.string("__typename")),
+          ArgumentNode.create("ref", ValueNode.string(model.name)),
           ArgumentNode.create("index", ValueNode.string("byTypename")),
         ]),
       ]);
@@ -392,7 +393,7 @@ export class ModelPlugin extends TransformerPluginBase {
       )
       .addNode(DirectiveDefinitionNode.create("readonly", ["OBJECT", "FIELD_DEFINITION"]))
       .addNode(DirectiveDefinitionNode.create("writeonly", ["FIELD_DEFINITION"]))
-      .addNode(DirectiveDefinitionNode.create("ignore", ["FIELD_DEFINITION"]));
+      .addNode(DirectiveDefinitionNode.create("private", ["FIELD_DEFINITION"]));
 
     this._createModelSizeInput();
     this._createModelStringInput();
@@ -444,6 +445,16 @@ export class ModelPlugin extends TransformerPluginBase {
 
   public cleanup(definition: ObjectNode): void {
     definition.removeDirective("model");
+
+    for (const field of definition.fields ?? []) {
+      if (field.hasDirective("readonly")) {
+        field.removeDirective("readonly");
+      }
+
+      if (field.hasDirective("writeonly") || field.hasDirective("ignore")) {
+        definition.removeField(field.name);
+      }
+    }
   }
 
   public after(): void {
@@ -452,7 +463,7 @@ export class ModelPlugin extends TransformerPluginBase {
       .removeNode("ModelOperation")
       .removeNode("readonly")
       .removeNode("writeonly")
-      .removeNode("ignore");
+      .removeNode("private");
   }
 
   static create(context: TransformerContext) {

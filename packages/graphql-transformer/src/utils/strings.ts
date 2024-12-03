@@ -55,9 +55,11 @@ const PLURAL_RULES: [RegExp, string][] = [
   [/\b((?:tit)?m|l)(?:ice|ouse)$/i, "$1ice"],
   [/(pe)(?:rson|ople)$/i, "$1ople"],
   [/(child)(?:ren)?$/i, "$1ren"],
-  [/eaux$/i, "$0"],
+  [/eau(?:x)?$/i, "$0x"],
   [/m[ae]n$/i, "men"],
   [/^thou$/i, "you"],
+  [/^data$/i, "$0"],
+  [/^sheep$/i, "$0"],
 ];
 
 function getPluralRule(word: string) {

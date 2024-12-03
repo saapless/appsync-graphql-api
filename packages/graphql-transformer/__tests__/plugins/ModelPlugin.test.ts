@@ -36,7 +36,7 @@ describe("ModelPlugin", () => {
     it("adds helper directive definitions", () => {
       expect(context.document.getNode("readonly")).toBeInstanceOf(DirectiveDefinitionNode);
       expect(context.document.getNode("writeonly")).toBeInstanceOf(DirectiveDefinitionNode);
-      expect(context.document.getNode("ignore")).toBeInstanceOf(DirectiveDefinitionNode);
+      expect(context.document.getNode("private")).toBeInstanceOf(DirectiveDefinitionNode);
     });
 
     it(`adds scalar model inputs`, () => {
@@ -102,7 +102,8 @@ describe("ModelPlugin", () => {
     });
 
     it("removes model node", () => {
-      expect((context.document.getNode("Model") as ObjectNode)?.hasDirective("model")).toBeFalsy();
+      const model = context.document.getNode("Model") as ObjectNode;
+      expect(model.hasDirective("model")).toBe(false);
     });
   });
 
@@ -118,11 +119,7 @@ describe("ModelPlugin", () => {
     it("removes helper directives definitions", () => {
       expect(context.document.getNode("readonly")).toBeUndefined();
       expect(context.document.getNode("writeonly")).toBeUndefined();
-      expect(context.document.getNode("ignore")).toBeUndefined();
-    });
-    it.skip("removes all directive from declarations", () => {
-      const model = context.document.getNode("Model") as ObjectNode;
-      expect(model.hasDirective("model")).toBe(false);
+      expect(context.document.getNode("private")).toBeUndefined();
     });
   });
 });

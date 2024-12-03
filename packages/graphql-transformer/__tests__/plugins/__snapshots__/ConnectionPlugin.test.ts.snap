@@ -1,0 +1,76 @@
+// Jest Snapshot v1, https://goo.gl/fbAQLP
+
+exports[`ConnectionPlugin matches snapshot 1`] = `
+"type User {
+  id: ID!
+  username: String!
+}
+
+type Todo {
+  id: ID
+  content: String
+  resources(filter: ResourceFilterInput, first: Int, after: String, sort: ModelSortDirection): ResourceConnection!
+  userId: ID @private
+}
+
+type Document {
+  url: String!
+  sourceId: ID @writeonly
+}
+
+type Message {
+  content: String!
+  sourceId: ID @writeonly
+}
+
+union Resource = Document | Message
+
+type Query {
+  me: User
+  todos(filter: TodoFilterInput, first: Int, after: String, sort: ModelSortDirection): TodoConnection!
+}
+
+type PageInfo {
+  hasNextPage: Boolean
+  hasPreviousPage: Boolean
+  startCursor: String
+  endCursor: String
+}
+
+type TodoConnection {
+  edges: [TodoEdge!]!
+  pageInfo: PageInfo!
+}
+
+type TodoEdge {
+  cursor: String
+  node: Todo
+}
+
+input TodoFilterInput {
+  id: ModelIDInput
+  content: ModelStringInput
+  and: [TodoFilterInput]
+  or: [TodoFilterInput]
+  not: TodoFilterInput
+}
+
+type ResourceConnection {
+  edges: [ResourceEdge!]!
+  pageInfo: PageInfo!
+}
+
+type ResourceEdge {
+  cursor: String
+  node: Resource
+}
+
+input ResourceFilterInput {
+  __typename: ModelStringInput
+  url: ModelStringInput
+  content: ModelStringInput
+  and: [ResourceFilterInput]
+  or: [ResourceFilterInput]
+  not: ResourceFilterInput
+}"
+`;
