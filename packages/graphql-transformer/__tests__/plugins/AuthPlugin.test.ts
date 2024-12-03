@@ -24,6 +24,10 @@ describe("AuthPlugin", () => {
     });
   });
 
+  describe("on normalize node", () => {
+    it.todo(`added default auth to node`);
+  });
+
   describe(`on execute node`, () => {
     it.todo(`merged auth directives`);
     it.todo(`added AUTH stage to operation resolvers`);
@@ -31,9 +35,12 @@ describe("AuthPlugin", () => {
     it.todo(`added AUTH stage to node operation`);
   });
 
+  describe("on cleaup node", () => {
+    it.todo(`removed auth directives from node`);
+    it.todo(`removed node auth directives from fields`);
+  });
+
   describe("on run `after` hook", () => {
     it.todo(`removed directive definition`);
-    it.todo(`removed directive from node`);
-    it.todo(`removed directive from fields`);
   });
 });

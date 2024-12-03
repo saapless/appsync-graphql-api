@@ -1,12 +1,17 @@
+import { writeFileSync } from "node:fs";
+import path from "node:path";
 import { TransformerContext } from "../context";
 import { IPluginFactory, TransformerPluginBase } from "../plugins";
 import { DocumentNode } from "../parser";
 import { SchemaValidationError } from "../utils/errors";
-import { FieldResolver, FunctionResolver } from "../resolver";
 
 export interface GraphQLTransformerOptions {
   definition: string;
   plugins: IPluginFactory[];
+
+  mode: "development" | "production";
+  // Absolute path for dev outputs
+  outputDirectory: string;
 }
 
 export type TransformerOutput = {
@@ -45,18 +50,27 @@ export class GraphQLTransformer {
       pipelineFunctions: {},
     };
 
-    for (const [name, resolver] of this.context.resolvers.entries()) {
-      if (resolver instanceof FunctionResolver) {
-        output.pipelineFunctions[`${name}`] = resolver.serialize();
-      }
+    // Build resolvers
 
-      if (resolver instanceof FieldResolver) {
-        output.fieldResolvers[`${name}`] = resolver.serialize();
-      }
-    }
+    // for (const [name, resolver] of this.context.resolvers.entries()) {
+    //   if (resolver instanceof FunctionResolver) {
+    //     output.pipelineFunctions[`${name}`] = resolver.serialize();
+    //   }
+
+    //   if (resolver instanceof FieldResolver) {
+    //     output.fieldResolvers[`${name}`] = resolver.serialize();
+    //   }
+    // }
 
     return output;
   }
+
+  /**
+   * Node transformation happens in 3 stages:
+   * 1. Normalize - check for necessary fields and arguments on the schema & updates directives;
+   * 2. Execute - Adds additional nodes and necessary resources & creates resolvers;
+   * 3. Cleanup - Removes internal directives from the schema.
+   */
 
   public transform() {
     const errors = this.document.validate();
@@ -65,7 +79,16 @@ export class GraphQLTransformer {
       throw new SchemaValidationError(errors);
     }
 
-    // Run transformers
+    // Stage 1. Normalize
+    for (const definition of this.document.definitions.values()) {
+      for (const plugin of this.plugins) {
+        if (plugin.match(definition)) {
+          plugin.normalize(definition);
+        }
+      }
+    }
+
+    // Stage 2. Execute
     for (const definition of this.document.definitions.values()) {
       for (const plugin of this.plugins) {
         if (plugin.match(definition)) {
@@ -75,7 +98,31 @@ export class GraphQLTransformer {
     }
 
     // Print source schema and resolvers.
-    // Cleaup schema
+    if (this.options.mode === "development") {
+      const { outputDirectory } = this.options;
+
+      // eslint-disable-next-line security/detect-non-literal-fs-filename
+      writeFileSync(path.resolve(outputDirectory, "schema.graphql"), this.document.print(), {
+        encoding: "utf-8",
+      });
+
+      for (const [name, resolver] of this.context.resolvers.entries()) {
+        // eslint-disable-next-line security/detect-non-literal-fs-filename
+        writeFileSync(path.resolve(outputDirectory, `${name}.ts`), resolver.print(), {
+          encoding: "utf-8",
+        });
+      }
+    }
+
+    // Stage 3. Cleanup
+    for (const definition of this.document.definitions.values()) {
+      for (const plugin of this.plugins) {
+        if (plugin.match(definition)) {
+          plugin.cleanup(definition);
+        }
+      }
+    }
+
     // Generate output
     return this._generateOutput();
   }

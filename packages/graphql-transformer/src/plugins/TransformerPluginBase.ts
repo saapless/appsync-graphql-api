@@ -25,9 +25,23 @@ export abstract class TransformerPluginBase {
    */
   public abstract match(definition: DefinitionNode): boolean;
   /**
+   * Normalize definition
+   */
+  // eslint-disable-next-line @typescript-eslint/no-unused-vars
+  public normalize(definition: DefinitionNode) {
+    return;
+  }
+  /**
    * Execute transformation on the definition node
    */
   public abstract execute(definition: DefinitionNode): void;
+  /**
+   * Clean up definition
+   */
+  // eslint-disable-next-line @typescript-eslint/no-unused-vars
+  public cleanup(definition: DefinitionNode) {
+    return;
+  }
 
   static create: (context: TransformerContext) => TransformerPluginBase;
 }

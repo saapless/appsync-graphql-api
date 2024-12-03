@@ -1,6 +1,7 @@
 import { TransformerContext } from "../context";
 import {
   DefinitionNode,
+  DirectiveNode,
   FieldNode,
   InputValueNode,
   InterfaceNode,
@@ -29,23 +30,40 @@ export class NodeInterfacePlugin extends TransformerPluginBase {
    */
 
   public before(): void {
-    const node = this.context.document.getNode("Node");
+    let node = this.context.document.getNode("Node");
 
     // Node interface is defiend by user;
     if (node) {
       if (!(node instanceof InterfaceNode)) {
         throw new InvalidDefinitionError("Node type must be an interface");
       }
-
-      // Ensure minimum required fields are present
-      if (!node.hasField("id")) {
-        node.addField(FieldNode.create("id", NonNullTypeNode.create(NamedTypeNode.create("ID"))));
-      }
     } else {
-      this.context.document.addNode(
-        InterfaceNode.create("Node", [
-          FieldNode.create("id", NonNullTypeNode.create(NamedTypeNode.create("ID"))),
-        ])
+      node = InterfaceNode.create("Node", []);
+      this.context.document.addNode(node);
+    }
+
+    // Ensure minimum required fields are present
+    if (!node.hasField("id")) {
+      node.addField(FieldNode.create("id", NonNullTypeNode.create(NamedTypeNode.create("ID"))));
+    }
+
+    if (!node.hasField("createdAt")) {
+      node.addField(FieldNode.create("createdAt", NamedTypeNode.create("AWSDateTime")));
+    }
+
+    if (!node.hasField("updatedAt")) {
+      node.addField(FieldNode.create("updatedAt", NamedTypeNode.create("AWSDateTime")));
+    }
+
+    if (!node.hasField("_version")) {
+      node.addField(FieldNode.create("_version", NamedTypeNode.create("Int")));
+    }
+
+    if (!node.hasField("_deleted")) {
+      node.addField(
+        FieldNode.create("_deleted", NamedTypeNode.create("Boolean")).addDirective(
+          DirectiveNode.create("readonly")
+        )
       );
     }
 

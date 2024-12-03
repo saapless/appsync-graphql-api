@@ -1,94 +1,134 @@
-// type Specifier =
-//   | { _kind: "named"; value: string }
-//   | { _kind: "default"; value: string }
-//   | { _kind: "namespace"; value?: string }
-//   | string;
+import { tc } from "./ast";
 
-// export function specifiers(values: Specifier[]) {
-//   let _default: string | undefined = undefined;
-//   let _namespace: string | undefined = undefined;
-//   const _named: string[] = [];
+export function putItem(typename: string) {
+  return [
+    tc.const(tc.obj(tc.ref("input")), tc.ref("ctx.args")),
+    tc.const("id", tc.coalesce(tc.ref("input.id"), tc.call(tc.ref("util.autoId"), []))),
+    tc.const(
+      "createdAt",
+      tc.coalesce(tc.ref("input.createdAt"), tc.call(tc.ref("util.time.nowISO8601"), []))
+    ),
+    tc.const(
+      "item",
+      tc.obj(tc.spread("input"), {
+        id: tc.ref("id"),
+        createdAt: tc.ref("createdAt"),
+        updatedAt: tc.coalesce(tc.ref("input.updatedAt"), tc.ref("createdAt")),
+        __typename: tc.str(typename),
+        _version: tc.coalesce(tc.ref("input._version"), tc.num(1)),
+        _sk: tc.tick(`${typename}\${id}`),
+      })
+    ),
+    tc.return(
+      tc.call(
+        tc.ref("ddb.put"),
+        tc.obj({
+          key: tc.obj({ id: tc.ref("item.id") }),
+          item: tc.ref("item"),
+          condition: tc.obj({
+            id: tc.obj({
+              attributeExists: tc.bool(false),
+            }),
+          }),
+        })
+      )
+    ),
+  ];
+}
 
-//   for (const value of values) {
-//     if (typeof value === "string") {
-//       _named.push(value);
-//       continue;
-//     }
+export function updateItem() {
+  return [
+    tc.const(tc.obj(tc.ref("input")), tc.ref("ctx.args")),
+    tc.const(
+      "updatedAt",
+      tc.coalesce(tc.ref("input.updatedAt"), tc.call(tc.ref("util.time.nowISO8601"), []))
+    ),
+    tc.const(
+      "attributes",
+      tc.obj(tc.spread("input"), {
+        id: tc.ref("input.id"),
+        updatedAt: tc.ref("updatedAt"),
+      })
+    ),
+    tc.const(
+      "item",
+      tc.obj({ _version: tc.call(tc.ref("ddb.operations.increment"), [tc.num(1)]) })
+    ),
+    tc.forOf(
+      tc.const(tc.arr(tc.ref("key"), tc.ref("value"))),
+      tc.call(tc.ref("Object.entries"), [tc.ref("attributes")]),
+      tc.assign(tc.ref("item[key]"), tc.call(tc.ref("ddb.operations.replace"), [tc.ref("value")]))
+    ),
+    tc.return(
+      tc.call(
+        tc.ref("ddb.update"),
+        tc.obj({
+          key: tc.obj({ id: tc.ref("input.id") }),
+          item: tc.ref("item"),
+          condition: tc.obj({
+            id: tc.obj({
+              attributeExists: tc.bool(true),
+            }),
+            _version: tc.obj({ eq: tc.ref("input._version") }),
+          }),
+        })
+      )
+    ),
+  ];
+}
 
-//     if (value._kind === "default") {
-//       if (_default) throw new Error("Default specifier already exists");
-//       if (_namespace) throw new Error("Default specifier cannot be used with namespace specifier");
-//       _default = value.value;
-//       continue;
-//     }
+export function deleteItem() {
+  return [
+    tc.const(tc.obj(tc.ref("input")), tc.ref("ctx.args")),
+    tc.return(
+      tc.call(
+        tc.ref("ddb.update"),
+        tc.obj({
+          key: tc.obj({ id: tc.ref("input.id") }),
+          item: tc.obj({
+            updatedAt: tc.call(tc.ref("ddb.operations.replace"), [
+              tc.call(tc.ref("util.time.nowISO8601"), []),
+            ]),
+            _version: tc.call(tc.ref("ddb.operations.increment"), [tc.num(1)]),
+            _deleted: tc.call(tc.ref("ddb.operations.replace"), [tc.bool(true)]),
+          }),
+          condition: tc.obj({
+            id: tc.obj({ attributeExists: tc.bool(true) }),
+            _version: tc.obj({ eq: tc.ref("input._version") }),
+          }),
+        })
+      )
+    ),
+  ];
+}
 
-//     if (value._kind === "namespace") {
-//       if (_namespace) throw new Error("Namespace specifier already exists");
-//       if (_default) throw new Error("Namespace specifier cannot be used with default specifier");
-//       _namespace = value.value ? join(" ", "*", "as", value.value) : "*";
-//       continue;
-//     }
+export function getItem(key: string, ref: string) {
+  return [
+    tc.return(
+      tc.call(
+        tc.ref("ddb.get"),
+        tc.obj({
+          key: tc.obj({ [key]: tc.chain("ctx", ref) }),
+        })
+      )
+    ),
+  ];
+}
 
-//     _named.push(value.value);
-//   }
-
-//   return join(
-//     " ",
-//     _default ?? _namespace ?? "",
-//     _named.length ? wrap("{ ", join(", ", _named), " }") : ""
-//   );
-// }
-
-export {};
-
-// export function _for(initial: string, condition: string, increment: string, body: string) {
-//   return join(" ", wrap("for", expression(join(" ", initial, condition, increment))), block(body));
-// }
-
-// export function _if(condition: string, body: string) {
-//   return join(" ", "if", expression(condition), block(body));
-// }
-
-// export function _return(value: string) {
-//   return wrap("return ", statement(value));
-// }
-
-// export function _const(name: string, value: string) {
-//   return statement(join(" ", "const", name, "=", value));
-// }
-
-// export function _let(name: string, value: string) {
-//   return statement(join(" ", "let", name, "=", value));
-// }
-
-// export function _throw(value: string) {
-//   return wrap("throw ", statement(value));
-// }
-
-// export function _object(...properties: string[]) {
-//   return block(join(",\n", properties));
-// }
-
-// export function _property(name: string, value: string) {
-//   return join(" ", join("", name, ":"), value);
-// }
-
-// export function _array(...values: string[]) {
-//   return wrap("[", join(", ", values), "]");
-// }
-
-// export function _param(name: string, type?: string) {
-//   return join(": ", name, type ?? "");
-// }
-
-// export function _function(name: string, parameters: string[], body: string) {
-//   return join(" ", "function", join("", name, wrap("(", join(", ", parameters)), ")"), block(body));
-// }
-
-// export function _call(name: string, parameters: string[]) {
-//   return join("", name, wrap("(", join(", ", parameters)), ")");
-// }
-
-// export function _member(identifier: string, property: string) {
-//   return join(".", identifier, property);
-// }
+export function queryItems(key: string, ref: string, index: string | null) {
+  return [
+    tc.return(
+      tc.call(
+        tc.ref("ddb.query"),
+        tc.obj({
+          query: tc.obj({ [key]: tc.obj({ eq: tc.ref(`ctx.${ref}`) }) }),
+          filter: tc.ref("ctx.args.filter"),
+          limit: tc.coalesce(tc.ref("ctx.args.first"), tc.num(100)),
+          nextToken: tc.coalesce(tc.ref("ctx.args.after"), tc.undef()),
+          scanIndexForward: tc.eq(tc.ref("ctx.args.sortDirection"), tc.str("ASC")),
+          index: index ? tc.str(index) : tc.undef(),
+        })
+      )
+    ),
+  ];
+}

@@ -16,5 +16,8 @@
   },
   "dependencies": {
     "graphql": "^16.9.0"
+  },
+  "devDependencies": {
+    "@aws-appsync/utils": "^1.11.0"
   }
 }

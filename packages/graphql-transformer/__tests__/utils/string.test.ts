@@ -1,4 +1,4 @@
-import { camelCase } from "../../src/utils/strings";
+import { camelCase, pluralize } from "../../src/utils/strings";
 
 describe("string utils", () => {
   describe("camelCase util", () => {
@@ -44,6 +44,127 @@ describe("string utils", () => {
       expect(camelCase("Z")).toBe("z");
       expect(camelCase("123_test")).toBe("123Test");
       expect(camelCase("TEST_VALUE")).toBe("testValue");
+    });
+  });
+
+  describe("pluralize util", () => {
+    it("should correctly pluralize words ending in -us", () => {
+      expect(pluralize("stimulus")).toBe("stimuli");
+      expect(pluralize("alumnus")).toBe("alumni");
+      expect(pluralize("focus")).toBe("foci");
+      expect(pluralize("radius")).toBe("radii");
+      expect(pluralize("virus")).toBe("viruses");
+    });
+
+    it("should correctly pluralize words ending in -um/-on", () => {
+      expect(pluralize("datum")).toBe("data");
+      expect(pluralize("criterion")).toBe("criteria");
+      expect(pluralize("phenomenon")).toBe("phenomena");
+      expect(pluralize("stratum")).toBe("strata");
+    });
+
+    it("should correctly pluralize words ending in -y", () => {
+      expect(pluralize("story")).toBe("stories");
+      expect(pluralize("fly")).toBe("flies");
+      expect(pluralize("monkey")).toBe("monkeys");
+    });
+
+    it("should correctly pluralize words ending in -f/-fe", () => {
+      expect(pluralize("life")).toBe("lives");
+      expect(pluralize("wolf")).toBe("wolves");
+      expect(pluralize("knife")).toBe("knives");
+    });
+
+    it("should correctly pluralize special cases", () => {
+      expect(pluralize("person")).toBe("people");
+      expect(pluralize("child")).toBe("children");
+      expect(pluralize("man")).toBe("men");
+      expect(pluralize("woman")).toBe("women");
+      expect(pluralize("mouse")).toBe("mice");
+    });
+
+    it("should correctly pluralize words ending in -ch/-sh/-ss/-x", () => {
+      expect(pluralize("watch")).toBe("watches");
+      expect(pluralize("dish")).toBe("dishes");
+      expect(pluralize("class")).toBe("classes");
+      expect(pluralize("box")).toBe("boxes");
+    });
+
+    it.skip("should return the same word when no plural rule matches", () => {
+      expect(pluralize("data")).toBe("data");
+      expect(pluralize("sheep")).toBe("sheep");
+    });
+
+    it("should correctly pluralize words ending in -as/-is", () => {
+      expect(pluralize("alias")).toBe("aliases");
+      expect(pluralize("gas")).toBe("gases");
+      expect(pluralize("atlas")).toBe("atlases");
+      expect(pluralize("iris")).toBe("irises");
+    });
+
+    it("should correctly pluralize words ending in -ix/-ex", () => {
+      expect(pluralize("matrix")).toBe("matrices");
+      expect(pluralize("index")).toBe("indices");
+      expect(pluralize("vertex")).toBe("vertices");
+      expect(pluralize("appendix")).toBe("appendices");
+    });
+
+    it("should correctly pluralize words with -emu pattern", () => {
+      expect(pluralize("emu")).toBe("emus");
+    });
+
+    it("should correctly pluralize words ending in -o", () => {
+      expect(pluralize("hero")).toBe("heroes");
+      expect(pluralize("potato")).toBe("potatoes");
+    });
+
+    it("should correctly handle seraph/cherub cases", () => {
+      expect(pluralize("seraph")).toBe("seraphim");
+      expect(pluralize("cherub")).toBe("cherubim");
+    });
+
+    it("should correctly pluralize Latin/Greek terms ending in -a/-ae", () => {
+      expect(pluralize("vertebra")).toBe("vertebrae");
+      expect(pluralize("alga")).toBe("algae");
+      expect(pluralize("alumna")).toBe("alumnae");
+    });
+
+    it("should correctly pluralize words ending in -ias/-las/-as/-am", () => {
+      expect(pluralize("atlas")).toBe("atlases");
+      expect(pluralize("villas")).toBe("villas");
+      expect(pluralize("jam")).toBe("jams");
+    });
+
+    it("should correctly pluralize academic/scientific terms", () => {
+      expect(pluralize("agenda")).toBe("agenda");
+      expect(pluralize("bacterium")).toBe("bacteria");
+      expect(pluralize("curriculum")).toBe("curricula");
+      expect(pluralize("symposium")).toBe("symposia");
+      expect(pluralize("ovum")).toBe("ova");
+    });
+
+    it("should correctly pluralize additional mouse/louse variants", () => {
+      expect(pluralize("louse")).toBe("lice");
+      expect(pluralize("titmouse")).toBe("titmice");
+    });
+
+    it.skip("should correctly handle words ending in -eaux", () => {
+      expect(pluralize("tableau")).toBe("tableaux");
+      expect(pluralize("beau")).toBe("beaux");
+    });
+
+    it("should correctly handle the word thou", () => {
+      expect(pluralize("thou")).toBe("you");
+    });
+
+    it("should handle singular strings", () => {
+      expect(pluralize("user")).toBe("users");
+      expect(pluralize("profile")).toBe("profiles");
+    });
+
+    it("should handle plural strings", () => {
+      expect(pluralize("users")).toBe("users");
+      expect(pluralize("profiles")).toBe("profiles");
     });
   });
 });

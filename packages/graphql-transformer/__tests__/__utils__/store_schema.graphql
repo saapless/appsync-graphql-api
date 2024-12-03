@@ -1,42 +1,50 @@
-type Product
-  @model
-  @auth(allow: public, operations: [get, list])
-  @auth(claim: { not: { key: "custom:workspace_role", eq: "User" } }, operations: [write]) {
+type Product @model(operations: [get, list]) @auth(allow: public, operations: [get, list]) {
   # Attributes
   name: String
   description: String
   price: Float
 
   # Connections
-  category: Category
-  images: Image
+  images: Image @edges
+  categories: Category @connection(relation: "manyMany")
 }
 
-type Category @model {
+type Category @model(operations: [get, list]) @auth(allow: public, operations: [get, list]) {
   # Attributes
   name: String
   description: string
 
   # Connections
-  products: Product
+  products: Product @edges
 }
 
-type Image @model {
+type Collection @model(operations: [get, list]) @auth(allow: public, operations: [get, list]) {
+  name: String
+  slug: String
+  products: Product @edges
+}
+
+type Image @model(operations: []) @auth(allow: public, operations: [get, list]) {
   name: String
   url: String
 }
 
-type Cart @model {
-  products: Product
+type Cart @model @auth(allow: owner) {
+  items: CartItem @edges
 }
 
-type Order @model {
+type CartItem @model @auth(allow: owner) {
+  quantity: Int
+  product: Product @node
+}
+
+type Order @model @auth(allow: owner) {
   # Attributes
   status: OrderStatus
 
   # Connections
-  products: Product
-  transaction: Transaction
+  cart: Cart @node
+  transaction: Transaction @node
 }
 
 enum OrderStatus {
@@ -47,13 +55,13 @@ enum OrderStatus {
   DELIVERED
 }
 
-type Transaction @model {
+type Transaction @model @auth(allow: owner) {
   # Attributes
   amount: Float
   status: TransactionStatus
 
   # Connections
-  order: Order
+  order: Order @node
 }
 
 enum TransactionStatus {
@@ -62,14 +70,19 @@ enum TransactionStatus {
   REGECTED
 }
 
-type User @model {
+type User @model(operations: [update]) @auth(allow: owner) {
   # Attributes
   firstName: String
   lastName: String
   email: String
 
   # Connections
-  cart: Cart
-  orders: Order
+  orders: Order @edges
+}
+
+type Query {
+  me: User @connection(relation: "oneOne", key: "id", ref: "identity.sub")
+  cart: Cart @connection(relation: "oneOne", key: "userId", ref: "identity.sub")
   wishlist: Product
+    @connection(relation: "manyMany", key: "sourceId", ref: "identity.sub", index: "bySourceId")
 }

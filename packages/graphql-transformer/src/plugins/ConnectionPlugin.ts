@@ -128,7 +128,8 @@ export class ConnectionPlugin extends TransformerPluginBase {
     });
   }
 
-  private _isConnectionType(node: ObjectNode | InterfaceNode) {
+  private _isConnectionType(node: ObjectNode | InterfaceNode | UnionNode) {
+    if (node instanceof UnionNode) return false;
     if (!node.fields) return false;
     if (node.fields.length !== 2) return false;
     if (!node.hasField("edges") || !node.hasField("pageInfo")) return false;
@@ -197,13 +198,14 @@ export class ConnectionPlugin extends TransformerPluginBase {
 
       const args = directive.getArgumentsJSON<DirectiveArgs>();
       const key = args.key ?? camelCase(target.name, "id");
+      const ref = args.ref ?? `source.${key}`;
 
       return {
         name: "node",
         relation: "oneOne",
-        key: args.key ?? camelCase(target.name, "id"),
-        ref: `source.${key}`,
-        index: null,
+        key: key,
+        ref: ref,
+        index: args.index ?? null,
         target: target,
       };
     }
@@ -377,12 +379,18 @@ export class ConnectionPlugin extends TransformerPluginBase {
     }
 
     if (!field.hasArgument("sort")) {
-      field.addArgument(
-        InputValueNode.create(
-          "sort",
-          ListTypeNode.create(NonNullTypeNode.create("ModelSortDirection"))
-        )
-      );
+      field.addArgument(InputValueNode.create("sort", NamedTypeNode.create("ModelSortDirection")));
+    }
+  }
+
+  /**
+   * For one-to-many connections user should be able to add the connection key via mutations.
+   * By default the connection key is writeonly meaning we only add it to the mutation inputs.
+   */
+
+  private _setConnectionKey(node: ObjectNode | InterfaceNode, key: string) {
+    if (!node.hasField(key)) {
+      node.addField(FieldNode.create(key, NamedTypeNode.create("ID")));
     }
   }
 
@@ -407,12 +415,8 @@ export class ConnectionPlugin extends TransformerPluginBase {
         );
     }
 
-    if (!parent.hasField(connection.key)) {
-      parent.addField(
-        FieldNode.create(connection.key, NamedTypeNode.create("ID")).addDirective(
-          DirectiveNode.create("writeonly")
-        )
-      );
+    if (connection.ref.startsWith("source")) {
+      this._setConnectionKey(parent, connection.key);
     }
 
     if (!this.context.resolvers.has(`${parent.name}.${field.name}`)) {
@@ -426,9 +430,27 @@ export class ConnectionPlugin extends TransformerPluginBase {
   private _createEdgesConnection(
     parent: ObjectNode | InterfaceNode,
     field: FieldNode,
-    target: ObjectNode | InterfaceNode | UnionNode
+    connection: FieldConnection
   ) {
-    if (target instanceof UnionNode || !this._isConnectionType(target)) {
+    if (connection.name === "edges") {
+      field
+        .removeDirective("edges")
+        .addDirective(
+          DirectiveNode.create("connection", [
+            ArgumentNode.create("relation", ValueNode.enum(connection.relation)),
+            ArgumentNode.create("key", ValueNode.string(connection.key)),
+            ArgumentNode.create("ref", ValueNode.string(connection.ref)),
+            ArgumentNode.create(
+              "index",
+              connection.index ? ValueNode.string(connection.index) : ValueNode.null()
+            ),
+          ])
+        );
+    }
+
+    const { target } = connection;
+
+    if (!this._isConnectionType(target)) {
       const typeName = pascalCase(target.name, "connection");
 
       if (!this.context.document.hasNode(typeName)) {
@@ -450,8 +472,24 @@ export class ConnectionPlugin extends TransformerPluginBase {
         this.context.document.addNode(connectionType).addNode(edgeType);
       }
 
+      if (target instanceof UnionNode) {
+        for (const type of target.types ?? []) {
+          const unionType = this.context.document.getNode(type.getTypeName());
+
+          if (unionType instanceof ObjectNode || unionType instanceof InterfaceNode) {
+            this._setConnectionKey(unionType, connection.key);
+          }
+        }
+      } else {
+        this._setConnectionKey(target, connection.key);
+      }
+
       this._setEdgesConnectionArguments(field, target);
       field.setType(NonNullTypeNode.create(typeName));
+    }
+
+    if (connection.relation === "manyMany") {
+      // TODO: Create edge mutations
     }
 
     if (!this.context.resolvers.has(`${ObjectNode.name}.${field.name}`)) {
@@ -498,7 +536,7 @@ export class ConnectionPlugin extends TransformerPluginBase {
         continue;
       }
 
-      this._createEdgesConnection(definition, field, connection.target);
+      this._createEdgesConnection(definition, field, connection);
     }
   }
 

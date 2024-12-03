@@ -38,7 +38,7 @@ describe("ConnectionPlugin", () => {
   describe("on run `before` hook", () => {
     beforeAll(() => plugin.before());
 
-    it("adds connection directives", () => {
+    it("adds connection directive definitions", () => {
       expect(context.document.getNode("connection")).toBeInstanceOf(DirectiveDefinitionNode);
       expect(context.document.getNode("edges")).toBeInstanceOf(DirectiveDefinitionNode);
       expect(context.document.getNode("node")).toBeInstanceOf(DirectiveDefinitionNode);
@@ -52,6 +52,12 @@ describe("ConnectionPlugin", () => {
 
     it.todo("throws error on `edge` directive");
     it.todo("throws error on `node` directive");
+  });
+
+  describe("on normalize node", () => {
+    it.todo("updates `node` connection arguments");
+    it.todo("updates `edges` connection arguments");
+    it.todo("adds connection fields to objects");
   });
 
   describe("on execute object node", () => {
@@ -77,5 +83,13 @@ describe("ConnectionPlugin", () => {
     it("creates field resolvers", () => {
       expect(context.resolvers.get("Todo.resources")).toBeInstanceOf(FieldResolver);
     });
+  });
+
+  describe("on cleanup node", () => {
+    it.todo("removes connection directives from fields");
+  });
+
+  describe("on run `after` hook", () => {
+    it.todo("removes connection directive definitions");
   });
 });

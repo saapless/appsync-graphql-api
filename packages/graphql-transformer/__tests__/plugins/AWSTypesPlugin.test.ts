@@ -43,7 +43,7 @@ describe("AWSTypesPlugin", () => {
   describe("on run `after` hook", () => {
     beforeAll(() => plugin.after());
 
-    it("adds aws scalar declarations", () => {
+    it("removes aws scalar declarations", () => {
       expect(context.document.getNode("AWSDate")).toBeUndefined();
       expect(context.document.getNode("AWSTime")).toBeUndefined();
       expect(context.document.getNode("AWSDateTime")).toBeUndefined();
@@ -55,7 +55,7 @@ describe("AWSTypesPlugin", () => {
       expect(context.document.getNode("AWSIPAddress")).toBeUndefined();
     });
 
-    it("adds aws directive definitions", () => {
+    it("removes aws directive definitions", () => {
       expect(context.document.getNode("aws_subscribe")).toBeUndefined();
       expect(context.document.getNode("aws_cognito_user_pools")).toBeUndefined();
       expect(context.document.getNode("aws_auth")).toBeUndefined();

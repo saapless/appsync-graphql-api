@@ -1,20 +1,21 @@
 {
   "extends": "../../tsconfig.json",
   "compilerOptions": {
-    // "rootDir": "src",
+    "rootDir": "src",
     "noEmit": false,
     "outDir": "dist",
     "inlineSources": false,
     "incremental": true,
     "isolatedModules": true,
+    "module": "ESNext"
   },
   "include": [
     "src",
     "../../global.d.ts",
-    "__tests__"
   ],
   "exclude": [
     "dist",
+    "__tests__",
     "node_modules"
   ]
 }

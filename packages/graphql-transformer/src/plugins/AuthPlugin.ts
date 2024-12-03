@@ -52,8 +52,24 @@ export class AuthPlugin extends TransformerPluginBase {
     return false;
   }
 
-  public execute(definition: ObjectNode | InterfaceNode) {
+  public after() {
+    this.context.document.removeNode("auth");
+  }
+
+  public execute() {
     return;
+  }
+
+  public cleanup(definition: ObjectNode | InterfaceNode): void {
+    if (definition.hasDirective("auth")) {
+      definition.removeDirective("auth");
+    }
+
+    for (const field of definition.fields ?? []) {
+      if (field.hasDirective("auth")) {
+        field.removeDirective("auth");
+      }
+    }
   }
 
   static create(context: TransformerContext) {

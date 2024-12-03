@@ -29,5 +29,7 @@ export function createTransformer(options: Partial<GraphQLTransformerOptions>) {
   return new GraphQLTransformer({
     definition: options.definition,
     plugins: options.plugins,
+    mode: options.mode ?? "production",
+    outputDirectory: options.outputDirectory ?? "out",
   });
 }

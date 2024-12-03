@@ -185,12 +185,7 @@ function _rest(arg: string): RestElement {
 
 export type DefinitionPattern = Identifier | ObjectDefinition | ArrayDefinition | RestElement;
 
-export type PropertyValue =
-  | ObjectDefinition
-  | ArrayDefinition
-  | MemberExpression
-  | Identifier
-  | Literal;
+export type PropertyValue = Definition | Expression | Identifier | Literal;
 
 export interface Property extends Node {
   _kind: NodeKind.PROPERTY;
@@ -200,7 +195,7 @@ export interface Property extends Node {
 
 type Operand = Literal | Definition | Expression;
 
-type Argument = Literal | DefinitionPattern;
+type Argument = Literal | DefinitionPattern | Expression;
 
 function _prop(name: string, value: PropertyValue): Property {
   return { _kind: NodeKind.PROPERTY, name, value };
@@ -518,8 +513,8 @@ function _member(object: Operand, property: Identifier, optional = false): Membe
   };
 }
 
-function _chain(value: string): MemberExpression | Identifier {
-  const nodes = value.split(".");
+function _chain(...value: string[]): MemberExpression | Identifier {
+  const nodes = value.map((str) => str.split(".")).flat();
   if (nodes.length === 1) return _ref(nodes[0]);
   if (nodes.length === 2) return _member(_ref(nodes[0]), _ref(nodes[1]));
 

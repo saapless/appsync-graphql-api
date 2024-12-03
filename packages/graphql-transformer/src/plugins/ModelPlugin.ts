@@ -16,8 +16,9 @@ import {
   ValueNode,
 } from "../parser";
 import { FieldResolver } from "../resolver";
+import { deleteItem, getItem, putItem, queryItems, updateItem } from "../resolver/code/utils";
 import { InvalidDefinitionError, TransformExecutionError } from "../utils/errors";
-import { camelCase, pascalCase } from "../utils/strings";
+import { camelCase, pascalCase, pluralize } from "../utils/strings";
 import { TransformerPluginBase } from "./TransformerPluginBase";
 
 type ModelOperationType =
@@ -38,7 +39,7 @@ export class ModelPlugin extends TransformerPluginBase {
     super(context);
   }
 
-  //#region Create Resources
+  // #region Model Resources
 
   private _createModelSizeInput() {
     const input = InputObjectNode.create("ModelSizeInput", [
@@ -142,6 +143,10 @@ export class ModelPlugin extends TransformerPluginBase {
     this.context.document.addNode(enumNode);
   }
 
+  // #endregion Model Resources
+
+  // #region Operations
+
   /**
    * TODO:
    *  * Handle shorthands - `read` & `write`
@@ -156,13 +161,24 @@ export class ModelPlugin extends TransformerPluginBase {
       throw new TransformExecutionError(`@model directive not found for type ${object.name}`);
     }
 
-    let operations = ["create", "update", "delete", "get", "list"];
+    let operations: ModelOperationType[] = ["create", "update", "delete", "get", "list"];
 
     if (directive.hasArgument("operations")) {
       const args = directive.getArgumentsJSON<{ operations?: ModelOperationType[] }>();
 
       if (Array.isArray(args.operations)) {
-        operations = args.operations;
+        operations = Array.from(
+          args.operations.reduce((agg, op) => {
+            if (op === "write") {
+              agg.add("create").add("update").add("delete");
+            } else if (op === "read") {
+              agg.add("get").add("list");
+            } else {
+              agg.add(op);
+            }
+            return agg;
+          }, new Set<ModelOperationType>())
+        );
       }
     }
 
@@ -185,13 +201,16 @@ export class ModelPlugin extends TransformerPluginBase {
 
     // 2 Create field resolver
     if (!this.context.resolvers.has(`Query.${fieldName}`)) {
-      this.context.resolvers.set(`Query.${fieldName}`, FieldResolver.create("Query", fieldName));
+      this.context.resolvers.set(
+        `Query.${fieldName}`,
+        FieldResolver.create("Query", fieldName).setStage("LOAD", ...getItem("id", "args.id"))
+      );
     }
   }
 
   private _createListQuery(model: ObjectNode) {
     // TODO: add helper to handle plural name
-    const fieldName = `list${model.name}s`;
+    const fieldName = camelCase("list", pluralize(model.name));
     const queryNode = this.context.document.getQueryNode();
 
     if (!queryNode.hasField(fieldName)) {
@@ -202,11 +221,18 @@ export class ModelPlugin extends TransformerPluginBase {
           ArgumentNode.create("index", ValueNode.string("byTypename")),
         ]),
       ]);
+
       queryNode.addField(field);
     }
 
     if (!this.context.resolvers.has(`Query.${fieldName}`)) {
-      this.context.resolvers.set(`Query.${fieldName}`, FieldResolver.create("Query", fieldName));
+      this.context.resolvers.set(
+        `Query.${fieldName}`,
+        FieldResolver.create("Query", fieldName).setStage(
+          "LOAD",
+          ...queryItems("__typename", "", "byTypename")
+        )
+      );
     }
   }
 
@@ -240,19 +266,19 @@ export class ModelPlugin extends TransformerPluginBase {
             continue;
           }
 
+          const fieldTypeName = field.type.getTypeName();
+
           if (field.name === "id" || field.name === "_version") {
             input.addField(
               InputValueNode.create(
                 field.name,
                 nonNullIdOrVersion
-                  ? NonNullTypeNode.create(field.name)
-                  : NamedTypeNode.create(field.name)
+                  ? NonNullTypeNode.create(fieldTypeName)
+                  : NamedTypeNode.create(fieldTypeName)
               )
             );
             continue;
           }
-
-          const fieldTypeName = field.type.getTypeName();
 
           // Buildin scalars
           if (["ID", "String", "Int", "Float", "Boolean"].includes(fieldTypeName)) {
@@ -293,6 +319,21 @@ export class ModelPlugin extends TransformerPluginBase {
     }
   }
 
+  private _getMutationLoader(verb: string, typename: string) {
+    switch (verb) {
+      case "create":
+        return putItem(typename);
+      case "update":
+        return updateItem();
+      case "delete":
+        return deleteItem();
+      case "upsert":
+        return updateItem();
+      default:
+        throw new TransformExecutionError(`Unknown operation: ${verb}`);
+    }
+  }
+
   private _createMutation(model: ObjectNode, verb: string, nonNullIdOrVersion = false) {
     const fieldName = camelCase(verb, model.name);
     const inputName = pascalCase(verb, model.name, "input");
@@ -310,14 +351,16 @@ export class ModelPlugin extends TransformerPluginBase {
     }
 
     if (!this.context.resolvers.has(`Mutation.${fieldName}`)) {
+      const loader = this._getMutationLoader(verb, model.name);
+
       this.context.resolvers.set(
         `Mutation.${fieldName}`,
-        FieldResolver.create("Mutation", fieldName)
+        FieldResolver.create("Mutation", fieldName).setStage("LOAD", ...loader)
       );
     }
   }
 
-  //#endregion
+  // #endregion Operations
 
   public before() {
     this.context.document
@@ -382,15 +425,25 @@ export class ModelPlugin extends TransformerPluginBase {
           this._createListQuery(definition);
           break;
         case "create":
-        case "update":
-        case "upsert":
-        case "delete":
           this._createMutation(definition, verb);
+          break;
+        case "upsert":
+          this._createMutation(definition, verb);
+          break;
+        case "update":
+          this._createMutation(definition, verb, true);
+          break;
+        case "delete":
+          this._createMutation(definition, verb, true);
           break;
         default:
           continue;
       }
     }
+  }
+
+  public cleanup(definition: ObjectNode): void {
+    definition.removeDirective("model");
   }
 
   public after(): void {

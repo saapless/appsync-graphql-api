@@ -1,15 +1,3 @@
-type Viewer
-
-interface Node {
-  id: ID!
-
-  # Metadata
-  createdAt: AWSDateTime
-  updatedAt: AWSDateTime
-  _version: Int
-  _deleted: Boolean @readonly
-}
-
 enum UserStatus {
   ACTIVE
   DISABLED
@@ -92,10 +80,10 @@ enum TimeLogAction {
 
 union Artifact = File | TimeTracker
 
-extend type Viewer {
-  user: User @node
-  tasks: Task @edges
-  labels: Label @edges
+type Viewer {
+  user: User @node(key: "id", ref: "identity.sub")
+  tasks: Task @edges(key: "sourceId", ref: "identity.sub", index: "bySourceId")
+  labels: Label @edges(key: "sourceId", ref: "identity.sub", index: "bySourceId")
 }
 
 type Query {

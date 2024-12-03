@@ -96,6 +96,16 @@ describe("ModelPlugin", () => {
     });
   });
 
+  describe("on cleanup nodes", () => {
+    beforeAll(() => {
+      plugin.cleanup(context.document.getNode("Model") as ObjectNode);
+    });
+
+    it("removes model node", () => {
+      expect((context.document.getNode("Model") as ObjectNode)?.hasDirective("model")).toBeFalsy();
+    });
+  });
+
   describe("on run `after` hook", () => {
     beforeAll(() => {
       plugin.after();
