@@ -1,4 +1,4 @@
-import { CodeDocument, MemberExpression, NodeKind, printAST, tc } from "../../src/resolver";
+import { CodeDocument, MemberExpression, NodeKind, printAST, tc } from "../src/codegen";
 
 describe("resolver code printer", () => {
   describe("ast utilities", () => {
@@ -136,7 +136,7 @@ describe("resolver code printer", () => {
       .addImport("@aws-appsync/utils", tc.named("util"))
       .addImport("@aws-appsync/utils/dynamodb", tc.namespace("ddb"))
       .addImport("@aws-appsync/utils", tc.named("runtime"))
-      .addRequestFunction(
+      .setRequest(
         tc.const(
           tc.obj(tc.prop("args", tc.obj(tc.ref("input"))), tc.ref("identity")),
           tc.ref("ctx")
@@ -178,7 +178,7 @@ describe("resolver code printer", () => {
           )
         )
       )
-      .addResponseFunction(
+      .setResponse(
         tc.const(tc.obj(tc.ref("error"), tc.ref("result")), tc.ref("ctx")),
         tc.if(
           tc.ref("error"),

@@ -10,7 +10,7 @@ type Todo {
   id: ID
   content: String
   resources(filter: ResourceFilterInput, first: Int, after: String, sort: ModelSortDirection): ResourceConnection!
-  userId: ID @private
+  sourceId: ID @writeonly
 }
 
 type Document {

@@ -1,9 +1,9 @@
 // Jest Snapshot v1, https://goo.gl/fbAQLP
 
 exports[`resolver code printer CodeDocument prints document template 1`] = `
-"import { util, runtime } from "@aws-appsync/utils";
+"import { util, runtime, Context, Context, Context, Context } from "@aws-appsync/utils";
 import * as ddb from "@aws-appsync/utils/dynamodb";
-export function request(ctx) {
+export function request(ctx:Context) {
   const { args: { input }, identity } = ctx
   if (!ctx.identity) {
     return runtime.earlyReturn(null)
@@ -16,7 +16,7 @@ export function request(ctx) {
   return ddb.put({ key: { id: item.id }, item: item, condition: { id: { attributeExists: false } } })
 }
 
-export function response(ctx) {
+export function response(ctx:Context) {
   const { error, result } = ctx
   if (error) {
     util.error(error.message, erorr.type)
@@ -53,6 +53,30 @@ exports[`resolver code printer CodeDocument serialize document ast 1`] = `
           "value": {
             "_kind": "Identifier",
             "name": "runtime",
+          },
+        },
+        {
+          "_kind": "ModuleNamedSpecifier",
+          "alias": undefined,
+          "value": {
+            "_kind": "Identifier",
+            "name": "Context",
+          },
+        },
+        {
+          "_kind": "ModuleNamedSpecifier",
+          "alias": undefined,
+          "value": {
+            "_kind": "Identifier",
+            "name": "Context",
+          },
+        },
+        {
+          "_kind": "ModuleNamedSpecifier",
+          "alias": undefined,
+          "value": {
+            "_kind": "Identifier",
+            "name": "Context",
           },
         },
       ],
@@ -373,8 +397,12 @@ exports[`resolver code printer CodeDocument serialize document ast 1`] = `
         },
         "parameters": [
           {
-            "_kind": "Identifier",
+            "_kind": "TypedIdentifier",
             "name": "ctx",
+            "type": {
+              "_kind": "Identifier",
+              "name": "Context",
+            },
           },
         ],
       },
@@ -453,8 +481,12 @@ exports[`resolver code printer CodeDocument serialize document ast 1`] = `
         },
         "parameters": [
           {
-            "_kind": "Identifier",
+            "_kind": "TypedIdentifier",
             "name": "ctx",
+            "type": {
+              "_kind": "Identifier",
+              "name": "Context",
+            },
           },
         ],
       },

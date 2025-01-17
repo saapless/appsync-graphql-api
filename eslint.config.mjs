@@ -12,7 +12,7 @@ const __dirname = path.dirname(__filename);
 
 export default tseslint.config(
   {
-    ignores: ["**/node_modules/**", "**/dist/**"],
+    ignores: ["**/node_modules/**", "**/dist/**", "**/out/**"],
     extends: [
       eslint.configs.recommended,
       // eslint-disable-next-line import/no-named-as-default-member
@@ -34,7 +34,7 @@ export default tseslint.config(
         project: [
           path.join(__dirname, "tsconfig.json"),
           path.join(__dirname, "tsconfig.eslint.json"),
-          path.join(__dirname, "/packages/*/tsconfig.json"),
+          path.join(__dirname, "packages/*/tsconfig.json"),
         ],
       },
     },
@@ -43,9 +43,9 @@ export default tseslint.config(
         typescript: {
           alwaysTryTypes: true,
           project: [
-            "./tsconfig.json",
+            "<rootDir>/tsconfig.json",
             "<rootDir>/tsconfig.eslint.json",
-            "./packages/*/tsconfig.json",
+            "<rootDir>/packages/*/tsconfig.json",
           ],
         },
       },

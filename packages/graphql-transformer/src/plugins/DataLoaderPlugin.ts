@@ -28,7 +28,7 @@ export class DataLoaderPlugin extends TransformerPluginBase {
     const resolver = this.context.resolvers.get(`Mutation.${fieldName}`);
 
     if (resolver && !resolver.isReadonly) {
-      resolver.addImport("@aws-appsync/utils", "util");
+      // resolver.addImport("@aws-appsync/utils", "util");
     }
   }
 
@@ -43,13 +43,17 @@ export class DataLoaderPlugin extends TransformerPluginBase {
   // }
 
   public before() {
-    this.context.document.addNode(
-      DirectiveDefinitionNode.create(
-        "dataSource",
-        "OBJECT",
-        InputValueNode.create("source", NonNullTypeNode.create("String"))
+    this.context.document
+      .addNode(
+        DirectiveDefinitionNode.create("dataSource", "OBJECT", [
+          InputValueNode.create("name", NonNullTypeNode.create("String")),
+        ])
       )
-    );
+      .addNode(
+        DirectiveDefinitionNode.create("resolver", "FIELD_DEFINITION", [
+          InputValueNode.create("source", NonNullTypeNode.create("String")),
+        ])
+      );
   }
 
   public match(definition: DefinitionNode) {
@@ -77,6 +81,8 @@ export class DataLoaderPlugin extends TransformerPluginBase {
       // }
     }
   }
+
+  public cleanup(): void {}
 
   static create(context: TransformerContext) {
     return new DataLoaderPlugin(context);

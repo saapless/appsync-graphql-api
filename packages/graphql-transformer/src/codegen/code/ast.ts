@@ -32,6 +32,14 @@ export enum NodeKind {
   SWITCH_STATEMENT = "SwitchStatement",
   UNARY_EXPRESSION = "UnaryExpression",
   VARIABLE_DECLRATION = "VariableDeclaration",
+  TYPE_DECLARATION = "TypeDeclaration",
+  TYPE_IDENTIFIER = "TypeIdentifier",
+  TYPE_PROPERTY = "TypeProperty",
+  TYPE_DEFINITION = "TypeDefinition",
+  INTERFACE_DECLARATION = "InterfaceDeclaration",
+  AS_EXPRESSION = "AsExpression",
+  TYPE_CONDITIONAL_EXPRESSION = "ConditionalTypeExpression",
+  TYPE_BINARY_EXPRESSION = "TypeBinaryExpression",
 }
 
 export interface Node {
@@ -145,17 +153,144 @@ export type Literal =
 
 // #endregion Literal
 
+// #region Types
+
+export interface TypeIdentifier extends Node {
+  _kind: NodeKind.TYPE_IDENTIFIER;
+  name: string;
+  parameters?: TypeIdentifier[];
+}
+
+function _typeRef(name: string, params?: TypeIdentifier[]): TypeIdentifier {
+  return {
+    _kind: NodeKind.TYPE_IDENTIFIER,
+    name,
+    parameters: params,
+  };
+}
+
+export interface TypeBinaryExpression extends Node {
+  _kind: NodeKind.TYPE_BINARY_EXPRESSION;
+  operator: string;
+  operands: Array<TypeIdentifier | TypeBinaryExpression | Literal>;
+}
+
+function _typeUnion(
+  operands: Array<TypeIdentifier | TypeBinaryExpression | Literal | string>
+): TypeBinaryExpression {
+  return {
+    _kind: NodeKind.TYPE_BINARY_EXPRESSION,
+    operator: "|",
+    operands: operands.map((operand) =>
+      typeof operand === "string" ? _typeRef(operand) : operand
+    ),
+  };
+}
+
+function _typeIntersect(
+  operands: Array<TypeIdentifier | TypeBinaryExpression | string>
+): TypeBinaryExpression {
+  return {
+    _kind: NodeKind.TYPE_BINARY_EXPRESSION,
+    operator: "&",
+    operands: operands.map((operand) =>
+      typeof operand === "string" ? _typeRef(operand) : operand
+    ),
+  };
+}
+
+export interface TypeProperty extends Node {
+  _kind: NodeKind.TYPE_PROPERTY;
+  name: string;
+  optional: boolean;
+  type: TypeIdentifier | TypeBinaryExpression;
+}
+
+function _typeProp(
+  name: string,
+  type: TypeIdentifier | TypeBinaryExpression,
+  optional = false
+): TypeProperty {
+  return {
+    _kind: NodeKind.TYPE_PROPERTY,
+    name,
+    optional,
+    type,
+  };
+}
+
+export interface TypeDefinition extends Node {
+  _kind: NodeKind.TYPE_DEFINITION;
+  properties: Array<TypeProperty>;
+}
+
+function _typeObj(props: Array<TypeProperty>): TypeDefinition {
+  return {
+    _kind: NodeKind.TYPE_DEFINITION,
+    properties: props,
+  };
+}
+
+type TypeExpression = TypeIdentifier | TypeBinaryExpression | Literal | TypeDefinition;
+
+export interface TypeDeclaration extends Node {
+  _kind: NodeKind.TYPE_DECLARATION;
+  name: TypeIdentifier;
+  definition: TypeExpression;
+}
+
+function _typeDef(name: string | TypeIdentifier, props: TypeExpression): TypeDeclaration {
+  return {
+    _kind: NodeKind.TYPE_DECLARATION,
+    name: typeof name === "string" ? _typeRef(name) : name,
+    definition: props,
+  };
+}
+
+export interface InterfaceDeclaration extends Node {
+  _kind: NodeKind.INTERFACE_DECLARATION;
+  name: TypeIdentifier;
+  definition: TypeDefinition;
+  extension?: Array<TypeIdentifier>;
+}
+
+function _iface(
+  name: TypeIdentifier | string,
+  definition: TypeDefinition,
+  extension?: Array<TypeIdentifier | string>
+): InterfaceDeclaration {
+  return {
+    _kind: NodeKind.INTERFACE_DECLARATION,
+    name: typeof name === "string" ? _typeRef(name) : name,
+    definition: definition,
+    extension: extension?.map((ext) => (typeof ext === "string" ? _typeRef(ext) : ext)),
+  };
+}
+
+const types = {
+  typeRef: _typeRef,
+  typeUnion: _typeUnion,
+  typeIntersect: _typeIntersect,
+  typeProp: _typeProp,
+  typeDef: _typeDef,
+  typeInterface: _iface,
+  typeObj: _typeObj,
+};
+
+// #endregion Types
 // #region Definition
 
 export interface Identifier extends Node {
   _kind: NodeKind.IDENTIFIER;
   name: string;
+  type?: TypeIdentifier;
 }
 
-function _ref(name: string): Identifier {
+function _ref(name: string, type?: TypeIdentifier): Identifier {
   return {
     _kind: NodeKind.IDENTIFIER,
     name,
+    type,
   };
 }
 
@@ -226,11 +361,15 @@ function _obj(
 
 export interface ArrayDefinition extends Node {
   _kind: NodeKind.ARRAY;
-  elements: Array<DefinitionPattern | SpreadElement | RestElement | Literal>;
+  elements: Array<
+    DefinitionPattern | SpreadElement | RestElement | Literal | MemberExpression | PropertyValue
+  >;
 }
 
 function _arr(
-  ...elements: Array<DefinitionPattern | SpreadElement | RestElement | Literal>
+  ...elements: Array<
+    DefinitionPattern | SpreadElement | RestElement | Literal | MemberExpression | PropertyValue
+  >
 ): ArrayDefinition {
   return {
     _kind: NodeKind.ARRAY,
@@ -603,7 +742,7 @@ export const expression = {
 // #endregion Expression
 
 // #region Statement
-export type Block = Statement | Expression | Definition;
+export type Block = Statement | Expression | Definition | TypeIdentifier;
 
 export interface BlockStatement extends Node {
   _kind: NodeKind.BLOCK_STATEMENT;
@@ -776,7 +915,10 @@ export interface VariableDeclaration extends Node {
   type: "var" | "let" | "const";
 }
 
-export function _var(name: string, value: Expression | Definition | Literal): VariableDeclaration {
+export function _var(
+  name: string | Identifier | ObjectDefinition | ArrayDefinition,
+  value: Expression | Definition | Literal
+): VariableDeclaration {
   return {
     _kind: NodeKind.VARIABLE_DECLRATION,
     name: typeof name === "string" ? _ref(name) : name,
@@ -785,7 +927,10 @@ export function _var(name: string, value: Expression | Definition | Literal): Va
   };
 }
 
-export function _let(name: string, value: Expression | Definition | Literal): VariableDeclaration {
+export function _let(
+  name: string | Identifier | ObjectDefinition | ArrayDefinition,
+  value: Expression | Definition | Literal
+): VariableDeclaration {
   return {
     _kind: NodeKind.VARIABLE_DECLRATION,
     name: typeof name === "string" ? _ref(name) : name,
@@ -845,7 +990,7 @@ export interface ModuleNamedSpecifier extends Node {
   alias?: Identifier;
 }
 
-function _named(value: string, alias?: string): ModuleNamedSpecifier {
+export function _named(value: string, alias?: string): ModuleNamedSpecifier {
   return {
     _kind: NodeKind.MODULE_NAMED_SPECIFIER,
     value: _ref(value),
@@ -858,7 +1003,7 @@ export interface ModuleNamespaceSpecifier extends Node {
   alias?: Identifier;
 }
 
-function _namespace(alias?: string): ModuleNamespaceSpecifier {
+export function _namespace(alias?: string): ModuleNamespaceSpecifier {
   return {
     _kind: NodeKind.MODULE_NAMESPACE_SPECIFIER,
     alias: alias ? _ref(alias) : undefined,
@@ -870,7 +1015,7 @@ export interface ModuleDefaultSpecifier extends Node {
   value: Identifier;
 }
 
-function _default(value: string | Identifier): ModuleDefaultSpecifier {
+export function _default(value: string | Identifier): ModuleDefaultSpecifier {
   return {
     _kind: NodeKind.MODULE_DEFAULT_SPECIFIER,
     value: typeof value === "string" ? _ref(value) : value,
@@ -894,10 +1039,12 @@ function _import(from: string, ...specifiers: ModuleSpecifier[]): ImportDeclarat
 
 export interface ExportDeclaration extends Node {
   _kind: NodeKind.EXPORT_DECLARATION;
-  specifier: Declaration;
+  specifier: Declaration | TypeDeclaration | InterfaceDeclaration;
 }
 
-export function _export(specifier: FunctionDeclaration): ExportDeclaration {
+export function _export(
+  specifier: Declaration | TypeDeclaration | InterfaceDeclaration
+): ExportDeclaration {
   return { _kind: NodeKind.EXPORT_DECLARATION, specifier };
 }
 
@@ -908,15 +1055,27 @@ export const module = {
   named: _named,
   namespace: _namespace,
   default: _default,
+  export: _export,
 };
 
 // #endregion Module
 
-export type CodeDeclaration = ModuleDeclaration | Declaration;
+export type CodeDeclaration =
+  | ModuleDeclaration
+  | Declaration
+  | TypeDeclaration
+  | InterfaceDeclaration;
 
 export interface DocumentDefinition extends Node {
   _kind: NodeKind.CODE_DOCUMENT;
   body: CodeDeclaration[];
+}
+
+export function _doc(...body: CodeDeclaration[]): DocumentDefinition {
+  return {
+    _kind: NodeKind.CODE_DOCUMENT,
+    body,
+  };
 }
 
 export type ASTNode =
@@ -957,7 +1116,13 @@ export type ASTNode =
   | TemplateLiteral
   | UnaryExpression
   | UndefinedLiteral
-  | VariableDeclaration;
+  | VariableDeclaration
+  | TypeIdentifier
+  | TypeBinaryExpression
+  | TypeProperty
+  | TypeDeclaration
+  | InterfaceDeclaration
+  | TypeExpression;
 
 export function isNode(object: unknown): object is ASTNode {
   if (object == null) return false;
@@ -972,9 +1137,11 @@ export function isNode(object: unknown): object is ASTNode {
 
 export const tc = {
   ...literal,
+  ...types,
   ...definition,
   ...expression,
   ...statement,
   ...declaration,
   ...module,
+  doc: _doc,
 };

@@ -1,7 +1,7 @@
-import { TransformerContext } from "../../src/context";
-import { DocumentNode, InterfaceNode, ObjectNode } from "../../src/parser";
-import { NodeInterfacePlugin } from "../../src/plugins/NodeInterfacePlugin";
-import { InvalidDefinitionError } from "../../src/utils/errors";
+import { TransformerContext } from "../src/context";
+import { DocumentNode, InterfaceNode, ObjectNode } from "../src/parser";
+import { NodeInterfacePlugin } from "../src/plugins/NodeInterfacePlugin";
+import { InvalidDefinitionError } from "../src/utils/errors";
 
 describe("NodeInterfacePlugin", () => {
   describe("the `before` hook", () => {

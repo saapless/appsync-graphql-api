@@ -25,10 +25,10 @@ type Task @model(operations: [upsert, delete]) {
   occurrenceId: String
 
   # Connections
-  labels: Label @connection(relation: "manyMany")
-  subtasks: Task @edges
-  artifacts: Artifact @edges
-  occurrences: Task @edges
+  labels: Label @hasMany(relation: manyToMany)
+  subtasks: Task @hasMany
+  artifacts: Artifact @hasMany
+  occurrences: Task @hasMany
 }
 
 type RRule {
@@ -81,9 +81,9 @@ enum TimeLogAction {
 union Artifact = File | TimeTracker
 
 type Viewer {
-  user: User @node(key: "id", ref: "identity.sub")
-  tasks: Task @edges(key: "sourceId", ref: "identity.sub", index: "bySourceId")
-  labels: Label @edges(key: "sourceId", ref: "identity.sub", index: "bySourceId")
+  user: User @hasOne(key: { ref: "identity.sub" })
+  tasks: Task @hasMany(key: { ref: "identity.sub" }, index: "bySourceId")
+  labels: Label @hasMany(key: { ref: "identity.sub" }, index: "bySourceId")
 }
 
 type Query {

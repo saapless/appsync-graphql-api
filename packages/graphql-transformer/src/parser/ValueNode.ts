@@ -6,9 +6,9 @@ import {
   Kind,
   StringValueNode,
   EnumValueNode,
-  ListValueNode,
-  ObjectValueNode,
   NullValueNode,
+  ConstListValueNode,
+  ConstObjectValueNode,
 } from "graphql";
 
 export type ValueType =
@@ -67,14 +67,14 @@ export class ValueNode {
     };
   }
 
-  static list(values: ConstValueNode[]): ListValueNode {
+  static list(values: ConstValueNode[]): ConstListValueNode {
     return {
       kind: Kind.LIST,
       values,
     };
   }
 
-  static object(values: { [key: string]: ConstValueNode }): ObjectValueNode {
+  static object(values: { [key: string]: ConstValueNode }): ConstObjectValueNode {
     return {
       kind: Kind.OBJECT,
       fields: Object.entries(values).map(([key, value]) => ({
@@ -86,6 +86,35 @@ export class ValueNode {
         value,
       })),
     };
+  }
+
+  static fromValue(value: ValueType): ConstValueNode {
+    switch (typeof value) {
+      case "string":
+        return ValueNode.string(value);
+      case "number":
+        return Number.isInteger(value) ? ValueNode.int(value) : ValueNode.float(value);
+      case "boolean":
+        return ValueNode.boolean(value);
+      case "object":
+        if (value === null) {
+          return ValueNode.null();
+        }
+        if (Array.isArray(value)) {
+          return ValueNode.list(value.map((v) => ValueNode.fromValue(v)));
+        }
+        return ValueNode.object(
+          Object.entries(value).reduce(
+            (acc, [key, v]) => {
+              acc[`${key}`] = ValueNode.fromValue(v);
+              return acc;
+            },
+            {} as { [key: string]: ConstValueNode }
+          )
+        );
+      default:
+        return ValueNode.null();
+    }
   }
 
   static getValue(node: ConstValueNode): ValueType {

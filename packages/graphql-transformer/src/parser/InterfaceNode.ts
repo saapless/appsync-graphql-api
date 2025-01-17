@@ -93,10 +93,6 @@ export class InterfaceNode {
           ? DirectiveNode.create(directive)
           : DirectiveNode.fromDefinition(directive);
 
-    if (this.hasDirective(node.name)) {
-      throw new Error(`Directive ${node.name} already exists on type ${this.name}`);
-    }
-
     this.directives = this.directives ?? [];
     this.directives.push(node);
 

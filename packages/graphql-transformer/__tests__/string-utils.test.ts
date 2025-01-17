@@ -1,4 +1,4 @@
-import { camelCase, pascalCase, pluralize } from "../../src/utils/strings";
+import { camelCase, pascalCase, pluralize } from "../src/utils/strings";
 
 describe("string utils", () => {
   describe("pascalCase util", () => {

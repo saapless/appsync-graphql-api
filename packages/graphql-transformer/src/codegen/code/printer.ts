@@ -19,7 +19,11 @@ type PrintedNode<T extends NodeKind, N = Extract<ASTNode, { _kind: T }>> = N ext
               ? string
               : N[K] extends ASTNode | undefined
                 ? string | undefined
-                : N[K]
+                : N[K] extends ASTNode | ASTNode[]
+                  ? string | string[]
+                  : N[K] extends ASTNode | ASTNode[] | undefined
+                    ? string | string[] | undefined
+                    : N[K]
         : N[K];
     }
   : never;
@@ -62,7 +66,7 @@ const printReducer: ASTPrintReducer = {
       join("", node.name, wrap("(", join(", ", node.parameters), ")")),
       node.body
     ),
-  Identifier: (node) => node.name,
+  Identifier: (node) => join(": ", node.name, node.type),
   IfStatement: (node) =>
     join(
       " ",
@@ -114,6 +118,21 @@ const printReducer: ASTPrintReducer = {
   VariableDeclaration: (node) => {
     return join(" ", node.type, join(" = ", node.name, node.value));
   },
+  TypeIdentifier: (node) =>
+    join("", node.name, node.parameters ? wrap("<", join(", ", node.parameters), ">") : ""),
+  TypeDeclaration: (node) => join(" ", "type", node.name, "=", node.definition),
+  TypeDefinition: (node) => wrap("{ ", join("\n", node.properties), " }"),
+  TypeBinaryExpression: (node) => join(` ${node.operator} `, node.operands),
+  TypeProperty: (node) =>
+    wrap("", join(": ", join("", node.name, node.optional ? "?" : ""), node.type), ";"),
+  InterfaceDeclaration: (node) =>
+    join(
+      " ",
+      "interface",
+      node.name,
+      node.extension ? wrap("extends ", join(", ", node.extension)) : "",
+      node.definition
+    ),
 };
 
 export function printAST<T extends ASTNode>(

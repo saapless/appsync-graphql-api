@@ -22,8 +22,3 @@ declare global {
     ): o is ExtractByKey<T, K>;
   }
 }
-
-declare module "*.graphql" {
-  const content: string;
-  export default content;
-}

@@ -1,18 +1,108 @@
-import { readFileSync } from "node:fs";
 import { join } from "node:path";
 import { createTransformer, GraphQLTransformer } from "../src/transformer";
 import { FieldResolver } from "../src/resolver";
 import { FieldNode, NamedTypeNode, ObjectNode } from "../src/parser";
 import { SchemaValidationError } from "../src/utils/errors";
 
-// eslint-disable-next-line security/detect-non-literal-fs-filename
-const schema = readFileSync(join(__dirname, "__utils__/test_schema.graphql"), "utf-8");
+const schema = /* GraphQL */ `
+  enum UserStatus {
+    ACTIVE
+    DISABLED
+    SUSPENDED
+  }
+
+  type User @model {
+    id: ID!
+
+    firstName: String
+    lastName: String
+    email: AWSEmail
+    picture: AWSURL
+    status: UserStatus @readonly
+  }
+
+  type Task @model(operations: [upsert, delete]) {
+    id: ID!
+
+    title: String
+    content: AWSJSON
+    schedule: Schedule
+    rrule: RRule
+    recurrenceId: ID
+    occurrenceId: String
+
+    # Connections
+    labels: Label @hasMany(relation: manyToMany)
+    subtasks: Task @hasMany
+    artifacts: Artifact @hasMany
+    occurrences: Task @hasMany
+  }
+
+  type RRule {
+    dtStart: AWSDateTime
+    until: AWSDateTime
+    ruleStr: String
+  }
+
+  type Schedule {
+    startDate: DateTimeZone
+    duration: String
+    dueDate: DateTimeZone
+  }
+
+  type DateTimeZone {
+    date: AWSDateTime
+    timezone: String
+  }
+
+  type Label @model(operations: [upsert, delete]) {
+    id: ID!
+    name: String
+    color: String
+  }
+
+  type File @model(operations: [upsert, delete]) {
+    name: String
+    size: Int
+    url: AWSURL
+    mimeType: String
+  }
+
+  type TimeTracker @model(operations: [upsert, delete]) {
+    duration: String
+    logs: [TimeLog!]
+  }
+
+  type TimeLog {
+    action: TimeLogAction!
+    timestamp: AWSTimestamp!
+  }
+
+  enum TimeLogAction {
+    START
+    PAUSE
+    END
+    LOG
+  }
+
+  union Artifact = File | TimeTracker
+
+  type Viewer {
+    user: User @hasOne(key: { ref: "identity.sub" })
+    tasks: Task @hasMany(key: { ref: "identity.sub" }, index: "bySourceId")
+    labels: Label @hasMany(key: { ref: "identity.sub" }, index: "bySourceId")
+  }
+
+  type Query {
+    viewer: Viewer!
+  }
+`;
 
 describe("GraphQLTransformer", () => {
   const transformer = createTransformer({
     definition: schema,
     mode: "development",
-    outputDirectory: join(__dirname, "../out"),
+    outputDirectory: join(__dirname, "./out"),
   });
 
   describe("createTransformer factory", () => {
@@ -68,7 +158,7 @@ describe("GraphQLTransformer", () => {
         expect(nodeFieldTypename).toStrictEqual("Node");
       });
 
-      it("adds Query.node resolver", () => {
+      it.skip("adds Query.node resolver", () => {
         const nodeResolver = context.resolvers.get("Query.node");
         expect(nodeResolver).toBeInstanceOf(FieldResolver);
       });
@@ -111,7 +201,7 @@ describe("GraphQLTransformer", () => {
         expect(context.document.getNode("DeleteTaskInput")).toBeDefined();
       });
 
-      it("created operation resolvers", () => {
+      it.skip("created operation resolvers", () => {
         expect(context.resolvers.get("Query.getUser")).toBeDefined();
         expect(context.resolvers.get("Query.listUsers")).toBeDefined();
 

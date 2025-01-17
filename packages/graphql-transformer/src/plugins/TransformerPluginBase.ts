@@ -25,16 +25,14 @@ export abstract class TransformerPluginBase {
    */
   public abstract match(definition: DefinitionNode): boolean;
   /**
-   * Normalize definition
-   */
-  // eslint-disable-next-line @typescript-eslint/no-unused-vars
-  public normalize(definition: DefinitionNode) {
-    return;
-  }
-  /**
    * Execute transformation on the definition node
    */
   public abstract execute(definition: DefinitionNode): void;
+
+  // eslint-disable-next-line @typescript-eslint/no-unused-vars
+  public normalize(definition: DefinitionNode): void {
+    return;
+  }
   /**
    * Clean up definition
    */

@@ -1,5 +1,5 @@
-import { AWSTypesPlugin, TransformerContext } from "../../src";
-import { DirectiveDefinitionNode, DocumentNode, ScalarNode } from "../../src/parser";
+import { AWSTypesPlugin, TransformerContext } from "../src";
+import { DirectiveDefinitionNode, DocumentNode, ScalarNode } from "../src/parser";
 
 const schema = /* GraphQL */ `
   type User {

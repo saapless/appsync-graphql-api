@@ -26,12 +26,7 @@ export function cleanDir(loc: string) {
 }
 
 export function ensureOutputDirectory(loc: string) {
-  const dirPath = path.resolve(loc);
-
-  if (!fs.existsSync(dirPath)) {
-    fs.mkdirSync(dirPath, { recursive: true });
-    return dirPath;
-  }
+  const dirPath = getOrCreateDir(loc);
 
   if (fs.readdirSync(dirPath).length) {
     return cleanDir(dirPath);

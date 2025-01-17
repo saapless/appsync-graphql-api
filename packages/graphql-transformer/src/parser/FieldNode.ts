@@ -60,10 +60,6 @@ export class FieldNode {
     const directiveNode =
       directive instanceof DirectiveNode ? directive : DirectiveNode.fromDefinition(directive);
 
-    if (this.hasDirective(directiveNode.name)) {
-      throw new Error(`Directive ${directiveNode.name} already exists on field ${this.name}`);
-    }
-
     this.directives = this.directives ?? [];
     this.directives.push(directiveNode);
     return this;

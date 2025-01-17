@@ -9,7 +9,6 @@ import {
   NonNullTypeNode,
   ObjectNode,
 } from "../parser";
-import { FieldResolver, tc } from "../resolver";
 import { InvalidDefinitionError, TransformPluginExecutionError } from "../utils/errors";
 import { TransformerPluginBase } from "./TransformerPluginBase";
 
@@ -61,9 +60,25 @@ export class NodeInterfacePlugin extends TransformerPluginBase {
 
     if (!node.hasField("_deleted")) {
       node.addField(
-        FieldNode.create("_deleted", NamedTypeNode.create("Boolean")).addDirective(
-          DirectiveNode.create("readonly")
-        )
+        FieldNode.create("_deleted", NamedTypeNode.create("Boolean"), null, [
+          DirectiveNode.create("readonly"),
+        ])
+      );
+    }
+
+    if (!node.hasField("__typename")) {
+      node.addField(
+        FieldNode.create("__typename", NonNullTypeNode.create("String"), null, [
+          DirectiveNode.create("private"),
+        ])
+      );
+    }
+
+    if (!node.hasField("_sk")) {
+      node.addField(
+        FieldNode.create("_sk", NonNullTypeNode.create("String"), null, [
+          DirectiveNode.create("private"),
+        ])
       );
     }
 
@@ -76,29 +91,6 @@ export class NodeInterfacePlugin extends TransformerPluginBase {
           InputValueNode.create("id", NonNullTypeNode.create(NamedTypeNode.create("ID"))),
         ])
       );
-    }
-
-    // Add Query.node resolver
-    // TODO: Maybe move this in the `after` hook. Need to decide how will implement auth rules
-
-    const field = queryNode.getField("node") as FieldNode;
-
-    if (!field.hasDirective("resolver")) {
-      const resolver = FieldResolver.create("Query", "node");
-      resolver
-        .addImport("@aws-appsync/utils", "util")
-        .addImport("@aws-appsync/utils/dynamodb", "get")
-        .setStage(
-          "LOAD",
-          tc.return(
-            tc.call(tc.ref("get"), [
-              tc.obj(tc.prop("key", tc.obj(tc.prop("id", tc.chain("ctx.args.id"))))),
-            ])
-          )
-        )
-        .setStage("RETURN", tc.return(tc.ref("ctx.result")));
-
-      this.context.resolvers.set("Query.node", resolver);
     }
   }
 

@@ -15,10 +15,9 @@ import {
   ScalarNode,
   ValueNode,
 } from "../parser";
-import { FieldResolver } from "../resolver";
-import { deleteItem, getItem, putItem, queryItems, updateItem } from "../resolver/code/utils";
 import { InvalidDefinitionError, TransformExecutionError } from "../utils/errors";
 import { camelCase, pascalCase, pluralize } from "../utils/strings";
+import { AuthorizationRule, WriteOperation } from "../utils/types";
 import { TransformerPluginBase } from "./TransformerPluginBase";
 
 type ModelOperationType =
@@ -161,28 +160,10 @@ export class ModelPlugin extends TransformerPluginBase {
       throw new TransformExecutionError(`@model directive not found for type ${object.name}`);
     }
 
-    let operations: ModelOperationType[] = ["create", "update", "delete", "get", "list"];
+    const args = directive.getArgumentsJSON<{ operations?: ModelOperationType[] }>();
+    const operations: ModelOperationType[] = args.operations ?? this.context.defaultModelOperations;
 
-    if (directive.hasArgument("operations")) {
-      const args = directive.getArgumentsJSON<{ operations?: ModelOperationType[] }>();
-
-      if (Array.isArray(args.operations)) {
-        operations = Array.from(
-          args.operations.reduce((agg, op) => {
-            if (op === "write") {
-              agg.add("create").add("update").add("delete");
-            } else if (op === "read") {
-              agg.add("get").add("list");
-            } else {
-              agg.add(op);
-            }
-            return agg;
-          }, new Set<ModelOperationType>())
-        );
-      }
-    }
-
-    return operations;
+    return this.context.expandOperations(operations);
   }
 
   private _createGetQuery(model: ObjectNode) {
@@ -192,48 +173,35 @@ export class ModelPlugin extends TransformerPluginBase {
     // We allow users to implement custom definition for fields.
     // So, if the field already exists, we skip creating it.
     if (!queryNode.hasField(fieldName)) {
-      const field = FieldNode.create(fieldName, NamedTypeNode.create(model.name), [
-        InputValueNode.create("id", NonNullTypeNode.create(NamedTypeNode.create("ID"))),
-      ]);
+      const field = FieldNode.create(
+        fieldName,
+        NamedTypeNode.create(model.name),
+        [InputValueNode.create("id", NonNullTypeNode.create(NamedTypeNode.create("ID")))],
+        [
+          DirectiveNode.create("hasOne", [
+            ArgumentNode.create("key", ValueNode.fromValue({ ref: "args.id" })),
+          ]),
+        ]
+      );
 
       queryNode.addField(field);
-    }
-
-    // 2 Create field resolver
-    if (!this.context.resolvers.has(`Query.${fieldName}`)) {
-      this.context.resolvers.set(
-        `Query.${fieldName}`,
-        FieldResolver.create("Query", fieldName).setStage("LOAD", ...getItem("id", "args.id"))
-      );
     }
   }
 
   private _createListQuery(model: ObjectNode) {
-    // TODO: add helper to handle plural name
     const fieldName = camelCase("list", pluralize(model.name));
     const queryNode = this.context.document.getQueryNode();
 
     if (!queryNode.hasField(fieldName)) {
       const field = FieldNode.create(fieldName, NamedTypeNode.create(model.name), null, [
-        DirectiveNode.create("connection", [
-          ArgumentNode.create("relation", ValueNode.enum("oneMany")),
-          ArgumentNode.create("key", ValueNode.string("__typename")),
-          ArgumentNode.create("ref", ValueNode.string(model.name)),
+        DirectiveNode.create("hasMany", [
+          ArgumentNode.create("relation", ValueNode.enum("oneToMany")),
+          ArgumentNode.create("key", ValueNode.fromValue({ eq: model.name })),
           ArgumentNode.create("index", ValueNode.string("byTypename")),
         ]),
       ]);
 
       queryNode.addField(field);
-    }
-
-    if (!this.context.resolvers.has(`Query.${fieldName}`)) {
-      this.context.resolvers.set(
-        `Query.${fieldName}`,
-        FieldResolver.create("Query", fieldName).setStage(
-          "LOAD",
-          ...queryItems("__typename", "", "byTypename")
-        )
-      );
     }
   }
 
@@ -249,97 +217,86 @@ export class ModelPlugin extends TransformerPluginBase {
    */
 
   private _createMutationInput(model: ObjectNode, inputName: string, nonNullIdOrVersion = false) {
-    if (!this.context.document.getNode(inputName)) {
-      const input = InputObjectNode.create(inputName);
+    const input = InputObjectNode.create(inputName);
 
-      // Special case for delete. we only need id & _version here.
-      if (inputName.startsWith("Delete")) {
-        input
-          .addField(InputValueNode.create("id", NonNullTypeNode.create(NamedTypeNode.create("ID"))))
-          .addField(InputValueNode.create("_version", NonNullTypeNode.create("Int")));
-      } else {
-        for (const field of model.fields ?? []) {
+    // Special case for delete. we only need id & _version here.
+    if (inputName.startsWith("Delete")) {
+      input
+        .addField(InputValueNode.create("id", NonNullTypeNode.create(NamedTypeNode.create("ID"))))
+        .addField(InputValueNode.create("_version", NonNullTypeNode.create("Int")));
+    } else {
+      for (const field of model.fields ?? []) {
+        if (
+          field.hasDirective("readonly") ||
+          field.hasDirective("private") ||
+          field.hasDirective("hasOne") ||
+          field.hasDirective("hasMany")
+        ) {
+          continue;
+        }
+
+        const fieldTypeName = field.type.getTypeName();
+
+        if (field.name === "id" || field.name === "_version") {
+          input.addField(
+            InputValueNode.create(
+              field.name,
+              nonNullIdOrVersion
+                ? NonNullTypeNode.create(fieldTypeName)
+                : NamedTypeNode.create(fieldTypeName)
+            )
+          );
+          continue;
+        }
+
+        // Buildin scalars
+        if (["ID", "String", "Int", "Float", "Boolean"].includes(fieldTypeName)) {
+          input.addField(InputValueNode.create(field.name, NamedTypeNode.create(fieldTypeName)));
+          continue;
+        }
+
+        const typeDef = this.context.document.getNode(fieldTypeName);
+
+        if (!typeDef) {
+          throw new InvalidDefinitionError(`Unknown type ${fieldTypeName}`);
+        }
+
+        if (typeDef instanceof ScalarNode || typeDef instanceof EnumNode) {
+          input.addField(InputValueNode.create(field.name, NamedTypeNode.create(fieldTypeName)));
+          continue;
+        }
+
+        if (typeDef instanceof ObjectNode) {
           if (
-            field.hasDirective("readonly") ||
-            field.hasDirective("ignore") ||
-            field.hasDirective("connection")
+            typeDef.hasDirective("model") ||
+            typeDef.hasDirective("readonly") ||
+            typeDef.hasDirective("private") ||
+            typeDef.hasInterface("Node")
           ) {
             continue;
           }
 
-          const fieldTypeName = field.type.getTypeName();
+          const inputName = pascalCase(fieldTypeName, "input");
 
-          if (field.name === "id" || field.name === "_version") {
-            input.addField(
-              InputValueNode.create(
-                field.name,
-                nonNullIdOrVersion
-                  ? NonNullTypeNode.create(fieldTypeName)
-                  : NamedTypeNode.create(fieldTypeName)
-              )
-            );
-            continue;
+          if (!this.context.document.hasNode(inputName)) {
+            this._createMutationInput(typeDef, inputName);
           }
 
-          // Buildin scalars
-          if (["ID", "String", "Int", "Float", "Boolean"].includes(fieldTypeName)) {
-            input.addField(InputValueNode.create(field.name, NamedTypeNode.create(fieldTypeName)));
-            continue;
-          }
-
-          const typeDef = this.context.document.getNode(fieldTypeName);
-
-          if (!typeDef) {
-            throw new InvalidDefinitionError(`Unknown type ${fieldTypeName}`);
-          }
-
-          if (typeDef instanceof ScalarNode || typeDef instanceof EnumNode) {
-            input.addField(InputValueNode.create(field.name, NamedTypeNode.create(fieldTypeName)));
-            continue;
-          }
-
-          if (typeDef instanceof ObjectNode) {
-            if (
-              typeDef.hasDirective("model") ||
-              typeDef.hasDirective("readonly") ||
-              typeDef.hasInterface("Node")
-            ) {
-              continue;
-            }
-
-            this._createMutationInput(typeDef, pascalCase(fieldTypeName, "input"));
-
-            input.addField(
-              InputValueNode.create(field.name, NamedTypeNode.create(`${fieldTypeName}Input`))
-            );
-          }
+          input.addField(InputValueNode.create(field.name, NamedTypeNode.create(inputName)));
         }
       }
-
-      this.context.document.addNode(input);
     }
+
+    this.context.document.addNode(input);
   }
 
-  private _getMutationLoader(verb: string, typename: string) {
-    switch (verb) {
-      case "create":
-        return putItem(typename);
-      case "update":
-        return updateItem();
-      case "delete":
-        return deleteItem();
-      case "upsert":
-        return updateItem();
-      default:
-        throw new TransformExecutionError(`Unknown operation: ${verb}`);
-    }
-  }
-
-  private _createMutation(model: ObjectNode, verb: string, nonNullIdOrVersion = false) {
+  private _createMutation(model: ObjectNode, verb: WriteOperation, nonNullIdOrVersion = false) {
     const fieldName = camelCase(verb, model.name);
     const inputName = pascalCase(verb, model.name, "input");
 
-    this._createMutationInput(model, inputName, nonNullIdOrVersion);
+    if (!this.context.document.getNode(inputName)) {
+      this._createMutationInput(model, inputName, nonNullIdOrVersion);
+    }
 
     const mutationNode = this.context.document.getMutationNode();
 
@@ -351,14 +308,16 @@ export class ModelPlugin extends TransformerPluginBase {
       mutationNode.addField(field);
     }
 
-    if (!this.context.resolvers.has(`Mutation.${fieldName}`)) {
-      const loader = this._getMutationLoader(verb, model.name);
+    const authRules = model
+      .getDirective("auth")
+      ?.getArgumentsJSON<{ rules: AuthorizationRule[] }>();
 
-      this.context.resolvers.set(
-        `Mutation.${fieldName}`,
-        FieldResolver.create("Mutation", fieldName).setStage("LOAD", ...loader)
-      );
-    }
+    this.context.setLoader("Mutation", fieldName, {
+      action: verb,
+      target: model,
+      auth: authRules?.rules,
+      key: { id: { ref: "args.input.id" } },
+    });
   }
 
   // #endregion Operations
@@ -451,7 +410,7 @@ export class ModelPlugin extends TransformerPluginBase {
         field.removeDirective("readonly");
       }
 
-      if (field.hasDirective("writeonly") || field.hasDirective("ignore")) {
+      if (field.hasDirective("writeonly") || field.hasDirective("private")) {
         definition.removeField(field.name);
       }
     }

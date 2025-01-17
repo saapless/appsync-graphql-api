@@ -7,6 +7,7 @@ const config = {
   testMatch: ["**/__tests__/**/*.[jt]s?(x)", "**/?(*.)+(spec|test).[jt]s?(x)"],
   testEnvironment: "node",
   projects: ["<rootDir>/packages/*"],
+  extensionsToTreatAsEsm: [".ts"],
   ...createDefaultEsmPreset(),
 };
 

@@ -1,10 +1,13 @@
 import { writeFileSync } from "node:fs";
 import path from "node:path";
+import prettier from "@prettier/sync";
 import { TransformerContext } from "../context";
 import { IPluginFactory, TransformerPluginBase } from "../plugins";
 import { DocumentNode } from "../parser";
 import { SchemaValidationError } from "../utils/errors";
 import { ensureOutputDirectory } from "../utils/output";
+import { TypeGenerator } from "../codegen";
+import { ResolverGenerator } from "../resolver/ResolverGenerator";
 
 export interface GraphQLTransformerOptions {
   definition: string;
@@ -40,6 +43,44 @@ export class GraphQLTransformer {
     return this.options.plugins.map((factory) => factory.create(context));
   }
 
+  private _generateResources() {
+    // Print source schema and resolvers.
+    const { outputDirectory } = this.options;
+
+    const outputPath = ensureOutputDirectory(outputDirectory);
+    // eslint-disable-next-line security/detect-non-literal-fs-filename
+    writeFileSync(path.resolve(outputPath, "schema.graphql"), this.document.print(), {
+      encoding: "utf-8",
+    });
+
+    const typesGen = new TypeGenerator(this.context.document);
+
+    // eslint-disable-next-line security/detect-non-literal-fs-filename
+    writeFileSync(
+      path.resolve(outputPath, "schema-types.d.ts"),
+      prettier.format(typesGen.generate(), { parser: "typescript" }),
+      {
+        encoding: "utf-8",
+      }
+    );
+
+    const resolverGenerator = new ResolverGenerator(this.context);
+    const resolversDir = ensureOutputDirectory(path.join(outputDirectory, "resolvers"));
+
+    resolverGenerator.generate();
+
+    for (const [name, resolver] of this.context.resolvers.entries()) {
+      // eslint-disable-next-line security/detect-non-literal-fs-filename
+      writeFileSync(
+        path.resolve(resolversDir, `${name}.ts`),
+        prettier.format(resolver.print(), { parser: "typescript" }),
+        {
+          encoding: "utf-8",
+        }
+      );
+    }
+  }
+
   private _generateOutput() {
     for (const plugin of this.plugins) {
       plugin.after();
@@ -68,9 +109,8 @@ export class GraphQLTransformer {
 
   /**
    * Node transformation happens in 3 stages:
-   * 1. Normalize - check for necessary fields and arguments on the schema & updates directives;
-   * 2. Execute - Adds additional nodes and necessary resources & creates resolvers;
-   * 3. Cleanup - Removes internal directives from the schema.
+   * 1. Execute - Adds additional nodes and necessary resources & creates resolvers;
+   * 2. Cleanup - Removes internal directives from the schema.
    */
 
   public transform() {
@@ -80,7 +120,6 @@ export class GraphQLTransformer {
       throw new SchemaValidationError(errors);
     }
 
-    // Stage 1. Normalize
     for (const definition of this.document.definitions.values()) {
       for (const plugin of this.plugins) {
         if (plugin.match(definition)) {
@@ -89,7 +128,6 @@ export class GraphQLTransformer {
       }
     }
 
-    // Stage 2. Execute
     for (const definition of this.document.definitions.values()) {
       for (const plugin of this.plugins) {
         if (plugin.match(definition)) {
@@ -98,25 +136,9 @@ export class GraphQLTransformer {
       }
     }
 
-    // Print source schema and resolvers.
-    if (this.options.mode === "development") {
-      const { outputDirectory } = this.options;
+    this._generateResources();
 
-      const outputPath = ensureOutputDirectory(outputDirectory);
-      // eslint-disable-next-line security/detect-non-literal-fs-filename
-      writeFileSync(path.resolve(outputPath, "schema.graphql"), this.document.print(), {
-        encoding: "utf-8",
-      });
-
-      for (const [name, resolver] of this.context.resolvers.entries()) {
-        // eslint-disable-next-line security/detect-non-literal-fs-filename
-        writeFileSync(path.resolve(outputDirectory, `${name}.ts`), resolver.print(), {
-          encoding: "utf-8",
-        });
-      }
-    }
-
-    // Stage 3. Cleanup
+    // Stage 2. Cleanup
     for (const definition of this.document.definitions.values()) {
       for (const plugin of this.plugins) {
         if (plugin.match(definition)) {
