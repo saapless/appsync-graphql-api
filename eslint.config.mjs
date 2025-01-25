@@ -13,13 +13,15 @@ const __dirname = path.dirname(__filename);
 export default tseslint.config(
   {
     ignores: ["**/node_modules/**", "**/dist/**", "**/out/**"],
+  },
+  {
     extends: [
       eslint.configs.recommended,
       // eslint-disable-next-line import/no-named-as-default-member
       ...tseslint.configs.recommended,
+      securityPlugin.configs.recommended,
       pluginImport.flatConfigs.recommended,
       pluginImport.flatConfigs.typescript,
-      securityPlugin.configs.recommended,
     ],
     plugins: {
       turbo: {
