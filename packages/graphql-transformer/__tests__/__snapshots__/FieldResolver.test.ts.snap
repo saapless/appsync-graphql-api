@@ -1,12 +1,12 @@
 // Jest Snapshot v1, https://goo.gl/fbAQLP
 
 exports[`resolver/FieldResolver should create resolver code 1`] = `
-"import { util, Context } from "@aws-appsync/utils";
-export function request(ctx:Context) {
+"import { Context } from "@aws-appsync/utils";
+export function request(ctx: Context<unknown, Record<string, unknown>, undefined, undefined>) {
 
 }
 
-export function response(ctx:Context) {
+export function response(ctx: Context<unknown, Record<string, unknown>, undefined, undefined, unknown>) {
 
 }
 "

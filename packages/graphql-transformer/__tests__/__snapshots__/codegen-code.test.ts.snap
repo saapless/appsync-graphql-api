@@ -1,9 +1,9 @@
 // Jest Snapshot v1, https://goo.gl/fbAQLP
 
 exports[`resolver code printer CodeDocument prints document template 1`] = `
-"import { util, runtime, Context, Context, Context, Context } from "@aws-appsync/utils";
+"import { util, runtime, Context } from "@aws-appsync/utils";
 import * as ddb from "@aws-appsync/utils/dynamodb";
-export function request(ctx:Context) {
+export function request(ctx: Context<unknown, Record<string, unknown>, undefined, undefined>) {
   const { args: { input }, identity } = ctx
   if (!ctx.identity) {
     return runtime.earlyReturn(null)
@@ -16,7 +16,7 @@ export function request(ctx:Context) {
   return ddb.put({ key: { id: item.id }, item: item, condition: { id: { attributeExists: false } } })
 }
 
-export function response(ctx:Context) {
+export function response(ctx: Context<unknown, Record<string, unknown>, undefined, undefined, unknown>) {
   const { error, result } = ctx
   if (error) {
     util.error(error.message, erorr.type)
@@ -45,6 +45,7 @@ exports[`resolver code printer CodeDocument serialize document ast 1`] = `
           "value": {
             "_kind": "Identifier",
             "name": "util",
+            "type": undefined,
           },
         },
         {
@@ -53,6 +54,7 @@ exports[`resolver code printer CodeDocument serialize document ast 1`] = `
           "value": {
             "_kind": "Identifier",
             "name": "runtime",
+            "type": undefined,
           },
         },
         {
@@ -61,22 +63,7 @@ exports[`resolver code printer CodeDocument serialize document ast 1`] = `
           "value": {
             "_kind": "Identifier",
             "name": "Context",
-          },
-        },
-        {
-          "_kind": "ModuleNamedSpecifier",
-          "alias": undefined,
-          "value": {
-            "_kind": "Identifier",
-            "name": "Context",
-          },
-        },
-        {
-          "_kind": "ModuleNamedSpecifier",
-          "alias": undefined,
-          "value": {
-            "_kind": "Identifier",
-            "name": "Context",
+            "type": undefined,
           },
         },
       ],
@@ -94,6 +81,7 @@ exports[`resolver code printer CodeDocument serialize document ast 1`] = `
           "alias": {
             "_kind": "Identifier",
             "name": "ddb",
+            "type": undefined,
           },
         },
       ],
@@ -119,6 +107,7 @@ exports[`resolver code printer CodeDocument serialize document ast 1`] = `
                         {
                           "_kind": "Identifier",
                           "name": "input",
+                          "type": undefined,
                         },
                       ],
                     },
@@ -126,6 +115,7 @@ exports[`resolver code printer CodeDocument serialize document ast 1`] = `
                   {
                     "_kind": "Identifier",
                     "name": "identity",
+                    "type": undefined,
                   },
                 ],
               },
@@ -133,6 +123,7 @@ exports[`resolver code printer CodeDocument serialize document ast 1`] = `
               "value": {
                 "_kind": "Identifier",
                 "name": "ctx",
+                "type": undefined,
               },
             },
             {
@@ -143,6 +134,7 @@ exports[`resolver code printer CodeDocument serialize document ast 1`] = `
                 "argument": {
                   "_kind": "Identifier",
                   "name": "ctx.identity",
+                  "type": undefined,
                 },
                 "operator": "!",
               },
@@ -163,6 +155,7 @@ exports[`resolver code printer CodeDocument serialize document ast 1`] = `
                       "callee": {
                         "_kind": "Identifier",
                         "name": "runtime.earlyReturn",
+                        "type": undefined,
                       },
                       "optional": false,
                     },
@@ -175,6 +168,7 @@ exports[`resolver code printer CodeDocument serialize document ast 1`] = `
               "name": {
                 "_kind": "Identifier",
                 "name": "id",
+                "type": undefined,
               },
               "type": "const",
               "value": {
@@ -182,6 +176,7 @@ exports[`resolver code printer CodeDocument serialize document ast 1`] = `
                 "left": {
                   "_kind": "Identifier",
                   "name": "input.id",
+                  "type": undefined,
                 },
                 "operator": "??",
                 "right": {
@@ -190,6 +185,7 @@ exports[`resolver code printer CodeDocument serialize document ast 1`] = `
                   "callee": {
                     "_kind": "Identifier",
                     "name": "util.autoId",
+                    "type": undefined,
                   },
                   "optional": false,
                 },
@@ -200,6 +196,7 @@ exports[`resolver code printer CodeDocument serialize document ast 1`] = `
               "name": {
                 "_kind": "Identifier",
                 "name": "createdAt",
+                "type": undefined,
               },
               "type": "const",
               "value": {
@@ -207,6 +204,7 @@ exports[`resolver code printer CodeDocument serialize document ast 1`] = `
                 "left": {
                   "_kind": "Identifier",
                   "name": "input.createdAt",
+                  "type": undefined,
                 },
                 "operator": "??",
                 "right": {
@@ -215,6 +213,7 @@ exports[`resolver code printer CodeDocument serialize document ast 1`] = `
                   "callee": {
                     "_kind": "Identifier",
                     "name": "util.time.nowISO8601",
+                    "type": undefined,
                   },
                   "optional": false,
                 },
@@ -225,6 +224,7 @@ exports[`resolver code printer CodeDocument serialize document ast 1`] = `
               "name": {
                 "_kind": "Identifier",
                 "name": "updatedAt",
+                "type": undefined,
               },
               "type": "const",
               "value": {
@@ -232,11 +232,13 @@ exports[`resolver code printer CodeDocument serialize document ast 1`] = `
                 "left": {
                   "_kind": "Identifier",
                   "name": "input.updatedAt",
+                  "type": undefined,
                 },
                 "operator": "??",
                 "right": {
                   "_kind": "Identifier",
                   "name": "createdAt",
+                  "type": undefined,
                 },
               },
             },
@@ -245,6 +247,7 @@ exports[`resolver code printer CodeDocument serialize document ast 1`] = `
               "name": {
                 "_kind": "Identifier",
                 "name": "item",
+                "type": undefined,
               },
               "type": "const",
               "value": {
@@ -255,6 +258,7 @@ exports[`resolver code printer CodeDocument serialize document ast 1`] = `
                     "argument": {
                       "_kind": "Identifier",
                       "name": "input",
+                      "type": undefined,
                     },
                   },
                   {
@@ -263,6 +267,7 @@ exports[`resolver code printer CodeDocument serialize document ast 1`] = `
                     "value": {
                       "_kind": "Identifier",
                       "name": "id",
+                      "type": undefined,
                     },
                   },
                   {
@@ -271,6 +276,7 @@ exports[`resolver code printer CodeDocument serialize document ast 1`] = `
                     "value": {
                       "_kind": "Identifier",
                       "name": "createdAt",
+                      "type": undefined,
                     },
                   },
                   {
@@ -279,6 +285,7 @@ exports[`resolver code printer CodeDocument serialize document ast 1`] = `
                     "value": {
                       "_kind": "Identifier",
                       "name": "updatedAt",
+                      "type": undefined,
                     },
                   },
                   {
@@ -287,6 +294,7 @@ exports[`resolver code printer CodeDocument serialize document ast 1`] = `
                     "value": {
                       "_kind": "Identifier",
                       "name": "identity.sub",
+                      "type": undefined,
                     },
                   },
                   {
@@ -339,6 +347,7 @@ exports[`resolver code printer CodeDocument serialize document ast 1`] = `
                               "value": {
                                 "_kind": "Identifier",
                                 "name": "item.id",
+                                "type": undefined,
                               },
                             },
                           ],
@@ -350,6 +359,7 @@ exports[`resolver code printer CodeDocument serialize document ast 1`] = `
                         "value": {
                           "_kind": "Identifier",
                           "name": "item",
+                          "type": undefined,
                         },
                       },
                       {
@@ -385,6 +395,7 @@ exports[`resolver code printer CodeDocument serialize document ast 1`] = `
                 "callee": {
                   "_kind": "Identifier",
                   "name": "ddb.put",
+                  "type": undefined,
                 },
                 "optional": false,
               },
@@ -394,14 +405,48 @@ exports[`resolver code printer CodeDocument serialize document ast 1`] = `
         "name": {
           "_kind": "Identifier",
           "name": "request",
+          "type": undefined,
         },
         "parameters": [
           {
-            "_kind": "TypedIdentifier",
+            "_kind": "Identifier",
             "name": "ctx",
             "type": {
-              "_kind": "Identifier",
+              "_kind": "TypeIdentifier",
               "name": "Context",
+              "parameters": [
+                {
+                  "_kind": "TypeIdentifier",
+                  "name": "unknown",
+                  "parameters": undefined,
+                },
+                {
+                  "_kind": "TypeIdentifier",
+                  "name": "Record",
+                  "parameters": [
+                    {
+                      "_kind": "TypeIdentifier",
+                      "name": "string",
+                      "parameters": undefined,
+                    },
+                    {
+                      "_kind": "TypeIdentifier",
+                      "name": "unknown",
+                      "parameters": undefined,
+                    },
+                  ],
+                },
+                {
+                  "_kind": "TypeIdentifier",
+                  "name": "undefined",
+                  "parameters": undefined,
+                },
+                {
+                  "_kind": "TypeIdentifier",
+                  "name": "undefined",
+                  "parameters": undefined,
+                },
+              ],
             },
           },
         ],
@@ -422,10 +467,12 @@ exports[`resolver code printer CodeDocument serialize document ast 1`] = `
                   {
                     "_kind": "Identifier",
                     "name": "error",
+                    "type": undefined,
                   },
                   {
                     "_kind": "Identifier",
                     "name": "result",
+                    "type": undefined,
                   },
                 ],
               },
@@ -433,6 +480,7 @@ exports[`resolver code printer CodeDocument serialize document ast 1`] = `
               "value": {
                 "_kind": "Identifier",
                 "name": "ctx",
+                "type": undefined,
               },
             },
             {
@@ -441,6 +489,7 @@ exports[`resolver code printer CodeDocument serialize document ast 1`] = `
               "condition": {
                 "_kind": "Identifier",
                 "name": "error",
+                "type": undefined,
               },
               "consequent": {
                 "_kind": "BlockStatement",
@@ -451,15 +500,18 @@ exports[`resolver code printer CodeDocument serialize document ast 1`] = `
                       {
                         "_kind": "Identifier",
                         "name": "error.message",
+                        "type": undefined,
                       },
                       {
                         "_kind": "Identifier",
                         "name": "erorr.type",
+                        "type": undefined,
                       },
                     ],
                     "callee": {
                       "_kind": "Identifier",
                       "name": "util.error",
+                      "type": undefined,
                     },
                     "optional": false,
                   },
@@ -471,6 +523,7 @@ exports[`resolver code printer CodeDocument serialize document ast 1`] = `
               "value": {
                 "_kind": "Identifier",
                 "name": "result",
+                "type": undefined,
               },
             },
           ],
@@ -478,14 +531,53 @@ exports[`resolver code printer CodeDocument serialize document ast 1`] = `
         "name": {
           "_kind": "Identifier",
           "name": "response",
+          "type": undefined,
         },
         "parameters": [
           {
-            "_kind": "TypedIdentifier",
+            "_kind": "Identifier",
             "name": "ctx",
             "type": {
-              "_kind": "Identifier",
+              "_kind": "TypeIdentifier",
               "name": "Context",
+              "parameters": [
+                {
+                  "_kind": "TypeIdentifier",
+                  "name": "unknown",
+                  "parameters": undefined,
+                },
+                {
+                  "_kind": "TypeIdentifier",
+                  "name": "Record",
+                  "parameters": [
+                    {
+                      "_kind": "TypeIdentifier",
+                      "name": "string",
+                      "parameters": undefined,
+                    },
+                    {
+                      "_kind": "TypeIdentifier",
+                      "name": "unknown",
+                      "parameters": undefined,
+                    },
+                  ],
+                },
+                {
+                  "_kind": "TypeIdentifier",
+                  "name": "undefined",
+                  "parameters": undefined,
+                },
+                {
+                  "_kind": "TypeIdentifier",
+                  "name": "undefined",
+                  "parameters": undefined,
+                },
+                {
+                  "_kind": "TypeIdentifier",
+                  "name": "unknown",
+                  "parameters": undefined,
+                },
+              ],
             },
           },
         ],

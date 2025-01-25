@@ -7,7 +7,6 @@
     "inlineSources": false,
     "incremental": true,
     "isolatedModules": true,
-    "module": "ESNext"
   },
   "include": [
     "src",

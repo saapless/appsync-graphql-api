@@ -4,11 +4,19 @@
   "description": "AppSync GraphQL Api Construct",
   "author": "Saapless",
   "license": "MIT",
+  "type": "module",
   "main": "dist/index.js",
   "types": "dist/index.d.ts",
   "scripts": {
     "build": "tsc",
-    "test-jest": "jest",
-    "lint": "eslint"
+    "dev": "tsc --watch",
+    "lint": "eslint",
+    "test": "NODE_OPTIONS=\"--experimental-vm-modules\" jest"
+  },
+  "dependencies": {
+    "@saapless/graphql-transformer": "*",
+    "aws-cdk-lib": "^2.176.0",
+    "constructs": "^10.4.2",
+    "fast-glob": "^3.3.3"
   }
 }

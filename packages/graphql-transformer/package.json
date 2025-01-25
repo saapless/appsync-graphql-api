@@ -11,10 +11,12 @@
   "types": "dist/index.d.ts",
   "scripts": {
     "build": "tsc",
-    "test": "jest",
+    "dev": "tsc --watch",
+    "test": "NODE_OPTIONS=\"--experimental-vm-modules\" jest",
     "lint": "eslint"
   },
   "dependencies": {
+    "fast-glob": "^3.3.3",
     "graphql": "^16.9.0"
   },
   "devDependencies": {

@@ -47,15 +47,17 @@ export class CodeDocument {
 
     // Filter already imported named specifiers
 
-    specifier = specifier.filter(
-      (spec) =>
-        spec._kind === NodeKind.MODULE_NAMED_SPECIFIER &&
-        !current.specifiers.some(
+    specifier = specifier.filter((spec) => {
+      if (spec._kind === NodeKind.MODULE_NAMED_SPECIFIER) {
+        return !current.specifiers.some(
           (current) =>
             current._kind === NodeKind.MODULE_NAMED_SPECIFIER &&
             current.value.name === spec.value.name
-        )
-    );
+        );
+      }
+
+      return true;
+    });
 
     const isDefault = specifier.some((spec) => spec._kind === NodeKind.MODULE_DEFAULT_SPECIFIER);
     const isNamespace = specifier.some(

@@ -158,10 +158,10 @@ export type Literal =
 export interface TypeIdentifier extends Node {
   _kind: NodeKind.TYPE_IDENTIFIER;
   name: string;
-  parameters?: TypeIdentifier[];
+  parameters?: Array<TypeIdentifier | Literal>;
 }
 
-function _typeRef(name: string, params?: TypeIdentifier[]): TypeIdentifier {
+function _typeRef(name: string, params?: Array<TypeIdentifier | Literal>): TypeIdentifier {
   return {
     _kind: NodeKind.TYPE_IDENTIFIER,
     name,
@@ -203,14 +203,10 @@ export interface TypeProperty extends Node {
   _kind: NodeKind.TYPE_PROPERTY;
   name: string;
   optional: boolean;
-  type: TypeIdentifier | TypeBinaryExpression;
+  type: TypeExpression;
 }
 
-function _typeProp(
-  name: string,
-  type: TypeIdentifier | TypeBinaryExpression,
-  optional = false
-): TypeProperty {
+function _typeProp(name: string, type: TypeExpression, optional = false): TypeProperty {
   return {
     _kind: NodeKind.TYPE_PROPERTY,
     name,

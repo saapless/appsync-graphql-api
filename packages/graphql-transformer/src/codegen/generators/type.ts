@@ -18,6 +18,50 @@ export default class TypeGenerator {
     this._definitions = [];
   }
 
+  private _defaults() {
+    this._definitions.push(
+      tc.export(
+        tc.typeDef(
+          tc.typeRef("Maybe", [tc.typeRef("T")]),
+          tc.typeUnion([tc.typeRef("T"), tc.typeRef("null"), tc.typeRef("undefined")])
+        )
+      ),
+      tc.export(
+        tc.typeDef(
+          tc.typeRef("DynamoDBQueryResult", [tc.typeRef("T")]),
+          tc.typeObj([
+            tc.typeProp("items", tc.typeRef("Array", [tc.typeRef("T")]), false),
+            tc.typeProp(
+              "nextToken",
+              tc.typeUnion([tc.typeRef("string"), tc.typeRef("null")]),
+              true
+            ),
+          ])
+        )
+      ),
+      tc.export(
+        tc.typeDef(
+          tc.typeRef("DynamoDbBatchGetResult", [tc.typeRef("T")]),
+          tc.typeObj([
+            tc.typeProp(
+              "data",
+              tc.typeRef("Record", [tc.typeRef("string"), tc.typeRef("Array", [tc.typeRef("T")])]),
+              false
+            ),
+            tc.typeProp(
+              "unprocessedKeys",
+              tc.typeRef("Record", [
+                tc.typeRef("string"),
+                tc.typeRef("Array", [tc.typeRef("Pick", [tc.typeRef("T"), tc.str("id")])]),
+              ]),
+              false
+            ),
+          ])
+        )
+      )
+    );
+  }
+
   private _value(ref: string) {
     switch (ref) {
       case "ID":
@@ -76,19 +120,40 @@ export default class TypeGenerator {
     this._definitions.push(tc.export(tc.typeDef(node.name, tc.typeUnion(values))));
   }
 
-  private _object(object: ObjectNode | InputObjectNode) {
+  private _input(node: InputObjectNode) {
+    this._definitions.push(
+      tc.export(
+        tc.typeDef(
+          node.name,
+          tc.typeObj(
+            node.fields?.map((field) => {
+              return tc.typeProp(
+                field.name,
+                this._value(field.type.getTypeName()),
+                !(field.type instanceof NonNullTypeNode)
+              );
+            }) ?? []
+          )
+        )
+      )
+    );
+  }
+
+  private _object(object: ObjectNode) {
     const props: TypeProperty[] = [];
 
     for (const field of object.fields ?? []) {
-      props.push(
-        tc.typeProp(
-          field.name,
-          this._value(field.type.getTypeName()),
-          !(field.type instanceof NonNullTypeNode)
-        )
-      );
+      if (!field.hasDirective("hasOne") && !field.hasDirective("hasMany")) {
+        props.push(
+          tc.typeProp(
+            field.name,
+            this._value(field.type.getTypeName()),
+            !(field.type instanceof NonNullTypeNode)
+          )
+        );
+      }
 
-      if (object instanceof ObjectNode && field instanceof FieldNode && field.arguments?.length) {
+      if (field.arguments?.length) {
         this._args(object, field);
       }
     }
@@ -108,11 +173,15 @@ export default class TypeGenerator {
   }
 
   public generate() {
+    this._defaults();
+
     for (const def of this.document.definitions.values()) {
       switch (def.kind) {
         case "ObjectTypeDefinition":
-        case "InputObjectTypeDefinition":
           this._object(def);
+          break;
+        case "InputObjectTypeDefinition":
+          this._input(def);
           break;
         case "InterfaceTypeDefinition":
           this._interface(def);

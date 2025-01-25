@@ -51,9 +51,16 @@ export class ResolverGenerator {
         .setContextArgs({ source: tc.typeRef(loader.typeName) });
     }
 
-    resolver.code
-      .addImport("../schema-types", tc.named(loader.target.name))
-      .setContextArgs({ result: tc.typeRef(loader.target.name) });
+    if (loader.action === "list") {
+      resolver.code.addImport("../schema-types", tc.named("DynamoDBQueryResult"));
+    }
+
+    resolver.code.addImport("../schema-types", tc.named(loader.target.name)).setContextArgs({
+      result:
+        loader.action === "list"
+          ? tc.typeRef("DynamoDBQueryResult", [tc.typeRef(loader.target.name)])
+          : tc.typeRef(loader.target.name),
+    });
   }
 
   public generate() {

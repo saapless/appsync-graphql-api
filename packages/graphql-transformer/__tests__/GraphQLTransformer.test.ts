@@ -1,4 +1,5 @@
-import { join } from "node:path";
+import { dirname, resolve } from "node:path";
+import { fileURLToPath } from "node:url";
 import { createTransformer, GraphQLTransformer } from "../src/transformer";
 import { FieldResolver } from "../src/resolver";
 import { FieldNode, NamedTypeNode, ObjectNode } from "../src/parser";
@@ -102,7 +103,7 @@ describe("GraphQLTransformer", () => {
   const transformer = createTransformer({
     definition: schema,
     mode: "development",
-    outputDirectory: join(__dirname, "./out"),
+    outputDirectory: resolve(dirname(fileURLToPath(import.meta.url)), "../out"),
   });
 
   describe("createTransformer factory", () => {
@@ -116,7 +117,7 @@ describe("GraphQLTransformer", () => {
     });
 
     it("adds default plugins list", () => {
-      expect(transformer.plugins).toHaveLength(6);
+      expect(transformer.plugins).toHaveLength(5);
     });
   });
 

@@ -8,7 +8,7 @@ const config = {
   testEnvironment: "node",
   projects: ["<rootDir>/packages/*"],
   extensionsToTreatAsEsm: [".ts"],
-  ...createDefaultEsmPreset(),
+  ...createDefaultEsmPreset({ tsconfig: "<rootDir>/tsconfig.json", useESM: true }),
 };
 
 export default config;

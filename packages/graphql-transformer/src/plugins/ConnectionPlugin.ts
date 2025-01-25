@@ -380,6 +380,15 @@ export class ConnectionPlugin extends TransformerPluginBase {
       field.setType(NonNullTypeNode.create(typeName));
     }
 
+    this.context.setLoader(parent.name, field.name, {
+      target: connection.target,
+      action: "list",
+      relation: connection.relation,
+      returnType: "edges",
+      index: connection.index ?? undefined,
+      key: { sourceId: connection.key },
+    });
+
     if (connection.relation === "manyToMany") {
       // TODO: Create edge mutations
     }

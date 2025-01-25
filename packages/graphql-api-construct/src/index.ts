@@ -1,1 +1,1 @@
-export {};
+export { AppSyncGraphQLApi, type AppSyncGraphQLApiProps } from "./construct";

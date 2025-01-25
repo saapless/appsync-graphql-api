@@ -51,7 +51,7 @@ export default class DynamoDbGenerator {
             filter: tc.ref("ctx.args.filter"),
             limit: tc.coalesce(tc.ref("ctx.args.first"), tc.num(100)),
             nextToken: tc.coalesce(tc.ref("ctx.args.after"), tc.undef()),
-            scanIndexForward: tc.eq(tc.ref("ctx.args.sortDirection"), tc.str("ASC")),
+            scanIndexForward: tc.eq(tc.ref("ctx.args.sort"), tc.str("ASC")),
             index: descriptor.index ? tc.str(descriptor.index) : tc.undef(),
           })
         )
@@ -114,7 +114,7 @@ export default class DynamoDbGenerator {
           })
         ),
         tc.const(
-          "item",
+          tc.ref("item", tc.typeRef("Record", [tc.typeRef("string"), tc.typeRef("unknown")])),
           tc.obj({ _version: tc.call(tc.ref("operations.increment"), [tc.num(1)]) })
         ),
         tc.forOf(
@@ -183,9 +183,31 @@ export default class DynamoDbGenerator {
   }
 
   private _returnEdges() {
-    this.code
-      .addImport("@saapless/appsync-utils", tc.named("formatEdges"))
-      .setResponse(tc.return(tc.call(tc.ref("formatEdges"), [tc.ref("ctx.result")])));
+    this.code.setResponse(
+      tc.return(
+        tc.obj({
+          edges: tc.call(tc.ref("ctx.result.items.map"), [
+            tc.arrow(
+              tc.ref("node"),
+              tc.block(
+                tc.return(
+                  tc.obj({
+                    cursor: tc.ref("node.id"),
+                    node: tc.ref("node"),
+                  })
+                )
+              )
+            ),
+          ]),
+          pageInfo: tc.obj({
+            hasPreviousPage: tc.call(tc.ref("Boolean"), tc.ref("ctx.args?.after")),
+            hasNextPage: tc.call(tc.ref("Boolean"), tc.ref("ctx.result.nextToken")),
+            startCursor: tc.ref("ctx.args.after"),
+            endCursor: tc.ref("ctx.result.nextToken"),
+          }),
+        })
+      )
+    );
   }
 
   private _returnPrev() {

@@ -1,6 +1,5 @@
 import {
   AWSTypesPlugin,
-  AuthPlugin,
   NodeInterfacePlugin,
   ModelPlugin,
   ConnectionPlugin,
@@ -21,7 +20,6 @@ export function createTransformer(options: Partial<GraphQLTransformerOptions>) {
       NodeInterfacePlugin,
       ModelPlugin,
       ConnectionPlugin,
-      AuthPlugin,
       DataLoaderPlugin,
     ];
   }
