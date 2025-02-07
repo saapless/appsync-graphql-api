@@ -2,7 +2,7 @@
   "extends": "./tsconfig.json",
   "include": [
     "__tests__",
-    "cdk.out",
+    "cdk.out/**/*",
     "**/jest.config.mjs",
   ]
 }

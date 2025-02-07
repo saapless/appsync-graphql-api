@@ -12,7 +12,7 @@ const __dirname = path.dirname(__filename);
 
 export default tseslint.config(
   {
-    ignores: ["**/node_modules/**", "**/dist/**", "**/out/**"],
+    ignores: ["**/node_modules/**", "**/dist/**", "**/out/**", "**/cdk.out/**"],
   },
   {
     extends: [

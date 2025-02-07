@@ -40,7 +40,7 @@ export {
 ",
       "dataSource": undefined,
       "fieldName": "createUser",
-      "functions": undefined,
+      "pipelineFunctions": undefined,
       "typeName": "Mutation",
     },
     "Mutation.deleteFile": {
@@ -76,7 +76,7 @@ export {
 ",
       "dataSource": undefined,
       "fieldName": "deleteFile",
-      "functions": undefined,
+      "pipelineFunctions": undefined,
       "typeName": "Mutation",
     },
     "Mutation.deleteLabel": {
@@ -112,7 +112,7 @@ export {
 ",
       "dataSource": undefined,
       "fieldName": "deleteLabel",
-      "functions": undefined,
+      "pipelineFunctions": undefined,
       "typeName": "Mutation",
     },
     "Mutation.deleteTask": {
@@ -148,7 +148,7 @@ export {
 ",
       "dataSource": undefined,
       "fieldName": "deleteTask",
-      "functions": undefined,
+      "pipelineFunctions": undefined,
       "typeName": "Mutation",
     },
     "Mutation.deleteTimeTracker": {
@@ -184,7 +184,7 @@ export {
 ",
       "dataSource": undefined,
       "fieldName": "deleteTimeTracker",
-      "functions": undefined,
+      "pipelineFunctions": undefined,
       "typeName": "Mutation",
     },
     "Mutation.deleteUser": {
@@ -220,7 +220,7 @@ export {
 ",
       "dataSource": undefined,
       "fieldName": "deleteUser",
-      "functions": undefined,
+      "pipelineFunctions": undefined,
       "typeName": "Mutation",
     },
     "Mutation.updateUser": {
@@ -258,7 +258,7 @@ export {
 ",
       "dataSource": undefined,
       "fieldName": "updateUser",
-      "functions": undefined,
+      "pipelineFunctions": undefined,
       "typeName": "Mutation",
     },
     "Mutation.upsertFile": {
@@ -280,7 +280,7 @@ export {
 ",
       "dataSource": undefined,
       "fieldName": "upsertFile",
-      "functions": undefined,
+      "pipelineFunctions": undefined,
       "typeName": "Mutation",
     },
     "Mutation.upsertLabel": {
@@ -302,7 +302,7 @@ export {
 ",
       "dataSource": undefined,
       "fieldName": "upsertLabel",
-      "functions": undefined,
+      "pipelineFunctions": undefined,
       "typeName": "Mutation",
     },
     "Mutation.upsertTask": {
@@ -324,7 +324,7 @@ export {
 ",
       "dataSource": undefined,
       "fieldName": "upsertTask",
-      "functions": undefined,
+      "pipelineFunctions": undefined,
       "typeName": "Mutation",
     },
     "Mutation.upsertTimeTracker": {
@@ -346,7 +346,7 @@ export {
 ",
       "dataSource": undefined,
       "fieldName": "upsertTimeTracker",
-      "functions": undefined,
+      "pipelineFunctions": undefined,
       "typeName": "Mutation",
     },
     "Query.getUser": {
@@ -370,7 +370,7 @@ export {
 ",
       "dataSource": undefined,
       "fieldName": "getUser",
-      "functions": undefined,
+      "pipelineFunctions": undefined,
       "typeName": "Query",
     },
     "Query.listUsers": {
@@ -411,7 +411,7 @@ export {
 ",
       "dataSource": undefined,
       "fieldName": "listUsers",
-      "functions": undefined,
+      "pipelineFunctions": undefined,
       "typeName": "Query",
     },
     "Task.artifacts": {
@@ -452,7 +452,7 @@ export {
 ",
       "dataSource": undefined,
       "fieldName": "artifacts",
-      "functions": undefined,
+      "pipelineFunctions": undefined,
       "typeName": "Task",
     },
     "Task.labels": {
@@ -493,7 +493,7 @@ export {
 ",
       "dataSource": undefined,
       "fieldName": "labels",
-      "functions": undefined,
+      "pipelineFunctions": undefined,
       "typeName": "Task",
     },
     "Task.occurrences": {
@@ -534,7 +534,7 @@ export {
 ",
       "dataSource": undefined,
       "fieldName": "occurrences",
-      "functions": undefined,
+      "pipelineFunctions": undefined,
       "typeName": "Task",
     },
     "Task.subtasks": {
@@ -575,7 +575,7 @@ export {
 ",
       "dataSource": undefined,
       "fieldName": "subtasks",
-      "functions": undefined,
+      "pipelineFunctions": undefined,
       "typeName": "Task",
     },
     "Viewer.labels": {
@@ -616,7 +616,7 @@ export {
 ",
       "dataSource": undefined,
       "fieldName": "labels",
-      "functions": undefined,
+      "pipelineFunctions": undefined,
       "typeName": "Viewer",
     },
     "Viewer.tasks": {
@@ -657,7 +657,7 @@ export {
 ",
       "dataSource": undefined,
       "fieldName": "tasks",
-      "functions": undefined,
+      "pipelineFunctions": undefined,
       "typeName": "Viewer",
     },
     "Viewer.user": {
@@ -681,7 +681,7 @@ export {
 ",
       "dataSource": undefined,
       "fieldName": "user",
-      "functions": undefined,
+      "pipelineFunctions": undefined,
       "typeName": "Viewer",
     },
   },

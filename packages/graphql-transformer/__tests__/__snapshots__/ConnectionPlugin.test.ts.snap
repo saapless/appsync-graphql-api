@@ -9,7 +9,7 @@ exports[`ConnectionPlugin matches snapshot 1`] = `
 type Todo {
   id: ID
   content: String
-  resources(filter: ResourceFilterInput, first: Int, after: String, sort: ModelSortDirection): ResourceConnection!
+  resources(filter: ResourceFilterInput, first: Int, after: String, sort: SortDirection): ResourceConnection!
   sourceId: ID @writeonly
 }
 
@@ -27,7 +27,7 @@ union Resource = Document | Message
 
 type Query {
   me: User
-  todos(filter: TodoFilterInput, first: Int, after: String, sort: ModelSortDirection): TodoConnection!
+  todos(filter: TodoFilterInput, first: Int, after: String, sort: SortDirection): TodoConnection!
 }
 
 type PageInfo {

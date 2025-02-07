@@ -21,6 +21,7 @@
     "dev": "turbo dev",
     "lint": "turbo lint",
     "test": "turbo test",
+    "test:watch": "turbo test:watch",
     "prepare": "husky"
   },
   "dependencies": {

@@ -11,8 +11,10 @@
       "cache": false,
       "persistent": true
     },
-    "test": {
-      "dependsOn": ["^test"]
+    "test": {},
+    "test:watch": {
+      "cache": false,
+      "persistent": true
     },
     "lint": {
       "dependsOn": ["^lint"]

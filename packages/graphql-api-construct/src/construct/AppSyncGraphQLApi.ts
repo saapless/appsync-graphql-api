@@ -9,11 +9,14 @@ import {
 import { Construct } from "constructs";
 import {
   AuthorizationConfig,
+  BaseDataSource,
   Code,
   Definition,
   DomainOptions,
   FunctionRuntime,
   GraphqlApi,
+  IAppsyncFunction,
+  Resolver,
   IGraphqlApi,
   IntrospectionConfig,
   LogConfig,
@@ -21,12 +24,51 @@ import {
 } from "aws-cdk-lib/aws-appsync";
 import { App } from "aws-cdk-lib";
 import { createTransformer } from "@saapless/graphql-transformer";
-import { Resolver, GraphQLDefinition, GraphQLSchema, DataSource } from "../utils";
+import {
+  FieldResolverOutput,
+  PipelineFunctionOutput,
+} from "@saapless/graphql-transformer/dist/transformer/GraphQLTransformer";
+import {
+  DataSourceConfig,
+  DEFAULT_DATA_SOURCE_NAME,
+  GraphQLDefinition,
+  GraphQLSchema,
+} from "../utils";
 
 export type AppSyncGraphQLApiProps = {
+  /**
+   * Name of the AppSync GraphQL API
+   */
   readonly name: string;
+  /**
+   * GraphQL Schema definition
+   */
   readonly definition: GraphQLDefinition;
+  /**
+   * API Authorization Configuration _(optional)_
+   * @default - API Key authorization
+   */
   readonly authorizationConfig?: AuthorizationConfig;
+  /**
+   * Data Source configuration _(optional)_
+   * @default - DynamoDB DataSource
+   */
+  readonly dataSourceConfig?: DataSourceConfig;
+  /**
+   * Custom defined field resolvers _(optional)_
+   */
+  readonly customResolvers?: Resolver[];
+  /**
+   * Custom defined pipeline functions _(optional)_
+   */
+  readonly customPipelineFunctions?: Resolver[];
+  /**
+   * Dev resources output directory, relative to `process.cwd()`
+   */
+  readonly outDir?: string;
+  /**
+   * Optional AppSync API configuration _(optional)_
+   */
   readonly apiConfig?: {
     readonly xrayEnabled?: boolean;
     readonly logConfig?: LogConfig;
@@ -36,11 +78,8 @@ export type AppSyncGraphQLApiProps = {
     readonly ownerContact?: string;
     readonly domainName?: DomainOptions;
     readonly visibility?: Visibility;
+    readonly env?: Record<string, string>;
   };
-  readonly env?: Record<string, string>;
-  readonly dataSources?: DataSource[];
-  readonly resolvers?: Resolver[];
-  readonly pipelineFunctions?: Resolver[];
 };
 
 export class AppSyncGraphQLApi extends Construct {
@@ -49,7 +88,7 @@ export class AppSyncGraphQLApi extends Construct {
 
   constructor(scope: Construct, id: string, props: AppSyncGraphQLApiProps) {
     super(scope, id);
-    const { name, definition, resolvers, pipelineFunctions, apiConfig = {} } = props;
+    const { name, definition, dataSourceConfig, apiConfig = {} } = props;
 
     const outputDirectory = path.resolve(
       process.cwd(),
@@ -57,13 +96,11 @@ export class AppSyncGraphQLApi extends Construct {
       ".appsync"
     );
 
-    const defaultDataSource = this._createDefaultDataSource();
-
     const transformer = createTransformer({
       definition: definition.toString(),
       outputDirectory: outputDirectory,
-      fieldResolvers: resolvers?.map((resolver) => resolver.getConfig()),
-      pipelineFunctions: pipelineFunctions?.map((resolver) => resolver.getConfig()),
+      // fieldResolvers: resolvers?.map((resolver) => resolver.getConfig()),
+      // pipelineFunctions: pipelineFunctions?.map((resolver) => resolver.getConfig()),
     });
 
     const result = transformer.transform();
@@ -74,24 +111,169 @@ export class AppSyncGraphQLApi extends Construct {
       ...apiConfig,
     });
 
-    const _defaultDS = this.api.addDynamoDbDataSource("StoreDataSource", defaultDataSource);
-    this.api.addNoneDataSource("NoneDataSource");
+    const dataSourcesMap = this._createDataSources(dataSourceConfig);
+    const pipelineFunctionsMap = this._createPipelineFunctions(
+      result.pipelineFunctions,
+      dataSourcesMap
+    );
 
-    for (const [name, config] of Object.entries(result.fieldResolvers)) {
-      this.api.createResolver(`${name}Resolver`, {
-        dataSource: _defaultDS,
+    this._createFieldResolvers(result.fieldResolvers, dataSourcesMap, pipelineFunctionsMap);
+  }
+
+  private _createDataSources(config?: DataSourceConfig): Map<string, BaseDataSource> {
+    const stash = new Map<string, BaseDataSource>();
+
+    const defaultDsName = config?.defaultDataSource?.name ?? DEFAULT_DATA_SOURCE_NAME;
+    const defaultDsTable = config?.defaultDataSource?.table ?? this._createDefaultDataSource();
+
+    const defaultDataSource = this.api.addDynamoDbDataSource(defaultDsName, defaultDsTable, {
+      name: defaultDsName,
+      description: "Default DynamoDB Data Source",
+    });
+
+    stash.set(defaultDsName, defaultDataSource);
+
+    let hasNoneDs = false;
+
+    if (config?.additionalDataSources) {
+      for (const ds of config.additionalDataSources) {
+        if (ds.type === "NONE") {
+          hasNoneDs = true;
+        }
+
+        let dataSource;
+
+        switch (ds.type) {
+          case "DynamoDB":
+            dataSource = this.api.addDynamoDbDataSource(ds.name, ds.table, {
+              name: ds.name,
+            });
+            break;
+          case "NONE":
+            dataSource = this.api.addNoneDataSource(ds.name, {
+              name: ds.name,
+            });
+            break;
+          case "HTTP":
+            dataSource = this.api.addHttpDataSource(ds.name, ds.endpoint, {
+              name: ds.name,
+              authorizationConfig: ds.authorizationConfig,
+            });
+            break;
+          case "Lambda":
+            dataSource = this.api.addLambdaDataSource(ds.name, ds.lambdaFunction, {
+              name: ds.name,
+            });
+            break;
+          case "EventBridge":
+            dataSource = this.api.addEventBridgeDataSource(ds.name, ds.eventBus, {
+              name: ds.name,
+            });
+            break;
+          case "OpenSearch":
+            dataSource = this.api.addOpenSearchDataSource(ds.name, ds.domain, {
+              name: ds.name,
+            });
+            break;
+          case "RDS":
+            dataSource = this.api.addRdsDataSource(
+              ds.name,
+              ds.cluster,
+              ds.secret,
+              ds.databaseName,
+              {
+                name: ds.name,
+              }
+            );
+            break;
+        }
+
+        stash.set(ds.name, dataSource);
+      }
+    }
+
+    if (!hasNoneDs) {
+      const noneDataSource = this.api.addNoneDataSource("NoneDataSource", {
+        name: "NoneDataSource",
+      });
+
+      stash.set("NoneDataSource", noneDataSource);
+    }
+
+    return stash;
+  }
+
+  private _createPipelineFunctions(
+    config: Record<string, PipelineFunctionOutput>,
+    dataSources: Map<string, BaseDataSource>
+  ) {
+    const stash = new Map<string, IAppsyncFunction>();
+
+    for (const func of Object.values(config)) {
+      const dataSource = func.dataSource
+        ? dataSources.get(func.dataSource)
+        : dataSources.get(DEFAULT_DATA_SOURCE_NAME);
+
+      if (!dataSource) {
+        throw new Error(`Data source ${func.dataSource} not found`);
+      }
+
+      const appsyncFunction = dataSource.createFunction(`${func.name}Function`, {
+        name: func.name,
+        code: Code.fromInline(func.code),
+        runtime: FunctionRuntime.JS_1_0_0,
+      });
+
+      stash.set(func.name, appsyncFunction);
+    }
+
+    return stash;
+  }
+
+  private _createFieldResolvers(
+    configs: Record<string, FieldResolverOutput>,
+    dataSources: Map<string, BaseDataSource>,
+    pipelineFunctions: Map<string, IAppsyncFunction>
+  ) {
+    const stash = new Map<string, Resolver>();
+
+    for (const config of Object.values(configs)) {
+      const dataSource = config.dataSource
+        ? dataSources.get(config.dataSource)
+        : dataSources.get(DEFAULT_DATA_SOURCE_NAME);
+
+      if (!dataSource) {
+        throw new Error(`Data source ${config.dataSource} not found`);
+      }
+
+      let pipelineConfig: IAppsyncFunction[] | undefined = undefined;
+
+      if (config.pipelineFunctions?.length) {
+        pipelineConfig = config.pipelineFunctions.map((func) => {
+          const pipelineFunction = pipelineFunctions.get(func);
+
+          if (!pipelineFunction) {
+            throw new Error(`Pipeline function ${func} not found`);
+          }
+
+          return pipelineFunction;
+        });
+      }
+
+      const resolver = this.api.createResolver(`${config.typeName}${config.fieldName}Resolver`, {
+        dataSource: dataSource,
         typeName: config.typeName,
         fieldName: config.fieldName,
-        // pipelineConfig:
+        pipelineConfig: pipelineConfig,
         code: Code.fromInline(config.code),
         runtime: FunctionRuntime.JS_1_0_0,
       });
-    }
-  }
 
-  private _createDataSources() {}
-  private _createPipelineFunctions() {}
-  private _createFieldResolvers() {}
+      stash.set(`${config.typeName}.${config.fieldName}`, resolver);
+    }
+
+    return stash;
+  }
 
   private _createDefaultDataSource() {
     const table = new TableV2(this, "StoreTable", {
