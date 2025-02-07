@@ -24,26 +24,22 @@ export abstract class ResolverBase {
   public readonly isReadonly: boolean = false;
   public readonly dataSource?: string;
   public readonly code: CodeDocument;
+  public source?: string;
 
   private readonly _name: string;
-  private readonly _source?: string;
 
-  constructor(name: string, dataSource?: string, source?: string) {
+  constructor(name: string, dataSource?: string, source?: string, isReadonly = false) {
     this._name = name;
     this.dataSource = dataSource;
     this.code = CodeDocument.create();
-
-    if (source) {
-      this._source = source;
-      this.isReadonly = true;
-    }
+    this.source = source;
+    this.isReadonly = isReadonly;
   }
 
+  public setSource(path: string) {
+    this.source = path;
+  }
   public print(): string {
-    if (this.isReadonly) {
-      return this._source ?? "";
-    }
-
     return this.code.print();
   }
 }

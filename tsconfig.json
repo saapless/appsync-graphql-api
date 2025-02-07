@@ -28,9 +28,4 @@
   "ts-node": {
     "esm": true
   },
-  "exclude": [
-    "**/node_modules/**",
-    "**/dist/**",
-    "**/__mocks__/**",
-  ]
 }

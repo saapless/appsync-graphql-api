@@ -311,7 +311,7 @@ export class ConnectionPlugin extends TransformerPluginBase {
     }
 
     if (!field.hasArgument("sort")) {
-      field.addArgument(InputValueNode.create("sort", NamedTypeNode.create("ModelSortDirection")));
+      field.addArgument(InputValueNode.create("sort", NamedTypeNode.create("SortDirection")));
     }
   }
 

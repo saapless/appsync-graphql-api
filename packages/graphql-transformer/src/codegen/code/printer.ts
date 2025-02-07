@@ -133,6 +133,7 @@ const printReducer: ASTPrintReducer = {
       node.extension ? wrap("extends ", join(", ", node.extension)) : "",
       node.definition
     ),
+  TypeExtendsExpression: (node) => join(" ", node.left, "extends", node.right),
 };
 
 export function printAST<T extends ASTNode>(

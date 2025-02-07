@@ -30,7 +30,15 @@ export function formatValue(value: unknown): PropertyValue {
 }
 
 export function keyValue<T extends string | number>(obj: KeyValue<T>) {
-  if (obj.ref) return tc.chain("ctx", obj.ref);
+  if (obj.ref) {
+    // `ctx.source` is typed as optional in Context
+
+    if (obj.ref.startsWith("source")) {
+      obj.ref = obj.ref.replace("source", "source?");
+    }
+
+    return tc.chain("ctx", obj.ref);
+  }
   if (obj.eq) return typeof obj.eq === "string" ? tc.str(obj.eq) : tc.num(obj.eq);
   throw new Error("Invalid key value");
 }

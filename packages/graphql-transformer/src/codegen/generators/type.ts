@@ -28,7 +28,12 @@ export default class TypeGenerator {
       ),
       tc.export(
         tc.typeDef(
-          tc.typeRef("DynamoDBQueryResult", [tc.typeRef("T")]),
+          tc.typeRef("DynamoDBQueryResult", [
+            tc.typeExtends(
+              "T",
+              tc.typeRef("Record", [tc.typeRef("string"), tc.typeRef("unknown")])
+            ),
+          ]),
           tc.typeObj([
             tc.typeProp("items", tc.typeRef("Array", [tc.typeRef("T")]), false),
             tc.typeProp(
@@ -41,7 +46,12 @@ export default class TypeGenerator {
       ),
       tc.export(
         tc.typeDef(
-          tc.typeRef("DynamoDbBatchGetResult", [tc.typeRef("T")]),
+          tc.typeRef("DynamoDbBatchGetResult", [
+            tc.typeExtends(
+              "T",
+              tc.typeRef("Record", [tc.typeRef("string"), tc.typeRef("unknown")])
+            ),
+          ]),
           tc.typeObj([
             tc.typeProp(
               "data",
@@ -66,7 +76,17 @@ export default class TypeGenerator {
     switch (ref) {
       case "ID":
       case "String":
+      case "AWSURL":
+      case "AWSEmail":
+      case "AWSIPAddress":
+      case "AWSPhone":
+      case "AWSDateTime":
+      case "AWSTime":
+      case "AWSDate":
+      case "AWSTimestamp":
         return tc.typeRef("string");
+      case "AWSJSON":
+        return tc.typeRef("Record", [tc.typeRef("string"), tc.typeRef("unknown")]);
       case "Boolean":
         return tc.typeRef("boolean");
       case "Int":

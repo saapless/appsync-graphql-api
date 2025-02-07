@@ -1,0 +1,1125 @@
+// Jest Snapshot v1, https://goo.gl/fbAQLP
+
+exports[`GraphQLTransformer runs schema transformations respond with valid output 1`] = `
+{
+  "fieldResolvers": {
+    "Mutation.createUser": {
+      "code": "// out/resolvers/Mutation.createUser.ts
+import { put } from "@aws-appsync/utils/dynamodb";
+import { util } from "@aws-appsync/utils";
+function request(ctx) {
+  const { input } = ctx.args;
+  const id = input.id ?? util.autoId();
+  const createdAt = input.createdAt ?? util.time.nowISO8601();
+  const item = {
+    ...input,
+    id,
+    createdAt,
+    updatedAt: input.updatedAt ?? createdAt,
+    __typename: "User",
+    _version: input._version ?? 1,
+    _sk: \`User\${id}\`
+  };
+  return put({
+    key: { id: item.id },
+    item,
+    condition: { id: { attributeExists: false } }
+  });
+}
+function response(ctx) {
+  if (ctx.error) {
+    util.error(ctx.error.message, ctx.error.type);
+  }
+  return ctx.result;
+}
+export {
+  request,
+  response
+};
+//# sourceMappingURL=data:application/json;base64,ewogICJ2ZXJzaW9uIjogMywKICAic291cmNlcyI6IFsicmVzb2x2ZXJzL011dGF0aW9uLmNyZWF0ZVVzZXIudHMiXSwKICAibWFwcGluZ3MiOiAiO0FBQ0EsU0FBUyxXQUFXO0FBQ3BCLFNBQVMsWUFBcUI7QUFDdkIsU0FBUyxRQUNkLEtBTUE7QUFDQSxRQUFNLEVBQUUsTUFBTSxJQUFJLElBQUk7QUFDdEIsUUFBTSxLQUFLLE1BQU0sTUFBTSxLQUFLLE9BQU87QUFDbkMsUUFBTSxZQUFZLE1BQU0sYUFBYSxLQUFLLEtBQUssV0FBVztBQUMxRCxRQUFNLE9BQU87QUFBQSxJQUNYLEdBQUc7QUFBQSxJQUNIO0FBQUEsSUFDQTtBQUFBLElBQ0EsV0FBVyxNQUFNLGFBQWE7QUFBQSxJQUM5QixZQUFZO0FBQUEsSUFDWixVQUFVLE1BQU0sWUFBWTtBQUFBLElBQzVCLEtBQUssT0FBTyxFQUFFO0FBQUEsRUFDaEI7QUFDQSxTQUFPLElBQUk7QUFBQSxJQUNULEtBQUssRUFBRSxJQUFJLEtBQUssR0FBRztBQUFBLElBQ25CO0FBQUEsSUFDQSxXQUFXLEVBQUUsSUFBSSxFQUFFLGlCQUFpQixNQUFNLEVBQUU7QUFBQSxFQUM5QyxDQUFDO0FBQ0g7QUFFTyxTQUFTLFNBQ2QsS0FPQTtBQUNBLE1BQUksSUFBSSxPQUFPO0FBQ2IsU0FBSyxNQUFNLElBQUksTUFBTSxTQUFTLElBQUksTUFBTSxJQUFJO0FBQUEsRUFDOUM7QUFFQSxTQUFPLElBQUk7QUFDYjsiLAogICJuYW1lcyI6IFtdCn0K
+",
+      "dataSource": undefined,
+      "fieldName": "createUser",
+      "functions": undefined,
+      "typeName": "Mutation",
+    },
+    "Mutation.deleteFile": {
+      "code": "// out/resolvers/Mutation.deleteFile.ts
+import { update, operations } from "@aws-appsync/utils/dynamodb";
+import { util } from "@aws-appsync/utils";
+function request(ctx) {
+  const { input } = ctx.args;
+  return update({
+    key: { id: ctx.args.input.id },
+    update: {
+      updatedAt: operations.replace(util.time.nowISO8601()),
+      _version: operations.increment(1),
+      _deleted: operations.replace(true)
+    },
+    condition: {
+      id: { attributeExists: true },
+      _version: { eq: input._version }
+    }
+  });
+}
+function response(ctx) {
+  if (ctx.error) {
+    util.error(ctx.error.message, ctx.error.type);
+  }
+  return ctx.result;
+}
+export {
+  request,
+  response
+};
+//# sourceMappingURL=data:application/json;base64,ewogICJ2ZXJzaW9uIjogMywKICAic291cmNlcyI6IFsicmVzb2x2ZXJzL011dGF0aW9uLmRlbGV0ZUZpbGUudHMiXSwKICAibWFwcGluZ3MiOiAiO0FBQ0EsU0FBUyxRQUFRLGtCQUFrQjtBQUNuQyxTQUFTLFlBQXFCO0FBQ3ZCLFNBQVMsUUFDZCxLQU1BO0FBQ0EsUUFBTSxFQUFFLE1BQU0sSUFBSSxJQUFJO0FBQ3RCLFNBQU8sT0FBTztBQUFBLElBQ1osS0FBSyxFQUFFLElBQUksSUFBSSxLQUFLLE1BQU0sR0FBRztBQUFBLElBQzdCLFFBQVE7QUFBQSxNQUNOLFdBQVcsV0FBVyxRQUFRLEtBQUssS0FBSyxXQUFXLENBQUM7QUFBQSxNQUNwRCxVQUFVLFdBQVcsVUFBVSxDQUFDO0FBQUEsTUFDaEMsVUFBVSxXQUFXLFFBQVEsSUFBSTtBQUFBLElBQ25DO0FBQUEsSUFDQSxXQUFXO0FBQUEsTUFDVCxJQUFJLEVBQUUsaUJBQWlCLEtBQUs7QUFBQSxNQUM1QixVQUFVLEVBQUUsSUFBSSxNQUFNLFNBQVM7QUFBQSxJQUNqQztBQUFBLEVBQ0YsQ0FBQztBQUNIO0FBRU8sU0FBUyxTQUNkLEtBT0E7QUFDQSxNQUFJLElBQUksT0FBTztBQUNiLFNBQUssTUFBTSxJQUFJLE1BQU0sU0FBUyxJQUFJLE1BQU0sSUFBSTtBQUFBLEVBQzlDO0FBRUEsU0FBTyxJQUFJO0FBQ2I7IiwKICAibmFtZXMiOiBbXQp9Cg==
+",
+      "dataSource": undefined,
+      "fieldName": "deleteFile",
+      "functions": undefined,
+      "typeName": "Mutation",
+    },
+    "Mutation.deleteLabel": {
+      "code": "// out/resolvers/Mutation.deleteLabel.ts
+import { update, operations } from "@aws-appsync/utils/dynamodb";
+import { util } from "@aws-appsync/utils";
+function request(ctx) {
+  const { input } = ctx.args;
+  return update({
+    key: { id: ctx.args.input.id },
+    update: {
+      updatedAt: operations.replace(util.time.nowISO8601()),
+      _version: operations.increment(1),
+      _deleted: operations.replace(true)
+    },
+    condition: {
+      id: { attributeExists: true },
+      _version: { eq: input._version }
+    }
+  });
+}
+function response(ctx) {
+  if (ctx.error) {
+    util.error(ctx.error.message, ctx.error.type);
+  }
+  return ctx.result;
+}
+export {
+  request,
+  response
+};
+//# sourceMappingURL=data:application/json;base64,ewogICJ2ZXJzaW9uIjogMywKICAic291cmNlcyI6IFsicmVzb2x2ZXJzL011dGF0aW9uLmRlbGV0ZUxhYmVsLnRzIl0sCiAgIm1hcHBpbmdzIjogIjtBQUNBLFNBQVMsUUFBUSxrQkFBa0I7QUFDbkMsU0FBUyxZQUFxQjtBQUN2QixTQUFTLFFBQ2QsS0FNQTtBQUNBLFFBQU0sRUFBRSxNQUFNLElBQUksSUFBSTtBQUN0QixTQUFPLE9BQU87QUFBQSxJQUNaLEtBQUssRUFBRSxJQUFJLElBQUksS0FBSyxNQUFNLEdBQUc7QUFBQSxJQUM3QixRQUFRO0FBQUEsTUFDTixXQUFXLFdBQVcsUUFBUSxLQUFLLEtBQUssV0FBVyxDQUFDO0FBQUEsTUFDcEQsVUFBVSxXQUFXLFVBQVUsQ0FBQztBQUFBLE1BQ2hDLFVBQVUsV0FBVyxRQUFRLElBQUk7QUFBQSxJQUNuQztBQUFBLElBQ0EsV0FBVztBQUFBLE1BQ1QsSUFBSSxFQUFFLGlCQUFpQixLQUFLO0FBQUEsTUFDNUIsVUFBVSxFQUFFLElBQUksTUFBTSxTQUFTO0FBQUEsSUFDakM7QUFBQSxFQUNGLENBQUM7QUFDSDtBQUVPLFNBQVMsU0FDZCxLQU9BO0FBQ0EsTUFBSSxJQUFJLE9BQU87QUFDYixTQUFLLE1BQU0sSUFBSSxNQUFNLFNBQVMsSUFBSSxNQUFNLElBQUk7QUFBQSxFQUM5QztBQUVBLFNBQU8sSUFBSTtBQUNiOyIsCiAgIm5hbWVzIjogW10KfQo=
+",
+      "dataSource": undefined,
+      "fieldName": "deleteLabel",
+      "functions": undefined,
+      "typeName": "Mutation",
+    },
+    "Mutation.deleteTask": {
+      "code": "// out/resolvers/Mutation.deleteTask.ts
+import { update, operations } from "@aws-appsync/utils/dynamodb";
+import { util } from "@aws-appsync/utils";
+function request(ctx) {
+  const { input } = ctx.args;
+  return update({
+    key: { id: ctx.args.input.id },
+    update: {
+      updatedAt: operations.replace(util.time.nowISO8601()),
+      _version: operations.increment(1),
+      _deleted: operations.replace(true)
+    },
+    condition: {
+      id: { attributeExists: true },
+      _version: { eq: input._version }
+    }
+  });
+}
+function response(ctx) {
+  if (ctx.error) {
+    util.error(ctx.error.message, ctx.error.type);
+  }
+  return ctx.result;
+}
+export {
+  request,
+  response
+};
+//# sourceMappingURL=data:application/json;base64,ewogICJ2ZXJzaW9uIjogMywKICAic291cmNlcyI6IFsicmVzb2x2ZXJzL011dGF0aW9uLmRlbGV0ZVRhc2sudHMiXSwKICAibWFwcGluZ3MiOiAiO0FBQ0EsU0FBUyxRQUFRLGtCQUFrQjtBQUNuQyxTQUFTLFlBQXFCO0FBQ3ZCLFNBQVMsUUFDZCxLQU1BO0FBQ0EsUUFBTSxFQUFFLE1BQU0sSUFBSSxJQUFJO0FBQ3RCLFNBQU8sT0FBTztBQUFBLElBQ1osS0FBSyxFQUFFLElBQUksSUFBSSxLQUFLLE1BQU0sR0FBRztBQUFBLElBQzdCLFFBQVE7QUFBQSxNQUNOLFdBQVcsV0FBVyxRQUFRLEtBQUssS0FBSyxXQUFXLENBQUM7QUFBQSxNQUNwRCxVQUFVLFdBQVcsVUFBVSxDQUFDO0FBQUEsTUFDaEMsVUFBVSxXQUFXLFFBQVEsSUFBSTtBQUFBLElBQ25DO0FBQUEsSUFDQSxXQUFXO0FBQUEsTUFDVCxJQUFJLEVBQUUsaUJBQWlCLEtBQUs7QUFBQSxNQUM1QixVQUFVLEVBQUUsSUFBSSxNQUFNLFNBQVM7QUFBQSxJQUNqQztBQUFBLEVBQ0YsQ0FBQztBQUNIO0FBRU8sU0FBUyxTQUNkLEtBT0E7QUFDQSxNQUFJLElBQUksT0FBTztBQUNiLFNBQUssTUFBTSxJQUFJLE1BQU0sU0FBUyxJQUFJLE1BQU0sSUFBSTtBQUFBLEVBQzlDO0FBRUEsU0FBTyxJQUFJO0FBQ2I7IiwKICAibmFtZXMiOiBbXQp9Cg==
+",
+      "dataSource": undefined,
+      "fieldName": "deleteTask",
+      "functions": undefined,
+      "typeName": "Mutation",
+    },
+    "Mutation.deleteTimeTracker": {
+      "code": "// out/resolvers/Mutation.deleteTimeTracker.ts
+import { update, operations } from "@aws-appsync/utils/dynamodb";
+import { util } from "@aws-appsync/utils";
+function request(ctx) {
+  const { input } = ctx.args;
+  return update({
+    key: { id: ctx.args.input.id },
+    update: {
+      updatedAt: operations.replace(util.time.nowISO8601()),
+      _version: operations.increment(1),
+      _deleted: operations.replace(true)
+    },
+    condition: {
+      id: { attributeExists: true },
+      _version: { eq: input._version }
+    }
+  });
+}
+function response(ctx) {
+  if (ctx.error) {
+    util.error(ctx.error.message, ctx.error.type);
+  }
+  return ctx.result;
+}
+export {
+  request,
+  response
+};
+//# sourceMappingURL=data:application/json;base64,ewogICJ2ZXJzaW9uIjogMywKICAic291cmNlcyI6IFsicmVzb2x2ZXJzL011dGF0aW9uLmRlbGV0ZVRpbWVUcmFja2VyLnRzIl0sCiAgIm1hcHBpbmdzIjogIjtBQUNBLFNBQVMsUUFBUSxrQkFBa0I7QUFDbkMsU0FBUyxZQUFxQjtBQUN2QixTQUFTLFFBQ2QsS0FNQTtBQUNBLFFBQU0sRUFBRSxNQUFNLElBQUksSUFBSTtBQUN0QixTQUFPLE9BQU87QUFBQSxJQUNaLEtBQUssRUFBRSxJQUFJLElBQUksS0FBSyxNQUFNLEdBQUc7QUFBQSxJQUM3QixRQUFRO0FBQUEsTUFDTixXQUFXLFdBQVcsUUFBUSxLQUFLLEtBQUssV0FBVyxDQUFDO0FBQUEsTUFDcEQsVUFBVSxXQUFXLFVBQVUsQ0FBQztBQUFBLE1BQ2hDLFVBQVUsV0FBVyxRQUFRLElBQUk7QUFBQSxJQUNuQztBQUFBLElBQ0EsV0FBVztBQUFBLE1BQ1QsSUFBSSxFQUFFLGlCQUFpQixLQUFLO0FBQUEsTUFDNUIsVUFBVSxFQUFFLElBQUksTUFBTSxTQUFTO0FBQUEsSUFDakM7QUFBQSxFQUNGLENBQUM7QUFDSDtBQUVPLFNBQVMsU0FDZCxLQU9BO0FBQ0EsTUFBSSxJQUFJLE9BQU87QUFDYixTQUFLLE1BQU0sSUFBSSxNQUFNLFNBQVMsSUFBSSxNQUFNLElBQUk7QUFBQSxFQUM5QztBQUVBLFNBQU8sSUFBSTtBQUNiOyIsCiAgIm5hbWVzIjogW10KfQo=
+",
+      "dataSource": undefined,
+      "fieldName": "deleteTimeTracker",
+      "functions": undefined,
+      "typeName": "Mutation",
+    },
+    "Mutation.deleteUser": {
+      "code": "// out/resolvers/Mutation.deleteUser.ts
+import { update, operations } from "@aws-appsync/utils/dynamodb";
+import { util } from "@aws-appsync/utils";
+function request(ctx) {
+  const { input } = ctx.args;
+  return update({
+    key: { id: ctx.args.input.id },
+    update: {
+      updatedAt: operations.replace(util.time.nowISO8601()),
+      _version: operations.increment(1),
+      _deleted: operations.replace(true)
+    },
+    condition: {
+      id: { attributeExists: true },
+      _version: { eq: input._version }
+    }
+  });
+}
+function response(ctx) {
+  if (ctx.error) {
+    util.error(ctx.error.message, ctx.error.type);
+  }
+  return ctx.result;
+}
+export {
+  request,
+  response
+};
+//# sourceMappingURL=data:application/json;base64,ewogICJ2ZXJzaW9uIjogMywKICAic291cmNlcyI6IFsicmVzb2x2ZXJzL011dGF0aW9uLmRlbGV0ZVVzZXIudHMiXSwKICAibWFwcGluZ3MiOiAiO0FBQ0EsU0FBUyxRQUFRLGtCQUFrQjtBQUNuQyxTQUFTLFlBQXFCO0FBQ3ZCLFNBQVMsUUFDZCxLQU1BO0FBQ0EsUUFBTSxFQUFFLE1BQU0sSUFBSSxJQUFJO0FBQ3RCLFNBQU8sT0FBTztBQUFBLElBQ1osS0FBSyxFQUFFLElBQUksSUFBSSxLQUFLLE1BQU0sR0FBRztBQUFBLElBQzdCLFFBQVE7QUFBQSxNQUNOLFdBQVcsV0FBVyxRQUFRLEtBQUssS0FBSyxXQUFXLENBQUM7QUFBQSxNQUNwRCxVQUFVLFdBQVcsVUFBVSxDQUFDO0FBQUEsTUFDaEMsVUFBVSxXQUFXLFFBQVEsSUFBSTtBQUFBLElBQ25DO0FBQUEsSUFDQSxXQUFXO0FBQUEsTUFDVCxJQUFJLEVBQUUsaUJBQWlCLEtBQUs7QUFBQSxNQUM1QixVQUFVLEVBQUUsSUFBSSxNQUFNLFNBQVM7QUFBQSxJQUNqQztBQUFBLEVBQ0YsQ0FBQztBQUNIO0FBRU8sU0FBUyxTQUNkLEtBT0E7QUFDQSxNQUFJLElBQUksT0FBTztBQUNiLFNBQUssTUFBTSxJQUFJLE1BQU0sU0FBUyxJQUFJLE1BQU0sSUFBSTtBQUFBLEVBQzlDO0FBRUEsU0FBTyxJQUFJO0FBQ2I7IiwKICAibmFtZXMiOiBbXQp9Cg==
+",
+      "dataSource": undefined,
+      "fieldName": "deleteUser",
+      "functions": undefined,
+      "typeName": "Mutation",
+    },
+    "Mutation.updateUser": {
+      "code": "// out/resolvers/Mutation.updateUser.ts
+import { update, operations } from "@aws-appsync/utils/dynamodb";
+import { util } from "@aws-appsync/utils";
+function request(ctx) {
+  const { input } = ctx.args;
+  const updatedAt = input.updatedAt ?? util.time.nowISO8601();
+  const attributes = { ...input, id: input.id, updatedAt };
+  const item = { _version: operations.increment(1) };
+  for (const [key, value] of Object.entries(attributes)) {
+    item[key] = operations.replace(value);
+  }
+  return update({
+    key: { id: input.id },
+    update: item,
+    condition: {
+      id: { attributeExists: true },
+      _version: { eq: input._version }
+    }
+  });
+}
+function response(ctx) {
+  if (ctx.error) {
+    util.error(ctx.error.message, ctx.error.type);
+  }
+  return ctx.result;
+}
+export {
+  request,
+  response
+};
+//# sourceMappingURL=data:application/json;base64,ewogICJ2ZXJzaW9uIjogMywKICAic291cmNlcyI6IFsicmVzb2x2ZXJzL011dGF0aW9uLnVwZGF0ZVVzZXIudHMiXSwKICAibWFwcGluZ3MiOiAiO0FBQ0EsU0FBUyxRQUFRLGtCQUFrQjtBQUNuQyxTQUFTLFlBQXFCO0FBQ3ZCLFNBQVMsUUFDZCxLQU1BO0FBQ0EsUUFBTSxFQUFFLE1BQU0sSUFBSSxJQUFJO0FBQ3RCLFFBQU0sWUFBWSxNQUFNLGFBQWEsS0FBSyxLQUFLLFdBQVc7QUFDMUQsUUFBTSxhQUFhLEVBQUUsR0FBRyxPQUFPLElBQUksTUFBTSxJQUFJLFVBQXFCO0FBQ2xFLFFBQU0sT0FBZ0MsRUFBRSxVQUFVLFdBQVcsVUFBVSxDQUFDLEVBQUU7QUFDMUUsYUFBVyxDQUFDLEtBQUssS0FBSyxLQUFLLE9BQU8sUUFBUSxVQUFVLEdBQUc7QUFDckQsU0FBSyxHQUFHLElBQUksV0FBVyxRQUFRLEtBQUs7QUFBQSxFQUN0QztBQUVBLFNBQU8sT0FBTztBQUFBLElBQ1osS0FBSyxFQUFFLElBQUksTUFBTSxHQUFHO0FBQUEsSUFDcEIsUUFBUTtBQUFBLElBQ1IsV0FBVztBQUFBLE1BQ1QsSUFBSSxFQUFFLGlCQUFpQixLQUFLO0FBQUEsTUFDNUIsVUFBVSxFQUFFLElBQUksTUFBTSxTQUFTO0FBQUEsSUFDakM7QUFBQSxFQUNGLENBQUM7QUFDSDtBQUVPLFNBQVMsU0FDZCxLQU9BO0FBQ0EsTUFBSSxJQUFJLE9BQU87QUFDYixTQUFLLE1BQU0sSUFBSSxNQUFNLFNBQVMsSUFBSSxNQUFNLElBQUk7QUFBQSxFQUM5QztBQUVBLFNBQU8sSUFBSTtBQUNiOyIsCiAgIm5hbWVzIjogW10KfQo=
+",
+      "dataSource": undefined,
+      "fieldName": "updateUser",
+      "functions": undefined,
+      "typeName": "Mutation",
+    },
+    "Mutation.upsertFile": {
+      "code": "// out/resolvers/Mutation.upsertFile.ts
+import { util } from "@aws-appsync/utils";
+function request(ctx) {
+}
+function response(ctx) {
+  if (ctx.error) {
+    util.error(ctx.error.message, ctx.error.type);
+  }
+  return ctx.result;
+}
+export {
+  request,
+  response
+};
+//# sourceMappingURL=data:application/json;base64,ewogICJ2ZXJzaW9uIjogMywKICAic291cmNlcyI6IFsicmVzb2x2ZXJzL011dGF0aW9uLnVwc2VydEZpbGUudHMiXSwKICAibWFwcGluZ3MiOiAiO0FBQ0EsU0FBUyxZQUFxQjtBQUN2QixTQUFTLFFBQ2QsS0FNQTtBQUFDO0FBRUksU0FBUyxTQUNkLEtBT0E7QUFDQSxNQUFJLElBQUksT0FBTztBQUNiLFNBQUssTUFBTSxJQUFJLE1BQU0sU0FBUyxJQUFJLE1BQU0sSUFBSTtBQUFBLEVBQzlDO0FBRUEsU0FBTyxJQUFJO0FBQ2I7IiwKICAibmFtZXMiOiBbXQp9Cg==
+",
+      "dataSource": undefined,
+      "fieldName": "upsertFile",
+      "functions": undefined,
+      "typeName": "Mutation",
+    },
+    "Mutation.upsertLabel": {
+      "code": "// out/resolvers/Mutation.upsertLabel.ts
+import { util } from "@aws-appsync/utils";
+function request(ctx) {
+}
+function response(ctx) {
+  if (ctx.error) {
+    util.error(ctx.error.message, ctx.error.type);
+  }
+  return ctx.result;
+}
+export {
+  request,
+  response
+};
+//# sourceMappingURL=data:application/json;base64,ewogICJ2ZXJzaW9uIjogMywKICAic291cmNlcyI6IFsicmVzb2x2ZXJzL011dGF0aW9uLnVwc2VydExhYmVsLnRzIl0sCiAgIm1hcHBpbmdzIjogIjtBQUNBLFNBQVMsWUFBcUI7QUFDdkIsU0FBUyxRQUNkLEtBTUE7QUFBQztBQUVJLFNBQVMsU0FDZCxLQU9BO0FBQ0EsTUFBSSxJQUFJLE9BQU87QUFDYixTQUFLLE1BQU0sSUFBSSxNQUFNLFNBQVMsSUFBSSxNQUFNLElBQUk7QUFBQSxFQUM5QztBQUVBLFNBQU8sSUFBSTtBQUNiOyIsCiAgIm5hbWVzIjogW10KfQo=
+",
+      "dataSource": undefined,
+      "fieldName": "upsertLabel",
+      "functions": undefined,
+      "typeName": "Mutation",
+    },
+    "Mutation.upsertTask": {
+      "code": "// out/resolvers/Mutation.upsertTask.ts
+import { util } from "@aws-appsync/utils";
+function request(ctx) {
+}
+function response(ctx) {
+  if (ctx.error) {
+    util.error(ctx.error.message, ctx.error.type);
+  }
+  return ctx.result;
+}
+export {
+  request,
+  response
+};
+//# sourceMappingURL=data:application/json;base64,ewogICJ2ZXJzaW9uIjogMywKICAic291cmNlcyI6IFsicmVzb2x2ZXJzL011dGF0aW9uLnVwc2VydFRhc2sudHMiXSwKICAibWFwcGluZ3MiOiAiO0FBQ0EsU0FBUyxZQUFxQjtBQUN2QixTQUFTLFFBQ2QsS0FNQTtBQUFDO0FBRUksU0FBUyxTQUNkLEtBT0E7QUFDQSxNQUFJLElBQUksT0FBTztBQUNiLFNBQUssTUFBTSxJQUFJLE1BQU0sU0FBUyxJQUFJLE1BQU0sSUFBSTtBQUFBLEVBQzlDO0FBRUEsU0FBTyxJQUFJO0FBQ2I7IiwKICAibmFtZXMiOiBbXQp9Cg==
+",
+      "dataSource": undefined,
+      "fieldName": "upsertTask",
+      "functions": undefined,
+      "typeName": "Mutation",
+    },
+    "Mutation.upsertTimeTracker": {
+      "code": "// out/resolvers/Mutation.upsertTimeTracker.ts
+import { util } from "@aws-appsync/utils";
+function request(ctx) {
+}
+function response(ctx) {
+  if (ctx.error) {
+    util.error(ctx.error.message, ctx.error.type);
+  }
+  return ctx.result;
+}
+export {
+  request,
+  response
+};
+//# sourceMappingURL=data:application/json;base64,ewogICJ2ZXJzaW9uIjogMywKICAic291cmNlcyI6IFsicmVzb2x2ZXJzL011dGF0aW9uLnVwc2VydFRpbWVUcmFja2VyLnRzIl0sCiAgIm1hcHBpbmdzIjogIjtBQUNBLFNBQVMsWUFBcUI7QUFDdkIsU0FBUyxRQUNkLEtBTUE7QUFBQztBQUVJLFNBQVMsU0FDZCxLQU9BO0FBQ0EsTUFBSSxJQUFJLE9BQU87QUFDYixTQUFLLE1BQU0sSUFBSSxNQUFNLFNBQVMsSUFBSSxNQUFNLElBQUk7QUFBQSxFQUM5QztBQUVBLFNBQU8sSUFBSTtBQUNiOyIsCiAgIm5hbWVzIjogW10KfQo=
+",
+      "dataSource": undefined,
+      "fieldName": "upsertTimeTracker",
+      "functions": undefined,
+      "typeName": "Mutation",
+    },
+    "Query.getUser": {
+      "code": "// out/resolvers/Query.getUser.ts
+import { get } from "@aws-appsync/utils/dynamodb";
+import { util } from "@aws-appsync/utils";
+function request(ctx) {
+  return get({ key: { id: ctx.args.id } });
+}
+function response(ctx) {
+  if (ctx.error) {
+    util.error(ctx.error.message, ctx.error.type);
+  }
+  return ctx.result;
+}
+export {
+  request,
+  response
+};
+//# sourceMappingURL=data:application/json;base64,ewogICJ2ZXJzaW9uIjogMywKICAic291cmNlcyI6IFsicmVzb2x2ZXJzL1F1ZXJ5LmdldFVzZXIudHMiXSwKICAibWFwcGluZ3MiOiAiO0FBQ0EsU0FBUyxXQUFXO0FBQ3BCLFNBQVMsWUFBcUI7QUFDdkIsU0FBUyxRQUNkLEtBQ0E7QUFDQSxTQUFPLElBQUksRUFBRSxLQUFLLEVBQUUsSUFBSSxJQUFJLEtBQUssR0FBRyxFQUFFLENBQUM7QUFDekM7QUFFTyxTQUFTLFNBQ2QsS0FPQTtBQUNBLE1BQUksSUFBSSxPQUFPO0FBQ2IsU0FBSyxNQUFNLElBQUksTUFBTSxTQUFTLElBQUksTUFBTSxJQUFJO0FBQUEsRUFDOUM7QUFFQSxTQUFPLElBQUk7QUFDYjsiLAogICJuYW1lcyI6IFtdCn0K
+",
+      "dataSource": undefined,
+      "fieldName": "getUser",
+      "functions": undefined,
+      "typeName": "Query",
+    },
+    "Query.listUsers": {
+      "code": "// out/resolvers/Query.listUsers.ts
+import { query } from "@aws-appsync/utils/dynamodb";
+import { util } from "@aws-appsync/utils";
+function request(ctx) {
+  return query({
+    query: { sourceId: "User" },
+    filter: ctx.args.filter,
+    limit: ctx.args.first ?? 100,
+    nextToken: ctx.args.after ?? void 0,
+    scanIndexForward: ctx.args.sort === "ASC",
+    index: "byTypename"
+  });
+}
+function response(ctx) {
+  if (ctx.error) {
+    util.error(ctx.error.message, ctx.error.type);
+  }
+  return {
+    edges: ctx.result.items.map((node) => {
+      return { cursor: node.id, node };
+    }),
+    pageInfo: {
+      hasPreviousPage: Boolean(ctx.args?.after),
+      hasNextPage: Boolean(ctx.result.nextToken),
+      startCursor: ctx.args.after,
+      endCursor: ctx.result.nextToken
+    }
+  };
+}
+export {
+  request,
+  response
+};
+//# sourceMappingURL=data:application/json;base64,ewogICJ2ZXJzaW9uIjogMywKICAic291cmNlcyI6IFsicmVzb2x2ZXJzL1F1ZXJ5Lmxpc3RVc2Vycy50cyJdLAogICJtYXBwaW5ncyI6ICI7QUFDQSxTQUFTLGFBQWE7QUFDdEIsU0FBUyxZQUFxQjtBQUN2QixTQUFTLFFBQ2QsS0FNQTtBQUNBLFNBQU8sTUFBTTtBQUFBLElBQ1gsT0FBTyxFQUFFLFVBQVUsT0FBTztBQUFBLElBQzFCLFFBQVEsSUFBSSxLQUFLO0FBQUEsSUFDakIsT0FBTyxJQUFJLEtBQUssU0FBUztBQUFBLElBQ3pCLFdBQVcsSUFBSSxLQUFLLFNBQVM7QUFBQSxJQUM3QixrQkFBa0IsSUFBSSxLQUFLLFNBQVM7QUFBQSxJQUNwQyxPQUFPO0FBQUEsRUFDVCxDQUFDO0FBQ0g7QUFFTyxTQUFTLFNBQ2QsS0FPQTtBQUNBLE1BQUksSUFBSSxPQUFPO0FBQ2IsU0FBSyxNQUFNLElBQUksTUFBTSxTQUFTLElBQUksTUFBTSxJQUFJO0FBQUEsRUFDOUM7QUFFQSxTQUFPO0FBQUEsSUFDTCxPQUFPLElBQUksT0FBTyxNQUFNLElBQUksQ0FBQyxTQUFTO0FBQ3BDLGFBQU8sRUFBRSxRQUFRLEtBQUssSUFBSSxLQUFXO0FBQUEsSUFDdkMsQ0FBQztBQUFBLElBQ0QsVUFBVTtBQUFBLE1BQ1IsaUJBQWlCLFFBQVEsSUFBSSxNQUFNLEtBQUs7QUFBQSxNQUN4QyxhQUFhLFFBQVEsSUFBSSxPQUFPLFNBQVM7QUFBQSxNQUN6QyxhQUFhLElBQUksS0FBSztBQUFBLE1BQ3RCLFdBQVcsSUFBSSxPQUFPO0FBQUEsSUFDeEI7QUFBQSxFQUNGO0FBQ0Y7IiwKICAibmFtZXMiOiBbXQp9Cg==
+",
+      "dataSource": undefined,
+      "fieldName": "listUsers",
+      "functions": undefined,
+      "typeName": "Query",
+    },
+    "Task.artifacts": {
+      "code": "// out/resolvers/Task.artifacts.ts
+import { query } from "@aws-appsync/utils/dynamodb";
+import { util } from "@aws-appsync/utils";
+function request(ctx) {
+  return query({
+    query: { sourceId: ctx.source?.id },
+    filter: ctx.args.filter,
+    limit: ctx.args.first ?? 100,
+    nextToken: ctx.args.after ?? void 0,
+    scanIndexForward: ctx.args.sort === "ASC",
+    index: "bySourceId"
+  });
+}
+function response(ctx) {
+  if (ctx.error) {
+    util.error(ctx.error.message, ctx.error.type);
+  }
+  return {
+    edges: ctx.result.items.map((node) => {
+      return { cursor: node.id, node };
+    }),
+    pageInfo: {
+      hasPreviousPage: Boolean(ctx.args?.after),
+      hasNextPage: Boolean(ctx.result.nextToken),
+      startCursor: ctx.args.after,
+      endCursor: ctx.result.nextToken
+    }
+  };
+}
+export {
+  request,
+  response
+};
+//# sourceMappingURL=data:application/json;base64,ewogICJ2ZXJzaW9uIjogMywKICAic291cmNlcyI6IFsicmVzb2x2ZXJzL1Rhc2suYXJ0aWZhY3RzLnRzIl0sCiAgIm1hcHBpbmdzIjogIjtBQU1BLFNBQVMsYUFBYTtBQUN0QixTQUFTLFlBQXFCO0FBQ3ZCLFNBQVMsUUFDZCxLQUNBO0FBQ0EsU0FBTyxNQUFNO0FBQUEsSUFDWCxPQUFPLEVBQUUsVUFBVSxJQUFJLFFBQVEsR0FBRztBQUFBLElBQ2xDLFFBQVEsSUFBSSxLQUFLO0FBQUEsSUFDakIsT0FBTyxJQUFJLEtBQUssU0FBUztBQUFBLElBQ3pCLFdBQVcsSUFBSSxLQUFLLFNBQVM7QUFBQSxJQUM3QixrQkFBa0IsSUFBSSxLQUFLLFNBQVM7QUFBQSxJQUNwQyxPQUFPO0FBQUEsRUFDVCxDQUFDO0FBQ0g7QUFFTyxTQUFTLFNBQ2QsS0FPQTtBQUNBLE1BQUksSUFBSSxPQUFPO0FBQ2IsU0FBSyxNQUFNLElBQUksTUFBTSxTQUFTLElBQUksTUFBTSxJQUFJO0FBQUEsRUFDOUM7QUFFQSxTQUFPO0FBQUEsSUFDTCxPQUFPLElBQUksT0FBTyxNQUFNLElBQUksQ0FBQyxTQUFTO0FBQ3BDLGFBQU8sRUFBRSxRQUFRLEtBQUssSUFBSSxLQUFXO0FBQUEsSUFDdkMsQ0FBQztBQUFBLElBQ0QsVUFBVTtBQUFBLE1BQ1IsaUJBQWlCLFFBQVEsSUFBSSxNQUFNLEtBQUs7QUFBQSxNQUN4QyxhQUFhLFFBQVEsSUFBSSxPQUFPLFNBQVM7QUFBQSxNQUN6QyxhQUFhLElBQUksS0FBSztBQUFBLE1BQ3RCLFdBQVcsSUFBSSxPQUFPO0FBQUEsSUFDeEI7QUFBQSxFQUNGO0FBQ0Y7IiwKICAibmFtZXMiOiBbXQp9Cg==
+",
+      "dataSource": undefined,
+      "fieldName": "artifacts",
+      "functions": undefined,
+      "typeName": "Task",
+    },
+    "Task.labels": {
+      "code": "// out/resolvers/Task.labels.ts
+import { query } from "@aws-appsync/utils/dynamodb";
+import { util } from "@aws-appsync/utils";
+function request(ctx) {
+  return query({
+    query: { sourceId: ctx.source?.id },
+    filter: ctx.args.filter,
+    limit: ctx.args.first ?? 100,
+    nextToken: ctx.args.after ?? void 0,
+    scanIndexForward: ctx.args.sort === "ASC",
+    index: "bySourceId"
+  });
+}
+function response(ctx) {
+  if (ctx.error) {
+    util.error(ctx.error.message, ctx.error.type);
+  }
+  return {
+    edges: ctx.result.items.map((node) => {
+      return { cursor: node.id, node };
+    }),
+    pageInfo: {
+      hasPreviousPage: Boolean(ctx.args?.after),
+      hasNextPage: Boolean(ctx.result.nextToken),
+      startCursor: ctx.args.after,
+      endCursor: ctx.result.nextToken
+    }
+  };
+}
+export {
+  request,
+  response
+};
+//# sourceMappingURL=data:application/json;base64,ewogICJ2ZXJzaW9uIjogMywKICAic291cmNlcyI6IFsicmVzb2x2ZXJzL1Rhc2subGFiZWxzLnRzIl0sCiAgIm1hcHBpbmdzIjogIjtBQU1BLFNBQVMsYUFBYTtBQUN0QixTQUFTLFlBQXFCO0FBQ3ZCLFNBQVMsUUFDZCxLQUNBO0FBQ0EsU0FBTyxNQUFNO0FBQUEsSUFDWCxPQUFPLEVBQUUsVUFBVSxJQUFJLFFBQVEsR0FBRztBQUFBLElBQ2xDLFFBQVEsSUFBSSxLQUFLO0FBQUEsSUFDakIsT0FBTyxJQUFJLEtBQUssU0FBUztBQUFBLElBQ3pCLFdBQVcsSUFBSSxLQUFLLFNBQVM7QUFBQSxJQUM3QixrQkFBa0IsSUFBSSxLQUFLLFNBQVM7QUFBQSxJQUNwQyxPQUFPO0FBQUEsRUFDVCxDQUFDO0FBQ0g7QUFFTyxTQUFTLFNBQ2QsS0FPQTtBQUNBLE1BQUksSUFBSSxPQUFPO0FBQ2IsU0FBSyxNQUFNLElBQUksTUFBTSxTQUFTLElBQUksTUFBTSxJQUFJO0FBQUEsRUFDOUM7QUFFQSxTQUFPO0FBQUEsSUFDTCxPQUFPLElBQUksT0FBTyxNQUFNLElBQUksQ0FBQyxTQUFTO0FBQ3BDLGFBQU8sRUFBRSxRQUFRLEtBQUssSUFBSSxLQUFXO0FBQUEsSUFDdkMsQ0FBQztBQUFBLElBQ0QsVUFBVTtBQUFBLE1BQ1IsaUJBQWlCLFFBQVEsSUFBSSxNQUFNLEtBQUs7QUFBQSxNQUN4QyxhQUFhLFFBQVEsSUFBSSxPQUFPLFNBQVM7QUFBQSxNQUN6QyxhQUFhLElBQUksS0FBSztBQUFBLE1BQ3RCLFdBQVcsSUFBSSxPQUFPO0FBQUEsSUFDeEI7QUFBQSxFQUNGO0FBQ0Y7IiwKICAibmFtZXMiOiBbXQp9Cg==
+",
+      "dataSource": undefined,
+      "fieldName": "labels",
+      "functions": undefined,
+      "typeName": "Task",
+    },
+    "Task.occurrences": {
+      "code": "// out/resolvers/Task.occurrences.ts
+import { query } from "@aws-appsync/utils/dynamodb";
+import { util } from "@aws-appsync/utils";
+function request(ctx) {
+  return query({
+    query: { sourceId: ctx.source?.id },
+    filter: ctx.args.filter,
+    limit: ctx.args.first ?? 100,
+    nextToken: ctx.args.after ?? void 0,
+    scanIndexForward: ctx.args.sort === "ASC",
+    index: "bySourceId"
+  });
+}
+function response(ctx) {
+  if (ctx.error) {
+    util.error(ctx.error.message, ctx.error.type);
+  }
+  return {
+    edges: ctx.result.items.map((node) => {
+      return { cursor: node.id, node };
+    }),
+    pageInfo: {
+      hasPreviousPage: Boolean(ctx.args?.after),
+      hasNextPage: Boolean(ctx.result.nextToken),
+      startCursor: ctx.args.after,
+      endCursor: ctx.result.nextToken
+    }
+  };
+}
+export {
+  request,
+  response
+};
+//# sourceMappingURL=data:application/json;base64,ewogICJ2ZXJzaW9uIjogMywKICAic291cmNlcyI6IFsicmVzb2x2ZXJzL1Rhc2sub2NjdXJyZW5jZXMudHMiXSwKICAibWFwcGluZ3MiOiAiO0FBS0EsU0FBUyxhQUFhO0FBQ3RCLFNBQVMsWUFBcUI7QUFDdkIsU0FBUyxRQUNkLEtBQ0E7QUFDQSxTQUFPLE1BQU07QUFBQSxJQUNYLE9BQU8sRUFBRSxVQUFVLElBQUksUUFBUSxHQUFHO0FBQUEsSUFDbEMsUUFBUSxJQUFJLEtBQUs7QUFBQSxJQUNqQixPQUFPLElBQUksS0FBSyxTQUFTO0FBQUEsSUFDekIsV0FBVyxJQUFJLEtBQUssU0FBUztBQUFBLElBQzdCLGtCQUFrQixJQUFJLEtBQUssU0FBUztBQUFBLElBQ3BDLE9BQU87QUFBQSxFQUNULENBQUM7QUFDSDtBQUVPLFNBQVMsU0FDZCxLQU9BO0FBQ0EsTUFBSSxJQUFJLE9BQU87QUFDYixTQUFLLE1BQU0sSUFBSSxNQUFNLFNBQVMsSUFBSSxNQUFNLElBQUk7QUFBQSxFQUM5QztBQUVBLFNBQU87QUFBQSxJQUNMLE9BQU8sSUFBSSxPQUFPLE1BQU0sSUFBSSxDQUFDLFNBQVM7QUFDcEMsYUFBTyxFQUFFLFFBQVEsS0FBSyxJQUFJLEtBQVc7QUFBQSxJQUN2QyxDQUFDO0FBQUEsSUFDRCxVQUFVO0FBQUEsTUFDUixpQkFBaUIsUUFBUSxJQUFJLE1BQU0sS0FBSztBQUFBLE1BQ3hDLGFBQWEsUUFBUSxJQUFJLE9BQU8sU0FBUztBQUFBLE1BQ3pDLGFBQWEsSUFBSSxLQUFLO0FBQUEsTUFDdEIsV0FBVyxJQUFJLE9BQU87QUFBQSxJQUN4QjtBQUFBLEVBQ0Y7QUFDRjsiLAogICJuYW1lcyI6IFtdCn0K
+",
+      "dataSource": undefined,
+      "fieldName": "occurrences",
+      "functions": undefined,
+      "typeName": "Task",
+    },
+    "Task.subtasks": {
+      "code": "// out/resolvers/Task.subtasks.ts
+import { query } from "@aws-appsync/utils/dynamodb";
+import { util } from "@aws-appsync/utils";
+function request(ctx) {
+  return query({
+    query: { sourceId: ctx.source?.id },
+    filter: ctx.args.filter,
+    limit: ctx.args.first ?? 100,
+    nextToken: ctx.args.after ?? void 0,
+    scanIndexForward: ctx.args.sort === "ASC",
+    index: "bySourceId"
+  });
+}
+function response(ctx) {
+  if (ctx.error) {
+    util.error(ctx.error.message, ctx.error.type);
+  }
+  return {
+    edges: ctx.result.items.map((node) => {
+      return { cursor: node.id, node };
+    }),
+    pageInfo: {
+      hasPreviousPage: Boolean(ctx.args?.after),
+      hasNextPage: Boolean(ctx.result.nextToken),
+      startCursor: ctx.args.after,
+      endCursor: ctx.result.nextToken
+    }
+  };
+}
+export {
+  request,
+  response
+};
+//# sourceMappingURL=data:application/json;base64,ewogICJ2ZXJzaW9uIjogMywKICAic291cmNlcyI6IFsicmVzb2x2ZXJzL1Rhc2suc3VidGFza3MudHMiXSwKICAibWFwcGluZ3MiOiAiO0FBQ0EsU0FBUyxhQUFhO0FBQ3RCLFNBQVMsWUFBcUI7QUFDdkIsU0FBUyxRQUNkLEtBQ0E7QUFDQSxTQUFPLE1BQU07QUFBQSxJQUNYLE9BQU8sRUFBRSxVQUFVLElBQUksUUFBUSxHQUFHO0FBQUEsSUFDbEMsUUFBUSxJQUFJLEtBQUs7QUFBQSxJQUNqQixPQUFPLElBQUksS0FBSyxTQUFTO0FBQUEsSUFDekIsV0FBVyxJQUFJLEtBQUssU0FBUztBQUFBLElBQzdCLGtCQUFrQixJQUFJLEtBQUssU0FBUztBQUFBLElBQ3BDLE9BQU87QUFBQSxFQUNULENBQUM7QUFDSDtBQUVPLFNBQVMsU0FDZCxLQU9BO0FBQ0EsTUFBSSxJQUFJLE9BQU87QUFDYixTQUFLLE1BQU0sSUFBSSxNQUFNLFNBQVMsSUFBSSxNQUFNLElBQUk7QUFBQSxFQUM5QztBQUVBLFNBQU87QUFBQSxJQUNMLE9BQU8sSUFBSSxPQUFPLE1BQU0sSUFBSSxDQUFDLFNBQVM7QUFDcEMsYUFBTyxFQUFFLFFBQVEsS0FBSyxJQUFJLEtBQVc7QUFBQSxJQUN2QyxDQUFDO0FBQUEsSUFDRCxVQUFVO0FBQUEsTUFDUixpQkFBaUIsUUFBUSxJQUFJLE1BQU0sS0FBSztBQUFBLE1BQ3hDLGFBQWEsUUFBUSxJQUFJLE9BQU8sU0FBUztBQUFBLE1BQ3pDLGFBQWEsSUFBSSxLQUFLO0FBQUEsTUFDdEIsV0FBVyxJQUFJLE9BQU87QUFBQSxJQUN4QjtBQUFBLEVBQ0Y7QUFDRjsiLAogICJuYW1lcyI6IFtdCn0K
+",
+      "dataSource": undefined,
+      "fieldName": "subtasks",
+      "functions": undefined,
+      "typeName": "Task",
+    },
+    "Viewer.labels": {
+      "code": "// out/resolvers/Viewer.labels.ts
+import { query } from "@aws-appsync/utils/dynamodb";
+import { util } from "@aws-appsync/utils";
+function request(ctx) {
+  return query({
+    query: { sourceId: ctx.identity.sub },
+    filter: ctx.args.filter,
+    limit: ctx.args.first ?? 100,
+    nextToken: ctx.args.after ?? void 0,
+    scanIndexForward: ctx.args.sort === "ASC",
+    index: "bySourceId"
+  });
+}
+function response(ctx) {
+  if (ctx.error) {
+    util.error(ctx.error.message, ctx.error.type);
+  }
+  return {
+    edges: ctx.result.items.map((node) => {
+      return { cursor: node.id, node };
+    }),
+    pageInfo: {
+      hasPreviousPage: Boolean(ctx.args?.after),
+      hasNextPage: Boolean(ctx.result.nextToken),
+      startCursor: ctx.args.after,
+      endCursor: ctx.result.nextToken
+    }
+  };
+}
+export {
+  request,
+  response
+};
+//# sourceMappingURL=data:application/json;base64,ewogICJ2ZXJzaW9uIjogMywKICAic291cmNlcyI6IFsicmVzb2x2ZXJzL1ZpZXdlci5sYWJlbHMudHMiXSwKICAibWFwcGluZ3MiOiAiO0FBTUEsU0FBUyxhQUFhO0FBQ3RCLFNBQVMsWUFBcUI7QUFDdkIsU0FBUyxRQUNkLEtBQ0E7QUFDQSxTQUFPLE1BQU07QUFBQSxJQUNYLE9BQU8sRUFBRSxVQUFVLElBQUksU0FBUyxJQUFJO0FBQUEsSUFDcEMsUUFBUSxJQUFJLEtBQUs7QUFBQSxJQUNqQixPQUFPLElBQUksS0FBSyxTQUFTO0FBQUEsSUFDekIsV0FBVyxJQUFJLEtBQUssU0FBUztBQUFBLElBQzdCLGtCQUFrQixJQUFJLEtBQUssU0FBUztBQUFBLElBQ3BDLE9BQU87QUFBQSxFQUNULENBQUM7QUFDSDtBQUVPLFNBQVMsU0FDZCxLQU9BO0FBQ0EsTUFBSSxJQUFJLE9BQU87QUFDYixTQUFLLE1BQU0sSUFBSSxNQUFNLFNBQVMsSUFBSSxNQUFNLElBQUk7QUFBQSxFQUM5QztBQUVBLFNBQU87QUFBQSxJQUNMLE9BQU8sSUFBSSxPQUFPLE1BQU0sSUFBSSxDQUFDLFNBQVM7QUFDcEMsYUFBTyxFQUFFLFFBQVEsS0FBSyxJQUFJLEtBQVc7QUFBQSxJQUN2QyxDQUFDO0FBQUEsSUFDRCxVQUFVO0FBQUEsTUFDUixpQkFBaUIsUUFBUSxJQUFJLE1BQU0sS0FBSztBQUFBLE1BQ3hDLGFBQWEsUUFBUSxJQUFJLE9BQU8sU0FBUztBQUFBLE1BQ3pDLGFBQWEsSUFBSSxLQUFLO0FBQUEsTUFDdEIsV0FBVyxJQUFJLE9BQU87QUFBQSxJQUN4QjtBQUFBLEVBQ0Y7QUFDRjsiLAogICJuYW1lcyI6IFtdCn0K
+",
+      "dataSource": undefined,
+      "fieldName": "labels",
+      "functions": undefined,
+      "typeName": "Viewer",
+    },
+    "Viewer.tasks": {
+      "code": "// out/resolvers/Viewer.tasks.ts
+import { query } from "@aws-appsync/utils/dynamodb";
+import { util } from "@aws-appsync/utils";
+function request(ctx) {
+  return query({
+    query: { sourceId: ctx.identity.sub },
+    filter: ctx.args.filter,
+    limit: ctx.args.first ?? 100,
+    nextToken: ctx.args.after ?? void 0,
+    scanIndexForward: ctx.args.sort === "ASC",
+    index: "bySourceId"
+  });
+}
+function response(ctx) {
+  if (ctx.error) {
+    util.error(ctx.error.message, ctx.error.type);
+  }
+  return {
+    edges: ctx.result.items.map((node) => {
+      return { cursor: node.id, node };
+    }),
+    pageInfo: {
+      hasPreviousPage: Boolean(ctx.args?.after),
+      hasNextPage: Boolean(ctx.result.nextToken),
+      startCursor: ctx.args.after,
+      endCursor: ctx.result.nextToken
+    }
+  };
+}
+export {
+  request,
+  response
+};
+//# sourceMappingURL=data:application/json;base64,ewogICJ2ZXJzaW9uIjogMywKICAic291cmNlcyI6IFsicmVzb2x2ZXJzL1ZpZXdlci50YXNrcy50cyJdLAogICJtYXBwaW5ncyI6ICI7QUFNQSxTQUFTLGFBQWE7QUFDdEIsU0FBUyxZQUFxQjtBQUN2QixTQUFTLFFBQ2QsS0FDQTtBQUNBLFNBQU8sTUFBTTtBQUFBLElBQ1gsT0FBTyxFQUFFLFVBQVUsSUFBSSxTQUFTLElBQUk7QUFBQSxJQUNwQyxRQUFRLElBQUksS0FBSztBQUFBLElBQ2pCLE9BQU8sSUFBSSxLQUFLLFNBQVM7QUFBQSxJQUN6QixXQUFXLElBQUksS0FBSyxTQUFTO0FBQUEsSUFDN0Isa0JBQWtCLElBQUksS0FBSyxTQUFTO0FBQUEsSUFDcEMsT0FBTztBQUFBLEVBQ1QsQ0FBQztBQUNIO0FBRU8sU0FBUyxTQUNkLEtBT0E7QUFDQSxNQUFJLElBQUksT0FBTztBQUNiLFNBQUssTUFBTSxJQUFJLE1BQU0sU0FBUyxJQUFJLE1BQU0sSUFBSTtBQUFBLEVBQzlDO0FBRUEsU0FBTztBQUFBLElBQ0wsT0FBTyxJQUFJLE9BQU8sTUFBTSxJQUFJLENBQUMsU0FBUztBQUNwQyxhQUFPLEVBQUUsUUFBUSxLQUFLLElBQUksS0FBVztBQUFBLElBQ3ZDLENBQUM7QUFBQSxJQUNELFVBQVU7QUFBQSxNQUNSLGlCQUFpQixRQUFRLElBQUksTUFBTSxLQUFLO0FBQUEsTUFDeEMsYUFBYSxRQUFRLElBQUksT0FBTyxTQUFTO0FBQUEsTUFDekMsYUFBYSxJQUFJLEtBQUs7QUFBQSxNQUN0QixXQUFXLElBQUksT0FBTztBQUFBLElBQ3hCO0FBQUEsRUFDRjtBQUNGOyIsCiAgIm5hbWVzIjogW10KfQo=
+",
+      "dataSource": undefined,
+      "fieldName": "tasks",
+      "functions": undefined,
+      "typeName": "Viewer",
+    },
+    "Viewer.user": {
+      "code": "// out/resolvers/Viewer.user.ts
+import { get } from "@aws-appsync/utils/dynamodb";
+import { util } from "@aws-appsync/utils";
+function request(ctx) {
+  return get({ key: { id: ctx.identity.sub } });
+}
+function response(ctx) {
+  if (ctx.error) {
+    util.error(ctx.error.message, ctx.error.type);
+  }
+  return ctx.result;
+}
+export {
+  request,
+  response
+};
+//# sourceMappingURL=data:application/json;base64,ewogICJ2ZXJzaW9uIjogMywKICAic291cmNlcyI6IFsicmVzb2x2ZXJzL1ZpZXdlci51c2VyLnRzIl0sCiAgIm1hcHBpbmdzIjogIjtBQUNBLFNBQVMsV0FBVztBQUNwQixTQUFTLFlBQXFCO0FBQ3ZCLFNBQVMsUUFDZCxLQUNBO0FBQ0EsU0FBTyxJQUFJLEVBQUUsS0FBSyxFQUFFLElBQUksSUFBSSxTQUFTLElBQUksRUFBRSxDQUFDO0FBQzlDO0FBRU8sU0FBUyxTQUNkLEtBQ0E7QUFDQSxNQUFJLElBQUksT0FBTztBQUNiLFNBQUssTUFBTSxJQUFJLE1BQU0sU0FBUyxJQUFJLE1BQU0sSUFBSTtBQUFBLEVBQzlDO0FBRUEsU0FBTyxJQUFJO0FBQ2I7IiwKICAibmFtZXMiOiBbXQp9Cg==
+",
+      "dataSource": undefined,
+      "fieldName": "user",
+      "functions": undefined,
+      "typeName": "Viewer",
+    },
+  },
+  "pipelineFunctions": {},
+  "schema": "enum UserStatus {
+  ACTIVE
+  DISABLED
+  SUSPENDED
+}
+
+type User implements Node {
+  id: ID!
+  firstName: String
+  lastName: String
+  email: AWSEmail
+  picture: AWSURL
+  status: UserStatus
+  createdAt: AWSDateTime
+  updatedAt: AWSDateTime
+  _version: Int
+  _deleted: Boolean
+}
+
+type Task implements Node {
+  id: ID!
+  title: String
+  content: AWSJSON
+  schedule: Schedule
+  rrule: RRule
+  recurrenceId: ID
+  occurrenceId: String
+  labels(filter: LabelFilterInput, first: Int, after: String, sort: SortDirection): LabelConnection!
+  subtasks(filter: TaskFilterInput, first: Int, after: String, sort: SortDirection): TaskConnection!
+  artifacts(filter: ArtifactFilterInput, first: Int, after: String, sort: SortDirection): ArtifactConnection!
+  occurrences(filter: TaskFilterInput, first: Int, after: String, sort: SortDirection): TaskConnection!
+  createdAt: AWSDateTime
+  updatedAt: AWSDateTime
+  _version: Int
+  _deleted: Boolean
+}
+
+type RRule {
+  dtStart: AWSDateTime
+  until: AWSDateTime
+  ruleStr: String
+}
+
+type Schedule {
+  startDate: DateTimeZone
+  duration: String
+  dueDate: DateTimeZone
+}
+
+type DateTimeZone {
+  date: AWSDateTime
+  timezone: String
+}
+
+type Label implements Node {
+  id: ID!
+  name: String
+  color: String
+  createdAt: AWSDateTime
+  updatedAt: AWSDateTime
+  _version: Int
+  _deleted: Boolean
+}
+
+type File implements Node {
+  name: String
+  size: Int
+  url: AWSURL
+  mimeType: String
+  id: ID!
+  createdAt: AWSDateTime
+  updatedAt: AWSDateTime
+  _version: Int
+  _deleted: Boolean
+}
+
+type TimeTracker implements Node {
+  duration: String
+  logs: [TimeLog!]
+  id: ID!
+  createdAt: AWSDateTime
+  updatedAt: AWSDateTime
+  _version: Int
+  _deleted: Boolean
+}
+
+type TimeLog {
+  action: TimeLogAction!
+  timestamp: AWSTimestamp!
+}
+
+enum TimeLogAction {
+  START
+  PAUSE
+  END
+  LOG
+}
+
+union Artifact = File | TimeTracker
+
+type Viewer {
+  user: User
+  tasks(filter: TaskFilterInput, first: Int, after: String, sort: SortDirection): TaskConnection!
+  labels(filter: LabelFilterInput, first: Int, after: String, sort: SortDirection): LabelConnection!
+}
+
+type Query {
+  viewer: Viewer!
+  node(id: ID!): Node
+  getUser(id: ID!): User
+  listUsers(filter: UserFilterInput, first: Int, after: String, sort: SortDirection): UserConnection!
+}
+
+interface Node {
+  id: ID!
+  createdAt: AWSDateTime
+  updatedAt: AWSDateTime
+  _version: Int
+  _deleted: Boolean @readonly
+  __typename: String! @private
+  _sk: String! @private
+}
+
+input ModelSizeInput {
+  ne: Int
+  eq: Int
+  le: Int
+  lt: Int
+  ge: Int
+  gt: Int
+  between: [Int!]
+}
+
+input ModelStringInput {
+  ne: String
+  eq: String
+  le: String
+  lt: String
+  ge: String
+  gt: String
+  in: [String!]
+  contains: String
+  notContains: String
+  between: [String!]
+  beginsWith: String
+  attributeExists: Boolean
+  size: ModelSizeInput
+}
+
+input ModelIntInput {
+  ne: Int
+  eq: Int
+  le: Int
+  lt: Int
+  ge: Int
+  gt: Int
+  in: [Int!]
+  between: [Int!]
+  attributeExists: Boolean
+}
+
+input ModelFloatInput {
+  ne: Float
+  eq: Float
+  le: Float
+  lt: Float
+  ge: Float
+  gt: Float
+  in: [Float!]
+  between: [Float!]
+  attributeExists: Boolean
+}
+
+input ModelBooleanInput {
+  ne: Boolean
+  eq: Boolean
+  attributeExists: Boolean
+}
+
+input ModelIDInput {
+  ne: ID
+  eq: ID
+  in: [ID!]
+  attributeExists: Boolean
+}
+
+input ModelListInput {
+  contains: String
+  notContains: String
+  size: ModelSizeInput
+}
+
+enum SortDirection {
+  ASC
+  DESC
+}
+
+type PageInfo {
+  hasNextPage: Boolean
+  hasPreviousPage: Boolean
+  startCursor: String
+  endCursor: String
+}
+
+directive @dataSource(name: String!) on OBJECT
+
+directive @resolver(source: String!) on FIELD_DEFINITION
+
+input CreateUserInput {
+  id: ID
+  firstName: String
+  lastName: String
+  email: AWSEmail
+  picture: AWSURL
+  createdAt: AWSDateTime
+  updatedAt: AWSDateTime
+  _version: Int
+}
+
+type Mutation {
+  createUser(input: CreateUserInput!): User
+  updateUser(input: UpdateUserInput!): User
+  deleteUser(input: DeleteUserInput!): User
+  upsertTask(input: UpsertTaskInput!): Task
+  deleteTask(input: DeleteTaskInput!): Task
+  upsertLabel(input: UpsertLabelInput!): Label
+  deleteLabel(input: DeleteLabelInput!): Label
+  upsertFile(input: UpsertFileInput!): File
+  deleteFile(input: DeleteFileInput!): File
+  upsertTimeTracker(input: UpsertTimeTrackerInput!): TimeTracker
+  deleteTimeTracker(input: DeleteTimeTrackerInput!): TimeTracker
+}
+
+input UpdateUserInput {
+  id: ID!
+  firstName: String
+  lastName: String
+  email: AWSEmail
+  picture: AWSURL
+  createdAt: AWSDateTime
+  updatedAt: AWSDateTime
+  _version: Int!
+}
+
+input DeleteUserInput {
+  id: ID!
+  _version: Int!
+}
+
+input DateTimeZoneInput {
+  date: AWSDateTime
+  timezone: String
+}
+
+input ScheduleInput {
+  startDate: DateTimeZoneInput
+  duration: String
+  dueDate: DateTimeZoneInput
+}
+
+input RRuleInput {
+  dtStart: AWSDateTime
+  until: AWSDateTime
+  ruleStr: String
+}
+
+input UpsertTaskInput {
+  id: ID
+  title: String
+  content: AWSJSON
+  schedule: ScheduleInput
+  rrule: RRuleInput
+  recurrenceId: ID
+  occurrenceId: String
+  sourceId: ID
+  createdAt: AWSDateTime
+  updatedAt: AWSDateTime
+  _version: Int
+}
+
+input DeleteTaskInput {
+  id: ID!
+  _version: Int!
+}
+
+type LabelConnection {
+  edges: [LabelEdge!]!
+  pageInfo: PageInfo!
+}
+
+type LabelEdge {
+  cursor: String
+  node: Label
+}
+
+input LabelFilterInput {
+  id: ModelIDInput
+  name: ModelStringInput
+  color: ModelStringInput
+  and: [LabelFilterInput]
+  or: [LabelFilterInput]
+  not: LabelFilterInput
+}
+
+type TaskConnection {
+  edges: [TaskEdge!]!
+  pageInfo: PageInfo!
+}
+
+type TaskEdge {
+  cursor: String
+  node: Task
+}
+
+input TaskFilterInput {
+  id: ModelIDInput
+  title: ModelStringInput
+  content: ModelStringInput
+  recurrenceId: ModelIDInput
+  occurrenceId: ModelStringInput
+  createdAt: ModelStringInput
+  updatedAt: ModelStringInput
+  _version: ModelIntInput
+  _deleted: ModelBooleanInput
+  and: [TaskFilterInput]
+  or: [TaskFilterInput]
+  not: TaskFilterInput
+}
+
+type ArtifactConnection {
+  edges: [ArtifactEdge!]!
+  pageInfo: PageInfo!
+}
+
+type ArtifactEdge {
+  cursor: String
+  node: Artifact
+}
+
+input ArtifactFilterInput {
+  __typename: ModelStringInput
+  name: ModelStringInput
+  size: ModelIntInput
+  url: ModelStringInput
+  mimeType: ModelStringInput
+  duration: ModelStringInput
+  and: [ArtifactFilterInput]
+  or: [ArtifactFilterInput]
+  not: ArtifactFilterInput
+}
+
+input UpsertLabelInput {
+  id: ID
+  name: String
+  color: String
+  sourceId: ID
+  createdAt: AWSDateTime
+  updatedAt: AWSDateTime
+  _version: Int
+}
+
+input DeleteLabelInput {
+  id: ID!
+  _version: Int!
+}
+
+input UpsertFileInput {
+  name: String
+  size: Int
+  url: AWSURL
+  mimeType: String
+  sourceId: ID
+  id: ID
+  createdAt: AWSDateTime
+  updatedAt: AWSDateTime
+  _version: Int
+}
+
+input DeleteFileInput {
+  id: ID!
+  _version: Int!
+}
+
+input TimeLogInput {
+  action: TimeLogAction
+  timestamp: AWSTimestamp
+}
+
+input UpsertTimeTrackerInput {
+  duration: String
+  logs: TimeLogInput
+  sourceId: ID
+  id: ID
+  createdAt: AWSDateTime
+  updatedAt: AWSDateTime
+  _version: Int
+}
+
+input DeleteTimeTrackerInput {
+  id: ID!
+  _version: Int!
+}
+
+type UserConnection {
+  edges: [UserEdge!]!
+  pageInfo: PageInfo!
+}
+
+type UserEdge {
+  cursor: String
+  node: User
+}
+
+input UserStatusFilterInput {
+  eq: UserStatus
+  ne: UserStatus
+  in: [UserStatus!]
+  attributeExists: Boolean
+}
+
+input UserFilterInput {
+  id: ModelIDInput
+  firstName: ModelStringInput
+  lastName: ModelStringInput
+  email: ModelStringInput
+  picture: ModelStringInput
+  status: UserStatusInput
+  createdAt: ModelStringInput
+  updatedAt: ModelStringInput
+  _version: ModelIntInput
+  _deleted: ModelBooleanInput
+  and: [UserFilterInput]
+  or: [UserFilterInput]
+  not: UserFilterInput
+}",
+}
+`;

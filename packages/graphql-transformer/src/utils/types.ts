@@ -58,3 +58,15 @@ export type LoaderDescriptor = {
   auth?: AuthorizationRule[];
   returnType?: string;
 };
+
+export type ResolverConfig = {
+  name: string;
+  source?: string;
+  code?: string;
+};
+
+export type DataSourceConfig = {
+  name: string;
+  type: string;
+  default: boolean;
+};

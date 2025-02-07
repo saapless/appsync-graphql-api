@@ -40,6 +40,7 @@ export enum NodeKind {
   AS_EXPRESSION = "AsExpression",
   TYPE_CONDITIONAL_EXPRESSION = "ConditionalTypeExpression",
   TYPE_BINARY_EXPRESSION = "TypeBinaryExpression",
+  TYPE_EXTENDS_EXPRESSION = "TypeExtendsExpression",
 }
 
 export interface Node {
@@ -158,10 +159,13 @@ export type Literal =
 export interface TypeIdentifier extends Node {
   _kind: NodeKind.TYPE_IDENTIFIER;
   name: string;
-  parameters?: Array<TypeIdentifier | Literal>;
+  parameters?: Array<TypeIdentifier | Literal | TypeExtendsExpression>;
 }
 
-function _typeRef(name: string, params?: Array<TypeIdentifier | Literal>): TypeIdentifier {
+function _typeRef(
+  name: string,
+  params?: Array<TypeIdentifier | Literal | TypeExtendsExpression>
+): TypeIdentifier {
   return {
     _kind: NodeKind.TYPE_IDENTIFIER,
     name,
@@ -263,6 +267,20 @@ function _iface(
   };
 }
 
+export interface TypeExtendsExpression extends Node {
+  _kind: NodeKind.TYPE_EXTENDS_EXPRESSION;
+  left: TypeIdentifier;
+  right: TypeExpression;
+}
+
+function _typeExtends(name: string | TypeIdentifier, right: TypeExpression): TypeExtendsExpression {
+  return {
+    _kind: NodeKind.TYPE_EXTENDS_EXPRESSION,
+    left: typeof name === "string" ? _typeRef(name) : name,
+    right,
+  };
+}
+
 const types = {
   typeRef: _typeRef,
   typeUnion: _typeUnion,
@@ -271,6 +289,7 @@ const types = {
   typeDef: _typeDef,
   typeInterface: _iface,
   typeObj: _typeObj,
+  typeExtends: _typeExtends,
 };
 
 // #endregion Types
@@ -1118,6 +1137,7 @@ export type ASTNode =
   | TypeProperty
   | TypeDeclaration
   | InterfaceDeclaration
+  | TypeExtendsExpression
   | TypeExpression;
 
 export function isNode(object: unknown): object is ASTNode {

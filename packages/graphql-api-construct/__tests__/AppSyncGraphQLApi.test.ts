@@ -1,21 +1,27 @@
-import { describe, jest } from "@jest/globals";
+import { jest } from "@jest/globals";
 import { Template } from "aws-cdk-lib/assertions";
 import { App, Stack, StackProps } from "aws-cdk-lib/core";
 import { AppSyncGraphQLApi } from "../src/construct/AppSyncGraphQLApi";
+import { GraphQLDefinition } from "../src/utils/definition";
 
 function createTemplate() {
   class TestStack extends Stack {
     constructor(scope: App, id: string, props: StackProps) {
       super(scope, id, props);
-
       new AppSyncGraphQLApi(this, "AppSyncGraphQLApi", {
         name: "AppSyncGraphQLApi",
-        definition: "__tests__/test_schema.graphql",
-        xrayEnabled: false,
-        authorizationConfig: {
-          default: "",
-          additional: {},
-        },
+        definition: GraphQLDefinition.fromString(/* GraphQL */ `
+          type User @model {
+            id: ID!
+            name: String
+            todos: Todo @hasMany
+          }
+
+          type Todo @model {
+            id: ID!
+            title: String
+          }
+        `),
       });
     }
   }
@@ -41,5 +47,20 @@ describe("AppSyncGraphQLApi construct", () => {
 
   it("creates appsync api", () => {
     template.resourceCountIs("AWS::AppSync::GraphQLApi", 1);
+  });
+
+  it("creates resolvers", () => {
+    template.resourceCountIs("AWS::AppSync::Resolver", 11);
+  });
+
+  it("creates dataSources", () => {
+    template.hasResourceProperties("AWS::AppSync::DataSource", {
+      Type: "NONE",
+      Name: "NoneDataSource",
+    });
+    template.hasResourceProperties("AWS::AppSync::DataSource", {
+      Type: "AMAZON_DYNAMODB",
+      Name: "StoreDataSource",
+    });
   });
 });

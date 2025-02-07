@@ -135,7 +135,7 @@ describe("GraphQLTransformer", () => {
     const result = transformer.transform();
     const context = transformer.context;
 
-    it.skip("respond with valid output", () => {
+    it("respond with valid output", () => {
       expect(result).toMatchSnapshot();
     });
 

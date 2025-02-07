@@ -3,7 +3,11 @@ import { IGraphqlApi, ISchema, ISchemaConfig } from "aws-cdk-lib/aws-appsync";
 import fg from "fast-glob";
 
 export class GraphQLSchema implements ISchema {
-  constructor(readonly definition: string) {}
+  public readonly definition: string;
+
+  constructor(definition: string) {
+    this.definition = definition;
+  }
 
   bind(api: IGraphqlApi): ISchemaConfig {
     return {
@@ -15,8 +19,24 @@ export class GraphQLSchema implements ISchema {
   static fromString(definition: string): GraphQLSchema {
     return new GraphQLSchema(definition);
   }
+}
 
-  static fromSource(source: string | string[]) {
+export class GraphQLDefinition {
+  public readonly definition: string;
+
+  constructor(definition: string) {
+    this.definition = definition;
+  }
+
+  public toString(): string {
+    return this.definition;
+  }
+
+  public static fromString(definition: string): GraphQLDefinition {
+    return new GraphQLDefinition(definition);
+  }
+
+  public static fromSource(source: string | string[]): GraphQLDefinition {
     if (!Array.isArray(source)) {
       source = [source];
     }
@@ -36,6 +56,6 @@ export class GraphQLSchema implements ISchema {
       definition += readFileSync(path, { encoding: "utf-8" });
     }
 
-    return new GraphQLSchema(definition);
+    return new GraphQLDefinition(definition);
   }
 }
