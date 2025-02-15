@@ -2,9 +2,9 @@
 
 exports[`GraphQLTransformer runs schema transformations respond with valid output 1`] = `
 {
-  "fieldResolvers": {
-    "Mutation.createUser": {
-      "code": "// out/resolvers/Mutation.createUser.ts
+  "fieldResolvers": [
+    {
+      "code": "// __tests__/out/resolvers/Mutation.createUser.ts
 import { put } from "@aws-appsync/utils/dynamodb";
 import { util } from "@aws-appsync/utils";
 function request(ctx) {
@@ -43,188 +43,8 @@ export {
       "pipelineFunctions": undefined,
       "typeName": "Mutation",
     },
-    "Mutation.deleteFile": {
-      "code": "// out/resolvers/Mutation.deleteFile.ts
-import { update, operations } from "@aws-appsync/utils/dynamodb";
-import { util } from "@aws-appsync/utils";
-function request(ctx) {
-  const { input } = ctx.args;
-  return update({
-    key: { id: ctx.args.input.id },
-    update: {
-      updatedAt: operations.replace(util.time.nowISO8601()),
-      _version: operations.increment(1),
-      _deleted: operations.replace(true)
-    },
-    condition: {
-      id: { attributeExists: true },
-      _version: { eq: input._version }
-    }
-  });
-}
-function response(ctx) {
-  if (ctx.error) {
-    util.error(ctx.error.message, ctx.error.type);
-  }
-  return ctx.result;
-}
-export {
-  request,
-  response
-};
-//# sourceMappingURL=data:application/json;base64,ewogICJ2ZXJzaW9uIjogMywKICAic291cmNlcyI6IFsicmVzb2x2ZXJzL011dGF0aW9uLmRlbGV0ZUZpbGUudHMiXSwKICAibWFwcGluZ3MiOiAiO0FBQ0EsU0FBUyxRQUFRLGtCQUFrQjtBQUNuQyxTQUFTLFlBQXFCO0FBQ3ZCLFNBQVMsUUFDZCxLQU1BO0FBQ0EsUUFBTSxFQUFFLE1BQU0sSUFBSSxJQUFJO0FBQ3RCLFNBQU8sT0FBTztBQUFBLElBQ1osS0FBSyxFQUFFLElBQUksSUFBSSxLQUFLLE1BQU0sR0FBRztBQUFBLElBQzdCLFFBQVE7QUFBQSxNQUNOLFdBQVcsV0FBVyxRQUFRLEtBQUssS0FBSyxXQUFXLENBQUM7QUFBQSxNQUNwRCxVQUFVLFdBQVcsVUFBVSxDQUFDO0FBQUEsTUFDaEMsVUFBVSxXQUFXLFFBQVEsSUFBSTtBQUFBLElBQ25DO0FBQUEsSUFDQSxXQUFXO0FBQUEsTUFDVCxJQUFJLEVBQUUsaUJBQWlCLEtBQUs7QUFBQSxNQUM1QixVQUFVLEVBQUUsSUFBSSxNQUFNLFNBQVM7QUFBQSxJQUNqQztBQUFBLEVBQ0YsQ0FBQztBQUNIO0FBRU8sU0FBUyxTQUNkLEtBT0E7QUFDQSxNQUFJLElBQUksT0FBTztBQUNiLFNBQUssTUFBTSxJQUFJLE1BQU0sU0FBUyxJQUFJLE1BQU0sSUFBSTtBQUFBLEVBQzlDO0FBRUEsU0FBTyxJQUFJO0FBQ2I7IiwKICAibmFtZXMiOiBbXQp9Cg==
-",
-      "dataSource": undefined,
-      "fieldName": "deleteFile",
-      "pipelineFunctions": undefined,
-      "typeName": "Mutation",
-    },
-    "Mutation.deleteLabel": {
-      "code": "// out/resolvers/Mutation.deleteLabel.ts
-import { update, operations } from "@aws-appsync/utils/dynamodb";
-import { util } from "@aws-appsync/utils";
-function request(ctx) {
-  const { input } = ctx.args;
-  return update({
-    key: { id: ctx.args.input.id },
-    update: {
-      updatedAt: operations.replace(util.time.nowISO8601()),
-      _version: operations.increment(1),
-      _deleted: operations.replace(true)
-    },
-    condition: {
-      id: { attributeExists: true },
-      _version: { eq: input._version }
-    }
-  });
-}
-function response(ctx) {
-  if (ctx.error) {
-    util.error(ctx.error.message, ctx.error.type);
-  }
-  return ctx.result;
-}
-export {
-  request,
-  response
-};
-//# sourceMappingURL=data:application/json;base64,ewogICJ2ZXJzaW9uIjogMywKICAic291cmNlcyI6IFsicmVzb2x2ZXJzL011dGF0aW9uLmRlbGV0ZUxhYmVsLnRzIl0sCiAgIm1hcHBpbmdzIjogIjtBQUNBLFNBQVMsUUFBUSxrQkFBa0I7QUFDbkMsU0FBUyxZQUFxQjtBQUN2QixTQUFTLFFBQ2QsS0FNQTtBQUNBLFFBQU0sRUFBRSxNQUFNLElBQUksSUFBSTtBQUN0QixTQUFPLE9BQU87QUFBQSxJQUNaLEtBQUssRUFBRSxJQUFJLElBQUksS0FBSyxNQUFNLEdBQUc7QUFBQSxJQUM3QixRQUFRO0FBQUEsTUFDTixXQUFXLFdBQVcsUUFBUSxLQUFLLEtBQUssV0FBVyxDQUFDO0FBQUEsTUFDcEQsVUFBVSxXQUFXLFVBQVUsQ0FBQztBQUFBLE1BQ2hDLFVBQVUsV0FBVyxRQUFRLElBQUk7QUFBQSxJQUNuQztBQUFBLElBQ0EsV0FBVztBQUFBLE1BQ1QsSUFBSSxFQUFFLGlCQUFpQixLQUFLO0FBQUEsTUFDNUIsVUFBVSxFQUFFLElBQUksTUFBTSxTQUFTO0FBQUEsSUFDakM7QUFBQSxFQUNGLENBQUM7QUFDSDtBQUVPLFNBQVMsU0FDZCxLQU9BO0FBQ0EsTUFBSSxJQUFJLE9BQU87QUFDYixTQUFLLE1BQU0sSUFBSSxNQUFNLFNBQVMsSUFBSSxNQUFNLElBQUk7QUFBQSxFQUM5QztBQUVBLFNBQU8sSUFBSTtBQUNiOyIsCiAgIm5hbWVzIjogW10KfQo=
-",
-      "dataSource": undefined,
-      "fieldName": "deleteLabel",
-      "pipelineFunctions": undefined,
-      "typeName": "Mutation",
-    },
-    "Mutation.deleteTask": {
-      "code": "// out/resolvers/Mutation.deleteTask.ts
-import { update, operations } from "@aws-appsync/utils/dynamodb";
-import { util } from "@aws-appsync/utils";
-function request(ctx) {
-  const { input } = ctx.args;
-  return update({
-    key: { id: ctx.args.input.id },
-    update: {
-      updatedAt: operations.replace(util.time.nowISO8601()),
-      _version: operations.increment(1),
-      _deleted: operations.replace(true)
-    },
-    condition: {
-      id: { attributeExists: true },
-      _version: { eq: input._version }
-    }
-  });
-}
-function response(ctx) {
-  if (ctx.error) {
-    util.error(ctx.error.message, ctx.error.type);
-  }
-  return ctx.result;
-}
-export {
-  request,
-  response
-};
-//# sourceMappingURL=data:application/json;base64,ewogICJ2ZXJzaW9uIjogMywKICAic291cmNlcyI6IFsicmVzb2x2ZXJzL011dGF0aW9uLmRlbGV0ZVRhc2sudHMiXSwKICAibWFwcGluZ3MiOiAiO0FBQ0EsU0FBUyxRQUFRLGtCQUFrQjtBQUNuQyxTQUFTLFlBQXFCO0FBQ3ZCLFNBQVMsUUFDZCxLQU1BO0FBQ0EsUUFBTSxFQUFFLE1BQU0sSUFBSSxJQUFJO0FBQ3RCLFNBQU8sT0FBTztBQUFBLElBQ1osS0FBSyxFQUFFLElBQUksSUFBSSxLQUFLLE1BQU0sR0FBRztBQUFBLElBQzdCLFFBQVE7QUFBQSxNQUNOLFdBQVcsV0FBVyxRQUFRLEtBQUssS0FBSyxXQUFXLENBQUM7QUFBQSxNQUNwRCxVQUFVLFdBQVcsVUFBVSxDQUFDO0FBQUEsTUFDaEMsVUFBVSxXQUFXLFFBQVEsSUFBSTtBQUFBLElBQ25DO0FBQUEsSUFDQSxXQUFXO0FBQUEsTUFDVCxJQUFJLEVBQUUsaUJBQWlCLEtBQUs7QUFBQSxNQUM1QixVQUFVLEVBQUUsSUFBSSxNQUFNLFNBQVM7QUFBQSxJQUNqQztBQUFBLEVBQ0YsQ0FBQztBQUNIO0FBRU8sU0FBUyxTQUNkLEtBT0E7QUFDQSxNQUFJLElBQUksT0FBTztBQUNiLFNBQUssTUFBTSxJQUFJLE1BQU0sU0FBUyxJQUFJLE1BQU0sSUFBSTtBQUFBLEVBQzlDO0FBRUEsU0FBTyxJQUFJO0FBQ2I7IiwKICAibmFtZXMiOiBbXQp9Cg==
-",
-      "dataSource": undefined,
-      "fieldName": "deleteTask",
-      "pipelineFunctions": undefined,
-      "typeName": "Mutation",
-    },
-    "Mutation.deleteTimeTracker": {
-      "code": "// out/resolvers/Mutation.deleteTimeTracker.ts
-import { update, operations } from "@aws-appsync/utils/dynamodb";
-import { util } from "@aws-appsync/utils";
-function request(ctx) {
-  const { input } = ctx.args;
-  return update({
-    key: { id: ctx.args.input.id },
-    update: {
-      updatedAt: operations.replace(util.time.nowISO8601()),
-      _version: operations.increment(1),
-      _deleted: operations.replace(true)
-    },
-    condition: {
-      id: { attributeExists: true },
-      _version: { eq: input._version }
-    }
-  });
-}
-function response(ctx) {
-  if (ctx.error) {
-    util.error(ctx.error.message, ctx.error.type);
-  }
-  return ctx.result;
-}
-export {
-  request,
-  response
-};
-//# sourceMappingURL=data:application/json;base64,ewogICJ2ZXJzaW9uIjogMywKICAic291cmNlcyI6IFsicmVzb2x2ZXJzL011dGF0aW9uLmRlbGV0ZVRpbWVUcmFja2VyLnRzIl0sCiAgIm1hcHBpbmdzIjogIjtBQUNBLFNBQVMsUUFBUSxrQkFBa0I7QUFDbkMsU0FBUyxZQUFxQjtBQUN2QixTQUFTLFFBQ2QsS0FNQTtBQUNBLFFBQU0sRUFBRSxNQUFNLElBQUksSUFBSTtBQUN0QixTQUFPLE9BQU87QUFBQSxJQUNaLEtBQUssRUFBRSxJQUFJLElBQUksS0FBSyxNQUFNLEdBQUc7QUFBQSxJQUM3QixRQUFRO0FBQUEsTUFDTixXQUFXLFdBQVcsUUFBUSxLQUFLLEtBQUssV0FBVyxDQUFDO0FBQUEsTUFDcEQsVUFBVSxXQUFXLFVBQVUsQ0FBQztBQUFBLE1BQ2hDLFVBQVUsV0FBVyxRQUFRLElBQUk7QUFBQSxJQUNuQztBQUFBLElBQ0EsV0FBVztBQUFBLE1BQ1QsSUFBSSxFQUFFLGlCQUFpQixLQUFLO0FBQUEsTUFDNUIsVUFBVSxFQUFFLElBQUksTUFBTSxTQUFTO0FBQUEsSUFDakM7QUFBQSxFQUNGLENBQUM7QUFDSDtBQUVPLFNBQVMsU0FDZCxLQU9BO0FBQ0EsTUFBSSxJQUFJLE9BQU87QUFDYixTQUFLLE1BQU0sSUFBSSxNQUFNLFNBQVMsSUFBSSxNQUFNLElBQUk7QUFBQSxFQUM5QztBQUVBLFNBQU8sSUFBSTtBQUNiOyIsCiAgIm5hbWVzIjogW10KfQo=
-",
-      "dataSource": undefined,
-      "fieldName": "deleteTimeTracker",
-      "pipelineFunctions": undefined,
-      "typeName": "Mutation",
-    },
-    "Mutation.deleteUser": {
-      "code": "// out/resolvers/Mutation.deleteUser.ts
-import { update, operations } from "@aws-appsync/utils/dynamodb";
-import { util } from "@aws-appsync/utils";
-function request(ctx) {
-  const { input } = ctx.args;
-  return update({
-    key: { id: ctx.args.input.id },
-    update: {
-      updatedAt: operations.replace(util.time.nowISO8601()),
-      _version: operations.increment(1),
-      _deleted: operations.replace(true)
-    },
-    condition: {
-      id: { attributeExists: true },
-      _version: { eq: input._version }
-    }
-  });
-}
-function response(ctx) {
-  if (ctx.error) {
-    util.error(ctx.error.message, ctx.error.type);
-  }
-  return ctx.result;
-}
-export {
-  request,
-  response
-};
-//# sourceMappingURL=data:application/json;base64,ewogICJ2ZXJzaW9uIjogMywKICAic291cmNlcyI6IFsicmVzb2x2ZXJzL011dGF0aW9uLmRlbGV0ZVVzZXIudHMiXSwKICAibWFwcGluZ3MiOiAiO0FBQ0EsU0FBUyxRQUFRLGtCQUFrQjtBQUNuQyxTQUFTLFlBQXFCO0FBQ3ZCLFNBQVMsUUFDZCxLQU1BO0FBQ0EsUUFBTSxFQUFFLE1BQU0sSUFBSSxJQUFJO0FBQ3RCLFNBQU8sT0FBTztBQUFBLElBQ1osS0FBSyxFQUFFLElBQUksSUFBSSxLQUFLLE1BQU0sR0FBRztBQUFBLElBQzdCLFFBQVE7QUFBQSxNQUNOLFdBQVcsV0FBVyxRQUFRLEtBQUssS0FBSyxXQUFXLENBQUM7QUFBQSxNQUNwRCxVQUFVLFdBQVcsVUFBVSxDQUFDO0FBQUEsTUFDaEMsVUFBVSxXQUFXLFFBQVEsSUFBSTtBQUFBLElBQ25DO0FBQUEsSUFDQSxXQUFXO0FBQUEsTUFDVCxJQUFJLEVBQUUsaUJBQWlCLEtBQUs7QUFBQSxNQUM1QixVQUFVLEVBQUUsSUFBSSxNQUFNLFNBQVM7QUFBQSxJQUNqQztBQUFBLEVBQ0YsQ0FBQztBQUNIO0FBRU8sU0FBUyxTQUNkLEtBT0E7QUFDQSxNQUFJLElBQUksT0FBTztBQUNiLFNBQUssTUFBTSxJQUFJLE1BQU0sU0FBUyxJQUFJLE1BQU0sSUFBSTtBQUFBLEVBQzlDO0FBRUEsU0FBTyxJQUFJO0FBQ2I7IiwKICAibmFtZXMiOiBbXQp9Cg==
-",
-      "dataSource": undefined,
-      "fieldName": "deleteUser",
-      "pipelineFunctions": undefined,
-      "typeName": "Mutation",
-    },
-    "Mutation.updateUser": {
-      "code": "// out/resolvers/Mutation.updateUser.ts
+    {
+      "code": "// __tests__/out/resolvers/Mutation.updateUser.ts
 import { update, operations } from "@aws-appsync/utils/dynamodb";
 import { util } from "@aws-appsync/utils";
 function request(ctx) {
@@ -261,10 +81,24 @@ export {
       "pipelineFunctions": undefined,
       "typeName": "Mutation",
     },
-    "Mutation.upsertFile": {
-      "code": "// out/resolvers/Mutation.upsertFile.ts
+    {
+      "code": "// __tests__/out/resolvers/Mutation.deleteUser.ts
+import { update, operations } from "@aws-appsync/utils/dynamodb";
 import { util } from "@aws-appsync/utils";
 function request(ctx) {
+  const { input } = ctx.args;
+  return update({
+    key: { id: ctx.args.input.id },
+    update: {
+      updatedAt: operations.replace(util.time.nowISO8601()),
+      _version: operations.increment(1),
+      _deleted: operations.replace(true)
+    },
+    condition: {
+      id: { attributeExists: true },
+      _version: { eq: input._version }
+    }
+  });
 }
 function response(ctx) {
   if (ctx.error) {
@@ -276,37 +110,15 @@ export {
   request,
   response
 };
-//# sourceMappingURL=data:application/json;base64,ewogICJ2ZXJzaW9uIjogMywKICAic291cmNlcyI6IFsicmVzb2x2ZXJzL011dGF0aW9uLnVwc2VydEZpbGUudHMiXSwKICAibWFwcGluZ3MiOiAiO0FBQ0EsU0FBUyxZQUFxQjtBQUN2QixTQUFTLFFBQ2QsS0FNQTtBQUFDO0FBRUksU0FBUyxTQUNkLEtBT0E7QUFDQSxNQUFJLElBQUksT0FBTztBQUNiLFNBQUssTUFBTSxJQUFJLE1BQU0sU0FBUyxJQUFJLE1BQU0sSUFBSTtBQUFBLEVBQzlDO0FBRUEsU0FBTyxJQUFJO0FBQ2I7IiwKICAibmFtZXMiOiBbXQp9Cg==
+//# sourceMappingURL=data:application/json;base64,ewogICJ2ZXJzaW9uIjogMywKICAic291cmNlcyI6IFsicmVzb2x2ZXJzL011dGF0aW9uLmRlbGV0ZVVzZXIudHMiXSwKICAibWFwcGluZ3MiOiAiO0FBQ0EsU0FBUyxRQUFRLGtCQUFrQjtBQUNuQyxTQUFTLFlBQXFCO0FBQ3ZCLFNBQVMsUUFDZCxLQU1BO0FBQ0EsUUFBTSxFQUFFLE1BQU0sSUFBSSxJQUFJO0FBQ3RCLFNBQU8sT0FBTztBQUFBLElBQ1osS0FBSyxFQUFFLElBQUksSUFBSSxLQUFLLE1BQU0sR0FBRztBQUFBLElBQzdCLFFBQVE7QUFBQSxNQUNOLFdBQVcsV0FBVyxRQUFRLEtBQUssS0FBSyxXQUFXLENBQUM7QUFBQSxNQUNwRCxVQUFVLFdBQVcsVUFBVSxDQUFDO0FBQUEsTUFDaEMsVUFBVSxXQUFXLFFBQVEsSUFBSTtBQUFBLElBQ25DO0FBQUEsSUFDQSxXQUFXO0FBQUEsTUFDVCxJQUFJLEVBQUUsaUJBQWlCLEtBQUs7QUFBQSxNQUM1QixVQUFVLEVBQUUsSUFBSSxNQUFNLFNBQVM7QUFBQSxJQUNqQztBQUFBLEVBQ0YsQ0FBQztBQUNIO0FBRU8sU0FBUyxTQUNkLEtBT0E7QUFDQSxNQUFJLElBQUksT0FBTztBQUNiLFNBQUssTUFBTSxJQUFJLE1BQU0sU0FBUyxJQUFJLE1BQU0sSUFBSTtBQUFBLEVBQzlDO0FBRUEsU0FBTyxJQUFJO0FBQ2I7IiwKICAibmFtZXMiOiBbXQp9Cg==
 ",
       "dataSource": undefined,
-      "fieldName": "upsertFile",
+      "fieldName": "deleteUser",
       "pipelineFunctions": undefined,
       "typeName": "Mutation",
     },
-    "Mutation.upsertLabel": {
-      "code": "// out/resolvers/Mutation.upsertLabel.ts
-import { util } from "@aws-appsync/utils";
-function request(ctx) {
-}
-function response(ctx) {
-  if (ctx.error) {
-    util.error(ctx.error.message, ctx.error.type);
-  }
-  return ctx.result;
-}
-export {
-  request,
-  response
-};
-//# sourceMappingURL=data:application/json;base64,ewogICJ2ZXJzaW9uIjogMywKICAic291cmNlcyI6IFsicmVzb2x2ZXJzL011dGF0aW9uLnVwc2VydExhYmVsLnRzIl0sCiAgIm1hcHBpbmdzIjogIjtBQUNBLFNBQVMsWUFBcUI7QUFDdkIsU0FBUyxRQUNkLEtBTUE7QUFBQztBQUVJLFNBQVMsU0FDZCxLQU9BO0FBQ0EsTUFBSSxJQUFJLE9BQU87QUFDYixTQUFLLE1BQU0sSUFBSSxNQUFNLFNBQVMsSUFBSSxNQUFNLElBQUk7QUFBQSxFQUM5QztBQUVBLFNBQU8sSUFBSTtBQUNiOyIsCiAgIm5hbWVzIjogW10KfQo=
-",
-      "dataSource": undefined,
-      "fieldName": "upsertLabel",
-      "pipelineFunctions": undefined,
-      "typeName": "Mutation",
-    },
-    "Mutation.upsertTask": {
-      "code": "// out/resolvers/Mutation.upsertTask.ts
+    {
+      "code": "// __tests__/out/resolvers/Mutation.upsertTask.ts
 import { util } from "@aws-appsync/utils";
 function request(ctx) {
 }
@@ -327,10 +139,24 @@ export {
       "pipelineFunctions": undefined,
       "typeName": "Mutation",
     },
-    "Mutation.upsertTimeTracker": {
-      "code": "// out/resolvers/Mutation.upsertTimeTracker.ts
+    {
+      "code": "// __tests__/out/resolvers/Mutation.deleteTask.ts
+import { update, operations } from "@aws-appsync/utils/dynamodb";
 import { util } from "@aws-appsync/utils";
 function request(ctx) {
+  const { input } = ctx.args;
+  return update({
+    key: { id: ctx.args.input.id },
+    update: {
+      updatedAt: operations.replace(util.time.nowISO8601()),
+      _version: operations.increment(1),
+      _deleted: operations.replace(true)
+    },
+    condition: {
+      id: { attributeExists: true },
+      _version: { eq: input._version }
+    }
+  });
 }
 function response(ctx) {
   if (ctx.error) {
@@ -342,121 +168,15 @@ export {
   request,
   response
 };
-//# sourceMappingURL=data:application/json;base64,ewogICJ2ZXJzaW9uIjogMywKICAic291cmNlcyI6IFsicmVzb2x2ZXJzL011dGF0aW9uLnVwc2VydFRpbWVUcmFja2VyLnRzIl0sCiAgIm1hcHBpbmdzIjogIjtBQUNBLFNBQVMsWUFBcUI7QUFDdkIsU0FBUyxRQUNkLEtBTUE7QUFBQztBQUVJLFNBQVMsU0FDZCxLQU9BO0FBQ0EsTUFBSSxJQUFJLE9BQU87QUFDYixTQUFLLE1BQU0sSUFBSSxNQUFNLFNBQVMsSUFBSSxNQUFNLElBQUk7QUFBQSxFQUM5QztBQUVBLFNBQU8sSUFBSTtBQUNiOyIsCiAgIm5hbWVzIjogW10KfQo=
+//# sourceMappingURL=data:application/json;base64,ewogICJ2ZXJzaW9uIjogMywKICAic291cmNlcyI6IFsicmVzb2x2ZXJzL011dGF0aW9uLmRlbGV0ZVRhc2sudHMiXSwKICAibWFwcGluZ3MiOiAiO0FBQ0EsU0FBUyxRQUFRLGtCQUFrQjtBQUNuQyxTQUFTLFlBQXFCO0FBQ3ZCLFNBQVMsUUFDZCxLQU1BO0FBQ0EsUUFBTSxFQUFFLE1BQU0sSUFBSSxJQUFJO0FBQ3RCLFNBQU8sT0FBTztBQUFBLElBQ1osS0FBSyxFQUFFLElBQUksSUFBSSxLQUFLLE1BQU0sR0FBRztBQUFBLElBQzdCLFFBQVE7QUFBQSxNQUNOLFdBQVcsV0FBVyxRQUFRLEtBQUssS0FBSyxXQUFXLENBQUM7QUFBQSxNQUNwRCxVQUFVLFdBQVcsVUFBVSxDQUFDO0FBQUEsTUFDaEMsVUFBVSxXQUFXLFFBQVEsSUFBSTtBQUFBLElBQ25DO0FBQUEsSUFDQSxXQUFXO0FBQUEsTUFDVCxJQUFJLEVBQUUsaUJBQWlCLEtBQUs7QUFBQSxNQUM1QixVQUFVLEVBQUUsSUFBSSxNQUFNLFNBQVM7QUFBQSxJQUNqQztBQUFBLEVBQ0YsQ0FBQztBQUNIO0FBRU8sU0FBUyxTQUNkLEtBT0E7QUFDQSxNQUFJLElBQUksT0FBTztBQUNiLFNBQUssTUFBTSxJQUFJLE1BQU0sU0FBUyxJQUFJLE1BQU0sSUFBSTtBQUFBLEVBQzlDO0FBRUEsU0FBTyxJQUFJO0FBQ2I7IiwKICAibmFtZXMiOiBbXQp9Cg==
 ",
       "dataSource": undefined,
-      "fieldName": "upsertTimeTracker",
+      "fieldName": "deleteTask",
       "pipelineFunctions": undefined,
       "typeName": "Mutation",
     },
-    "Query.getUser": {
-      "code": "// out/resolvers/Query.getUser.ts
-import { get } from "@aws-appsync/utils/dynamodb";
-import { util } from "@aws-appsync/utils";
-function request(ctx) {
-  return get({ key: { id: ctx.args.id } });
-}
-function response(ctx) {
-  if (ctx.error) {
-    util.error(ctx.error.message, ctx.error.type);
-  }
-  return ctx.result;
-}
-export {
-  request,
-  response
-};
-//# sourceMappingURL=data:application/json;base64,ewogICJ2ZXJzaW9uIjogMywKICAic291cmNlcyI6IFsicmVzb2x2ZXJzL1F1ZXJ5LmdldFVzZXIudHMiXSwKICAibWFwcGluZ3MiOiAiO0FBQ0EsU0FBUyxXQUFXO0FBQ3BCLFNBQVMsWUFBcUI7QUFDdkIsU0FBUyxRQUNkLEtBQ0E7QUFDQSxTQUFPLElBQUksRUFBRSxLQUFLLEVBQUUsSUFBSSxJQUFJLEtBQUssR0FBRyxFQUFFLENBQUM7QUFDekM7QUFFTyxTQUFTLFNBQ2QsS0FPQTtBQUNBLE1BQUksSUFBSSxPQUFPO0FBQ2IsU0FBSyxNQUFNLElBQUksTUFBTSxTQUFTLElBQUksTUFBTSxJQUFJO0FBQUEsRUFDOUM7QUFFQSxTQUFPLElBQUk7QUFDYjsiLAogICJuYW1lcyI6IFtdCn0K
-",
-      "dataSource": undefined,
-      "fieldName": "getUser",
-      "pipelineFunctions": undefined,
-      "typeName": "Query",
-    },
-    "Query.listUsers": {
-      "code": "// out/resolvers/Query.listUsers.ts
-import { query } from "@aws-appsync/utils/dynamodb";
-import { util } from "@aws-appsync/utils";
-function request(ctx) {
-  return query({
-    query: { sourceId: "User" },
-    filter: ctx.args.filter,
-    limit: ctx.args.first ?? 100,
-    nextToken: ctx.args.after ?? void 0,
-    scanIndexForward: ctx.args.sort === "ASC",
-    index: "byTypename"
-  });
-}
-function response(ctx) {
-  if (ctx.error) {
-    util.error(ctx.error.message, ctx.error.type);
-  }
-  return {
-    edges: ctx.result.items.map((node) => {
-      return { cursor: node.id, node };
-    }),
-    pageInfo: {
-      hasPreviousPage: Boolean(ctx.args?.after),
-      hasNextPage: Boolean(ctx.result.nextToken),
-      startCursor: ctx.args.after,
-      endCursor: ctx.result.nextToken
-    }
-  };
-}
-export {
-  request,
-  response
-};
-//# sourceMappingURL=data:application/json;base64,ewogICJ2ZXJzaW9uIjogMywKICAic291cmNlcyI6IFsicmVzb2x2ZXJzL1F1ZXJ5Lmxpc3RVc2Vycy50cyJdLAogICJtYXBwaW5ncyI6ICI7QUFDQSxTQUFTLGFBQWE7QUFDdEIsU0FBUyxZQUFxQjtBQUN2QixTQUFTLFFBQ2QsS0FNQTtBQUNBLFNBQU8sTUFBTTtBQUFBLElBQ1gsT0FBTyxFQUFFLFVBQVUsT0FBTztBQUFBLElBQzFCLFFBQVEsSUFBSSxLQUFLO0FBQUEsSUFDakIsT0FBTyxJQUFJLEtBQUssU0FBUztBQUFBLElBQ3pCLFdBQVcsSUFBSSxLQUFLLFNBQVM7QUFBQSxJQUM3QixrQkFBa0IsSUFBSSxLQUFLLFNBQVM7QUFBQSxJQUNwQyxPQUFPO0FBQUEsRUFDVCxDQUFDO0FBQ0g7QUFFTyxTQUFTLFNBQ2QsS0FPQTtBQUNBLE1BQUksSUFBSSxPQUFPO0FBQ2IsU0FBSyxNQUFNLElBQUksTUFBTSxTQUFTLElBQUksTUFBTSxJQUFJO0FBQUEsRUFDOUM7QUFFQSxTQUFPO0FBQUEsSUFDTCxPQUFPLElBQUksT0FBTyxNQUFNLElBQUksQ0FBQyxTQUFTO0FBQ3BDLGFBQU8sRUFBRSxRQUFRLEtBQUssSUFBSSxLQUFXO0FBQUEsSUFDdkMsQ0FBQztBQUFBLElBQ0QsVUFBVTtBQUFBLE1BQ1IsaUJBQWlCLFFBQVEsSUFBSSxNQUFNLEtBQUs7QUFBQSxNQUN4QyxhQUFhLFFBQVEsSUFBSSxPQUFPLFNBQVM7QUFBQSxNQUN6QyxhQUFhLElBQUksS0FBSztBQUFBLE1BQ3RCLFdBQVcsSUFBSSxPQUFPO0FBQUEsSUFDeEI7QUFBQSxFQUNGO0FBQ0Y7IiwKICAibmFtZXMiOiBbXQp9Cg==
-",
-      "dataSource": undefined,
-      "fieldName": "listUsers",
-      "pipelineFunctions": undefined,
-      "typeName": "Query",
-    },
-    "Task.artifacts": {
-      "code": "// out/resolvers/Task.artifacts.ts
-import { query } from "@aws-appsync/utils/dynamodb";
-import { util } from "@aws-appsync/utils";
-function request(ctx) {
-  return query({
-    query: { sourceId: ctx.source?.id },
-    filter: ctx.args.filter,
-    limit: ctx.args.first ?? 100,
-    nextToken: ctx.args.after ?? void 0,
-    scanIndexForward: ctx.args.sort === "ASC",
-    index: "bySourceId"
-  });
-}
-function response(ctx) {
-  if (ctx.error) {
-    util.error(ctx.error.message, ctx.error.type);
-  }
-  return {
-    edges: ctx.result.items.map((node) => {
-      return { cursor: node.id, node };
-    }),
-    pageInfo: {
-      hasPreviousPage: Boolean(ctx.args?.after),
-      hasNextPage: Boolean(ctx.result.nextToken),
-      startCursor: ctx.args.after,
-      endCursor: ctx.result.nextToken
-    }
-  };
-}
-export {
-  request,
-  response
-};
-//# sourceMappingURL=data:application/json;base64,ewogICJ2ZXJzaW9uIjogMywKICAic291cmNlcyI6IFsicmVzb2x2ZXJzL1Rhc2suYXJ0aWZhY3RzLnRzIl0sCiAgIm1hcHBpbmdzIjogIjtBQU1BLFNBQVMsYUFBYTtBQUN0QixTQUFTLFlBQXFCO0FBQ3ZCLFNBQVMsUUFDZCxLQUNBO0FBQ0EsU0FBTyxNQUFNO0FBQUEsSUFDWCxPQUFPLEVBQUUsVUFBVSxJQUFJLFFBQVEsR0FBRztBQUFBLElBQ2xDLFFBQVEsSUFBSSxLQUFLO0FBQUEsSUFDakIsT0FBTyxJQUFJLEtBQUssU0FBUztBQUFBLElBQ3pCLFdBQVcsSUFBSSxLQUFLLFNBQVM7QUFBQSxJQUM3QixrQkFBa0IsSUFBSSxLQUFLLFNBQVM7QUFBQSxJQUNwQyxPQUFPO0FBQUEsRUFDVCxDQUFDO0FBQ0g7QUFFTyxTQUFTLFNBQ2QsS0FPQTtBQUNBLE1BQUksSUFBSSxPQUFPO0FBQ2IsU0FBSyxNQUFNLElBQUksTUFBTSxTQUFTLElBQUksTUFBTSxJQUFJO0FBQUEsRUFDOUM7QUFFQSxTQUFPO0FBQUEsSUFDTCxPQUFPLElBQUksT0FBTyxNQUFNLElBQUksQ0FBQyxTQUFTO0FBQ3BDLGFBQU8sRUFBRSxRQUFRLEtBQUssSUFBSSxLQUFXO0FBQUEsSUFDdkMsQ0FBQztBQUFBLElBQ0QsVUFBVTtBQUFBLE1BQ1IsaUJBQWlCLFFBQVEsSUFBSSxNQUFNLEtBQUs7QUFBQSxNQUN4QyxhQUFhLFFBQVEsSUFBSSxPQUFPLFNBQVM7QUFBQSxNQUN6QyxhQUFhLElBQUksS0FBSztBQUFBLE1BQ3RCLFdBQVcsSUFBSSxPQUFPO0FBQUEsSUFDeEI7QUFBQSxFQUNGO0FBQ0Y7IiwKICAibmFtZXMiOiBbXQp9Cg==
-",
-      "dataSource": undefined,
-      "fieldName": "artifacts",
-      "pipelineFunctions": undefined,
-      "typeName": "Task",
-    },
-    "Task.labels": {
-      "code": "// out/resolvers/Task.labels.ts
+    {
+      "code": "// __tests__/out/resolvers/Task.labels.ts
 import { query } from "@aws-appsync/utils/dynamodb";
 import { util } from "@aws-appsync/utils";
 function request(ctx) {
@@ -496,49 +216,8 @@ export {
       "pipelineFunctions": undefined,
       "typeName": "Task",
     },
-    "Task.occurrences": {
-      "code": "// out/resolvers/Task.occurrences.ts
-import { query } from "@aws-appsync/utils/dynamodb";
-import { util } from "@aws-appsync/utils";
-function request(ctx) {
-  return query({
-    query: { sourceId: ctx.source?.id },
-    filter: ctx.args.filter,
-    limit: ctx.args.first ?? 100,
-    nextToken: ctx.args.after ?? void 0,
-    scanIndexForward: ctx.args.sort === "ASC",
-    index: "bySourceId"
-  });
-}
-function response(ctx) {
-  if (ctx.error) {
-    util.error(ctx.error.message, ctx.error.type);
-  }
-  return {
-    edges: ctx.result.items.map((node) => {
-      return { cursor: node.id, node };
-    }),
-    pageInfo: {
-      hasPreviousPage: Boolean(ctx.args?.after),
-      hasNextPage: Boolean(ctx.result.nextToken),
-      startCursor: ctx.args.after,
-      endCursor: ctx.result.nextToken
-    }
-  };
-}
-export {
-  request,
-  response
-};
-//# sourceMappingURL=data:application/json;base64,ewogICJ2ZXJzaW9uIjogMywKICAic291cmNlcyI6IFsicmVzb2x2ZXJzL1Rhc2sub2NjdXJyZW5jZXMudHMiXSwKICAibWFwcGluZ3MiOiAiO0FBS0EsU0FBUyxhQUFhO0FBQ3RCLFNBQVMsWUFBcUI7QUFDdkIsU0FBUyxRQUNkLEtBQ0E7QUFDQSxTQUFPLE1BQU07QUFBQSxJQUNYLE9BQU8sRUFBRSxVQUFVLElBQUksUUFBUSxHQUFHO0FBQUEsSUFDbEMsUUFBUSxJQUFJLEtBQUs7QUFBQSxJQUNqQixPQUFPLElBQUksS0FBSyxTQUFTO0FBQUEsSUFDekIsV0FBVyxJQUFJLEtBQUssU0FBUztBQUFBLElBQzdCLGtCQUFrQixJQUFJLEtBQUssU0FBUztBQUFBLElBQ3BDLE9BQU87QUFBQSxFQUNULENBQUM7QUFDSDtBQUVPLFNBQVMsU0FDZCxLQU9BO0FBQ0EsTUFBSSxJQUFJLE9BQU87QUFDYixTQUFLLE1BQU0sSUFBSSxNQUFNLFNBQVMsSUFBSSxNQUFNLElBQUk7QUFBQSxFQUM5QztBQUVBLFNBQU87QUFBQSxJQUNMLE9BQU8sSUFBSSxPQUFPLE1BQU0sSUFBSSxDQUFDLFNBQVM7QUFDcEMsYUFBTyxFQUFFLFFBQVEsS0FBSyxJQUFJLEtBQVc7QUFBQSxJQUN2QyxDQUFDO0FBQUEsSUFDRCxVQUFVO0FBQUEsTUFDUixpQkFBaUIsUUFBUSxJQUFJLE1BQU0sS0FBSztBQUFBLE1BQ3hDLGFBQWEsUUFBUSxJQUFJLE9BQU8sU0FBUztBQUFBLE1BQ3pDLGFBQWEsSUFBSSxLQUFLO0FBQUEsTUFDdEIsV0FBVyxJQUFJLE9BQU87QUFBQSxJQUN4QjtBQUFBLEVBQ0Y7QUFDRjsiLAogICJuYW1lcyI6IFtdCn0K
-",
-      "dataSource": undefined,
-      "fieldName": "occurrences",
-      "pipelineFunctions": undefined,
-      "typeName": "Task",
-    },
-    "Task.subtasks": {
-      "code": "// out/resolvers/Task.subtasks.ts
+    {
+      "code": "// __tests__/out/resolvers/Task.subtasks.ts
 import { query } from "@aws-appsync/utils/dynamodb";
 import { util } from "@aws-appsync/utils";
 function request(ctx) {
@@ -578,13 +257,13 @@ export {
       "pipelineFunctions": undefined,
       "typeName": "Task",
     },
-    "Viewer.labels": {
-      "code": "// out/resolvers/Viewer.labels.ts
+    {
+      "code": "// __tests__/out/resolvers/Task.artifacts.ts
 import { query } from "@aws-appsync/utils/dynamodb";
 import { util } from "@aws-appsync/utils";
 function request(ctx) {
   return query({
-    query: { sourceId: ctx.identity.sub },
+    query: { sourceId: ctx.source?.id },
     filter: ctx.args.filter,
     limit: ctx.args.first ?? 100,
     nextToken: ctx.args.after ?? void 0,
@@ -612,15 +291,254 @@ export {
   request,
   response
 };
-//# sourceMappingURL=data:application/json;base64,ewogICJ2ZXJzaW9uIjogMywKICAic291cmNlcyI6IFsicmVzb2x2ZXJzL1ZpZXdlci5sYWJlbHMudHMiXSwKICAibWFwcGluZ3MiOiAiO0FBTUEsU0FBUyxhQUFhO0FBQ3RCLFNBQVMsWUFBcUI7QUFDdkIsU0FBUyxRQUNkLEtBQ0E7QUFDQSxTQUFPLE1BQU07QUFBQSxJQUNYLE9BQU8sRUFBRSxVQUFVLElBQUksU0FBUyxJQUFJO0FBQUEsSUFDcEMsUUFBUSxJQUFJLEtBQUs7QUFBQSxJQUNqQixPQUFPLElBQUksS0FBSyxTQUFTO0FBQUEsSUFDekIsV0FBVyxJQUFJLEtBQUssU0FBUztBQUFBLElBQzdCLGtCQUFrQixJQUFJLEtBQUssU0FBUztBQUFBLElBQ3BDLE9BQU87QUFBQSxFQUNULENBQUM7QUFDSDtBQUVPLFNBQVMsU0FDZCxLQU9BO0FBQ0EsTUFBSSxJQUFJLE9BQU87QUFDYixTQUFLLE1BQU0sSUFBSSxNQUFNLFNBQVMsSUFBSSxNQUFNLElBQUk7QUFBQSxFQUM5QztBQUVBLFNBQU87QUFBQSxJQUNMLE9BQU8sSUFBSSxPQUFPLE1BQU0sSUFBSSxDQUFDLFNBQVM7QUFDcEMsYUFBTyxFQUFFLFFBQVEsS0FBSyxJQUFJLEtBQVc7QUFBQSxJQUN2QyxDQUFDO0FBQUEsSUFDRCxVQUFVO0FBQUEsTUFDUixpQkFBaUIsUUFBUSxJQUFJLE1BQU0sS0FBSztBQUFBLE1BQ3hDLGFBQWEsUUFBUSxJQUFJLE9BQU8sU0FBUztBQUFBLE1BQ3pDLGFBQWEsSUFBSSxLQUFLO0FBQUEsTUFDdEIsV0FBVyxJQUFJLE9BQU87QUFBQSxJQUN4QjtBQUFBLEVBQ0Y7QUFDRjsiLAogICJuYW1lcyI6IFtdCn0K
+//# sourceMappingURL=data:application/json;base64,ewogICJ2ZXJzaW9uIjogMywKICAic291cmNlcyI6IFsicmVzb2x2ZXJzL1Rhc2suYXJ0aWZhY3RzLnRzIl0sCiAgIm1hcHBpbmdzIjogIjtBQU1BLFNBQVMsYUFBYTtBQUN0QixTQUFTLFlBQXFCO0FBQ3ZCLFNBQVMsUUFDZCxLQUNBO0FBQ0EsU0FBTyxNQUFNO0FBQUEsSUFDWCxPQUFPLEVBQUUsVUFBVSxJQUFJLFFBQVEsR0FBRztBQUFBLElBQ2xDLFFBQVEsSUFBSSxLQUFLO0FBQUEsSUFDakIsT0FBTyxJQUFJLEtBQUssU0FBUztBQUFBLElBQ3pCLFdBQVcsSUFBSSxLQUFLLFNBQVM7QUFBQSxJQUM3QixrQkFBa0IsSUFBSSxLQUFLLFNBQVM7QUFBQSxJQUNwQyxPQUFPO0FBQUEsRUFDVCxDQUFDO0FBQ0g7QUFFTyxTQUFTLFNBQ2QsS0FPQTtBQUNBLE1BQUksSUFBSSxPQUFPO0FBQ2IsU0FBSyxNQUFNLElBQUksTUFBTSxTQUFTLElBQUksTUFBTSxJQUFJO0FBQUEsRUFDOUM7QUFFQSxTQUFPO0FBQUEsSUFDTCxPQUFPLElBQUksT0FBTyxNQUFNLElBQUksQ0FBQyxTQUFTO0FBQ3BDLGFBQU8sRUFBRSxRQUFRLEtBQUssSUFBSSxLQUFXO0FBQUEsSUFDdkMsQ0FBQztBQUFBLElBQ0QsVUFBVTtBQUFBLE1BQ1IsaUJBQWlCLFFBQVEsSUFBSSxNQUFNLEtBQUs7QUFBQSxNQUN4QyxhQUFhLFFBQVEsSUFBSSxPQUFPLFNBQVM7QUFBQSxNQUN6QyxhQUFhLElBQUksS0FBSztBQUFBLE1BQ3RCLFdBQVcsSUFBSSxPQUFPO0FBQUEsSUFDeEI7QUFBQSxFQUNGO0FBQ0Y7IiwKICAibmFtZXMiOiBbXQp9Cg==
 ",
       "dataSource": undefined,
-      "fieldName": "labels",
+      "fieldName": "artifacts",
+      "pipelineFunctions": undefined,
+      "typeName": "Task",
+    },
+    {
+      "code": "// __tests__/out/resolvers/Task.occurrences.ts
+import { query } from "@aws-appsync/utils/dynamodb";
+import { util } from "@aws-appsync/utils";
+function request(ctx) {
+  return query({
+    query: { sourceId: ctx.source?.id },
+    filter: ctx.args.filter,
+    limit: ctx.args.first ?? 100,
+    nextToken: ctx.args.after ?? void 0,
+    scanIndexForward: ctx.args.sort === "ASC",
+    index: "bySourceId"
+  });
+}
+function response(ctx) {
+  if (ctx.error) {
+    util.error(ctx.error.message, ctx.error.type);
+  }
+  return {
+    edges: ctx.result.items.map((node) => {
+      return { cursor: node.id, node };
+    }),
+    pageInfo: {
+      hasPreviousPage: Boolean(ctx.args?.after),
+      hasNextPage: Boolean(ctx.result.nextToken),
+      startCursor: ctx.args.after,
+      endCursor: ctx.result.nextToken
+    }
+  };
+}
+export {
+  request,
+  response
+};
+//# sourceMappingURL=data:application/json;base64,ewogICJ2ZXJzaW9uIjogMywKICAic291cmNlcyI6IFsicmVzb2x2ZXJzL1Rhc2sub2NjdXJyZW5jZXMudHMiXSwKICAibWFwcGluZ3MiOiAiO0FBS0EsU0FBUyxhQUFhO0FBQ3RCLFNBQVMsWUFBcUI7QUFDdkIsU0FBUyxRQUNkLEtBQ0E7QUFDQSxTQUFPLE1BQU07QUFBQSxJQUNYLE9BQU8sRUFBRSxVQUFVLElBQUksUUFBUSxHQUFHO0FBQUEsSUFDbEMsUUFBUSxJQUFJLEtBQUs7QUFBQSxJQUNqQixPQUFPLElBQUksS0FBSyxTQUFTO0FBQUEsSUFDekIsV0FBVyxJQUFJLEtBQUssU0FBUztBQUFBLElBQzdCLGtCQUFrQixJQUFJLEtBQUssU0FBUztBQUFBLElBQ3BDLE9BQU87QUFBQSxFQUNULENBQUM7QUFDSDtBQUVPLFNBQVMsU0FDZCxLQU9BO0FBQ0EsTUFBSSxJQUFJLE9BQU87QUFDYixTQUFLLE1BQU0sSUFBSSxNQUFNLFNBQVMsSUFBSSxNQUFNLElBQUk7QUFBQSxFQUM5QztBQUVBLFNBQU87QUFBQSxJQUNMLE9BQU8sSUFBSSxPQUFPLE1BQU0sSUFBSSxDQUFDLFNBQVM7QUFDcEMsYUFBTyxFQUFFLFFBQVEsS0FBSyxJQUFJLEtBQVc7QUFBQSxJQUN2QyxDQUFDO0FBQUEsSUFDRCxVQUFVO0FBQUEsTUFDUixpQkFBaUIsUUFBUSxJQUFJLE1BQU0sS0FBSztBQUFBLE1BQ3hDLGFBQWEsUUFBUSxJQUFJLE9BQU8sU0FBUztBQUFBLE1BQ3pDLGFBQWEsSUFBSSxLQUFLO0FBQUEsTUFDdEIsV0FBVyxJQUFJLE9BQU87QUFBQSxJQUN4QjtBQUFBLEVBQ0Y7QUFDRjsiLAogICJuYW1lcyI6IFtdCn0K
+",
+      "dataSource": undefined,
+      "fieldName": "occurrences",
+      "pipelineFunctions": undefined,
+      "typeName": "Task",
+    },
+    {
+      "code": "// __tests__/out/resolvers/Mutation.upsertLabel.ts
+import { util } from "@aws-appsync/utils";
+function request(ctx) {
+}
+function response(ctx) {
+  if (ctx.error) {
+    util.error(ctx.error.message, ctx.error.type);
+  }
+  return ctx.result;
+}
+export {
+  request,
+  response
+};
+//# sourceMappingURL=data:application/json;base64,ewogICJ2ZXJzaW9uIjogMywKICAic291cmNlcyI6IFsicmVzb2x2ZXJzL011dGF0aW9uLnVwc2VydExhYmVsLnRzIl0sCiAgIm1hcHBpbmdzIjogIjtBQUNBLFNBQVMsWUFBcUI7QUFDdkIsU0FBUyxRQUNkLEtBTUE7QUFBQztBQUVJLFNBQVMsU0FDZCxLQU9BO0FBQ0EsTUFBSSxJQUFJLE9BQU87QUFDYixTQUFLLE1BQU0sSUFBSSxNQUFNLFNBQVMsSUFBSSxNQUFNLElBQUk7QUFBQSxFQUM5QztBQUVBLFNBQU8sSUFBSTtBQUNiOyIsCiAgIm5hbWVzIjogW10KfQo=
+",
+      "dataSource": undefined,
+      "fieldName": "upsertLabel",
+      "pipelineFunctions": undefined,
+      "typeName": "Mutation",
+    },
+    {
+      "code": "// __tests__/out/resolvers/Mutation.deleteLabel.ts
+import { update, operations } from "@aws-appsync/utils/dynamodb";
+import { util } from "@aws-appsync/utils";
+function request(ctx) {
+  const { input } = ctx.args;
+  return update({
+    key: { id: ctx.args.input.id },
+    update: {
+      updatedAt: operations.replace(util.time.nowISO8601()),
+      _version: operations.increment(1),
+      _deleted: operations.replace(true)
+    },
+    condition: {
+      id: { attributeExists: true },
+      _version: { eq: input._version }
+    }
+  });
+}
+function response(ctx) {
+  if (ctx.error) {
+    util.error(ctx.error.message, ctx.error.type);
+  }
+  return ctx.result;
+}
+export {
+  request,
+  response
+};
+//# sourceMappingURL=data:application/json;base64,ewogICJ2ZXJzaW9uIjogMywKICAic291cmNlcyI6IFsicmVzb2x2ZXJzL011dGF0aW9uLmRlbGV0ZUxhYmVsLnRzIl0sCiAgIm1hcHBpbmdzIjogIjtBQUNBLFNBQVMsUUFBUSxrQkFBa0I7QUFDbkMsU0FBUyxZQUFxQjtBQUN2QixTQUFTLFFBQ2QsS0FNQTtBQUNBLFFBQU0sRUFBRSxNQUFNLElBQUksSUFBSTtBQUN0QixTQUFPLE9BQU87QUFBQSxJQUNaLEtBQUssRUFBRSxJQUFJLElBQUksS0FBSyxNQUFNLEdBQUc7QUFBQSxJQUM3QixRQUFRO0FBQUEsTUFDTixXQUFXLFdBQVcsUUFBUSxLQUFLLEtBQUssV0FBVyxDQUFDO0FBQUEsTUFDcEQsVUFBVSxXQUFXLFVBQVUsQ0FBQztBQUFBLE1BQ2hDLFVBQVUsV0FBVyxRQUFRLElBQUk7QUFBQSxJQUNuQztBQUFBLElBQ0EsV0FBVztBQUFBLE1BQ1QsSUFBSSxFQUFFLGlCQUFpQixLQUFLO0FBQUEsTUFDNUIsVUFBVSxFQUFFLElBQUksTUFBTSxTQUFTO0FBQUEsSUFDakM7QUFBQSxFQUNGLENBQUM7QUFDSDtBQUVPLFNBQVMsU0FDZCxLQU9BO0FBQ0EsTUFBSSxJQUFJLE9BQU87QUFDYixTQUFLLE1BQU0sSUFBSSxNQUFNLFNBQVMsSUFBSSxNQUFNLElBQUk7QUFBQSxFQUM5QztBQUVBLFNBQU8sSUFBSTtBQUNiOyIsCiAgIm5hbWVzIjogW10KfQo=
+",
+      "dataSource": undefined,
+      "fieldName": "deleteLabel",
+      "pipelineFunctions": undefined,
+      "typeName": "Mutation",
+    },
+    {
+      "code": "// __tests__/out/resolvers/Mutation.upsertFile.ts
+import { util } from "@aws-appsync/utils";
+function request(ctx) {
+}
+function response(ctx) {
+  if (ctx.error) {
+    util.error(ctx.error.message, ctx.error.type);
+  }
+  return ctx.result;
+}
+export {
+  request,
+  response
+};
+//# sourceMappingURL=data:application/json;base64,ewogICJ2ZXJzaW9uIjogMywKICAic291cmNlcyI6IFsicmVzb2x2ZXJzL011dGF0aW9uLnVwc2VydEZpbGUudHMiXSwKICAibWFwcGluZ3MiOiAiO0FBQ0EsU0FBUyxZQUFxQjtBQUN2QixTQUFTLFFBQ2QsS0FNQTtBQUFDO0FBRUksU0FBUyxTQUNkLEtBT0E7QUFDQSxNQUFJLElBQUksT0FBTztBQUNiLFNBQUssTUFBTSxJQUFJLE1BQU0sU0FBUyxJQUFJLE1BQU0sSUFBSTtBQUFBLEVBQzlDO0FBRUEsU0FBTyxJQUFJO0FBQ2I7IiwKICAibmFtZXMiOiBbXQp9Cg==
+",
+      "dataSource": undefined,
+      "fieldName": "upsertFile",
+      "pipelineFunctions": undefined,
+      "typeName": "Mutation",
+    },
+    {
+      "code": "// __tests__/out/resolvers/Mutation.deleteFile.ts
+import { update, operations } from "@aws-appsync/utils/dynamodb";
+import { util } from "@aws-appsync/utils";
+function request(ctx) {
+  const { input } = ctx.args;
+  return update({
+    key: { id: ctx.args.input.id },
+    update: {
+      updatedAt: operations.replace(util.time.nowISO8601()),
+      _version: operations.increment(1),
+      _deleted: operations.replace(true)
+    },
+    condition: {
+      id: { attributeExists: true },
+      _version: { eq: input._version }
+    }
+  });
+}
+function response(ctx) {
+  if (ctx.error) {
+    util.error(ctx.error.message, ctx.error.type);
+  }
+  return ctx.result;
+}
+export {
+  request,
+  response
+};
+//# sourceMappingURL=data:application/json;base64,ewogICJ2ZXJzaW9uIjogMywKICAic291cmNlcyI6IFsicmVzb2x2ZXJzL011dGF0aW9uLmRlbGV0ZUZpbGUudHMiXSwKICAibWFwcGluZ3MiOiAiO0FBQ0EsU0FBUyxRQUFRLGtCQUFrQjtBQUNuQyxTQUFTLFlBQXFCO0FBQ3ZCLFNBQVMsUUFDZCxLQU1BO0FBQ0EsUUFBTSxFQUFFLE1BQU0sSUFBSSxJQUFJO0FBQ3RCLFNBQU8sT0FBTztBQUFBLElBQ1osS0FBSyxFQUFFLElBQUksSUFBSSxLQUFLLE1BQU0sR0FBRztBQUFBLElBQzdCLFFBQVE7QUFBQSxNQUNOLFdBQVcsV0FBVyxRQUFRLEtBQUssS0FBSyxXQUFXLENBQUM7QUFBQSxNQUNwRCxVQUFVLFdBQVcsVUFBVSxDQUFDO0FBQUEsTUFDaEMsVUFBVSxXQUFXLFFBQVEsSUFBSTtBQUFBLElBQ25DO0FBQUEsSUFDQSxXQUFXO0FBQUEsTUFDVCxJQUFJLEVBQUUsaUJBQWlCLEtBQUs7QUFBQSxNQUM1QixVQUFVLEVBQUUsSUFBSSxNQUFNLFNBQVM7QUFBQSxJQUNqQztBQUFBLEVBQ0YsQ0FBQztBQUNIO0FBRU8sU0FBUyxTQUNkLEtBT0E7QUFDQSxNQUFJLElBQUksT0FBTztBQUNiLFNBQUssTUFBTSxJQUFJLE1BQU0sU0FBUyxJQUFJLE1BQU0sSUFBSTtBQUFBLEVBQzlDO0FBRUEsU0FBTyxJQUFJO0FBQ2I7IiwKICAibmFtZXMiOiBbXQp9Cg==
+",
+      "dataSource": undefined,
+      "fieldName": "deleteFile",
+      "pipelineFunctions": undefined,
+      "typeName": "Mutation",
+    },
+    {
+      "code": "// __tests__/out/resolvers/Mutation.upsertTimeTracker.ts
+import { util } from "@aws-appsync/utils";
+function request(ctx) {
+}
+function response(ctx) {
+  if (ctx.error) {
+    util.error(ctx.error.message, ctx.error.type);
+  }
+  return ctx.result;
+}
+export {
+  request,
+  response
+};
+//# sourceMappingURL=data:application/json;base64,ewogICJ2ZXJzaW9uIjogMywKICAic291cmNlcyI6IFsicmVzb2x2ZXJzL011dGF0aW9uLnVwc2VydFRpbWVUcmFja2VyLnRzIl0sCiAgIm1hcHBpbmdzIjogIjtBQUNBLFNBQVMsWUFBcUI7QUFDdkIsU0FBUyxRQUNkLEtBTUE7QUFBQztBQUVJLFNBQVMsU0FDZCxLQU9BO0FBQ0EsTUFBSSxJQUFJLE9BQU87QUFDYixTQUFLLE1BQU0sSUFBSSxNQUFNLFNBQVMsSUFBSSxNQUFNLElBQUk7QUFBQSxFQUM5QztBQUVBLFNBQU8sSUFBSTtBQUNiOyIsCiAgIm5hbWVzIjogW10KfQo=
+",
+      "dataSource": undefined,
+      "fieldName": "upsertTimeTracker",
+      "pipelineFunctions": undefined,
+      "typeName": "Mutation",
+    },
+    {
+      "code": "// __tests__/out/resolvers/Mutation.deleteTimeTracker.ts
+import { update, operations } from "@aws-appsync/utils/dynamodb";
+import { util } from "@aws-appsync/utils";
+function request(ctx) {
+  const { input } = ctx.args;
+  return update({
+    key: { id: ctx.args.input.id },
+    update: {
+      updatedAt: operations.replace(util.time.nowISO8601()),
+      _version: operations.increment(1),
+      _deleted: operations.replace(true)
+    },
+    condition: {
+      id: { attributeExists: true },
+      _version: { eq: input._version }
+    }
+  });
+}
+function response(ctx) {
+  if (ctx.error) {
+    util.error(ctx.error.message, ctx.error.type);
+  }
+  return ctx.result;
+}
+export {
+  request,
+  response
+};
+//# sourceMappingURL=data:application/json;base64,ewogICJ2ZXJzaW9uIjogMywKICAic291cmNlcyI6IFsicmVzb2x2ZXJzL011dGF0aW9uLmRlbGV0ZVRpbWVUcmFja2VyLnRzIl0sCiAgIm1hcHBpbmdzIjogIjtBQUNBLFNBQVMsUUFBUSxrQkFBa0I7QUFDbkMsU0FBUyxZQUFxQjtBQUN2QixTQUFTLFFBQ2QsS0FNQTtBQUNBLFFBQU0sRUFBRSxNQUFNLElBQUksSUFBSTtBQUN0QixTQUFPLE9BQU87QUFBQSxJQUNaLEtBQUssRUFBRSxJQUFJLElBQUksS0FBSyxNQUFNLEdBQUc7QUFBQSxJQUM3QixRQUFRO0FBQUEsTUFDTixXQUFXLFdBQVcsUUFBUSxLQUFLLEtBQUssV0FBVyxDQUFDO0FBQUEsTUFDcEQsVUFBVSxXQUFXLFVBQVUsQ0FBQztBQUFBLE1BQ2hDLFVBQVUsV0FBVyxRQUFRLElBQUk7QUFBQSxJQUNuQztBQUFBLElBQ0EsV0FBVztBQUFBLE1BQ1QsSUFBSSxFQUFFLGlCQUFpQixLQUFLO0FBQUEsTUFDNUIsVUFBVSxFQUFFLElBQUksTUFBTSxTQUFTO0FBQUEsSUFDakM7QUFBQSxFQUNGLENBQUM7QUFDSDtBQUVPLFNBQVMsU0FDZCxLQU9BO0FBQ0EsTUFBSSxJQUFJLE9BQU87QUFDYixTQUFLLE1BQU0sSUFBSSxNQUFNLFNBQVMsSUFBSSxNQUFNLElBQUk7QUFBQSxFQUM5QztBQUVBLFNBQU8sSUFBSTtBQUNiOyIsCiAgIm5hbWVzIjogW10KfQo=
+",
+      "dataSource": undefined,
+      "fieldName": "deleteTimeTracker",
+      "pipelineFunctions": undefined,
+      "typeName": "Mutation",
+    },
+    {
+      "code": "// __tests__/out/resolvers/Viewer.user.ts
+import { get } from "@aws-appsync/utils/dynamodb";
+import { util } from "@aws-appsync/utils";
+function request(ctx) {
+  return get({ key: { id: ctx.identity.sub } });
+}
+function response(ctx) {
+  if (ctx.error) {
+    util.error(ctx.error.message, ctx.error.type);
+  }
+  return ctx.result;
+}
+export {
+  request,
+  response
+};
+//# sourceMappingURL=data:application/json;base64,ewogICJ2ZXJzaW9uIjogMywKICAic291cmNlcyI6IFsicmVzb2x2ZXJzL1ZpZXdlci51c2VyLnRzIl0sCiAgIm1hcHBpbmdzIjogIjtBQUNBLFNBQVMsV0FBVztBQUNwQixTQUFTLFlBQXFCO0FBQ3ZCLFNBQVMsUUFDZCxLQUNBO0FBQ0EsU0FBTyxJQUFJLEVBQUUsS0FBSyxFQUFFLElBQUksSUFBSSxTQUFTLElBQUksRUFBRSxDQUFDO0FBQzlDO0FBRU8sU0FBUyxTQUNkLEtBQ0E7QUFDQSxNQUFJLElBQUksT0FBTztBQUNiLFNBQUssTUFBTSxJQUFJLE1BQU0sU0FBUyxJQUFJLE1BQU0sSUFBSTtBQUFBLEVBQzlDO0FBRUEsU0FBTyxJQUFJO0FBQ2I7IiwKICAibmFtZXMiOiBbXQp9Cg==
+",
+      "dataSource": undefined,
+      "fieldName": "user",
       "pipelineFunctions": undefined,
       "typeName": "Viewer",
     },
-    "Viewer.tasks": {
-      "code": "// out/resolvers/Viewer.tasks.ts
+    {
+      "code": "// __tests__/out/resolvers/Viewer.tasks.ts
 import { query } from "@aws-appsync/utils/dynamodb";
 import { util } from "@aws-appsync/utils";
 function request(ctx) {
@@ -660,12 +578,53 @@ export {
       "pipelineFunctions": undefined,
       "typeName": "Viewer",
     },
-    "Viewer.user": {
-      "code": "// out/resolvers/Viewer.user.ts
+    {
+      "code": "// __tests__/out/resolvers/Viewer.labels.ts
+import { query } from "@aws-appsync/utils/dynamodb";
+import { util } from "@aws-appsync/utils";
+function request(ctx) {
+  return query({
+    query: { sourceId: ctx.identity.sub },
+    filter: ctx.args.filter,
+    limit: ctx.args.first ?? 100,
+    nextToken: ctx.args.after ?? void 0,
+    scanIndexForward: ctx.args.sort === "ASC",
+    index: "bySourceId"
+  });
+}
+function response(ctx) {
+  if (ctx.error) {
+    util.error(ctx.error.message, ctx.error.type);
+  }
+  return {
+    edges: ctx.result.items.map((node) => {
+      return { cursor: node.id, node };
+    }),
+    pageInfo: {
+      hasPreviousPage: Boolean(ctx.args?.after),
+      hasNextPage: Boolean(ctx.result.nextToken),
+      startCursor: ctx.args.after,
+      endCursor: ctx.result.nextToken
+    }
+  };
+}
+export {
+  request,
+  response
+};
+//# sourceMappingURL=data:application/json;base64,ewogICJ2ZXJzaW9uIjogMywKICAic291cmNlcyI6IFsicmVzb2x2ZXJzL1ZpZXdlci5sYWJlbHMudHMiXSwKICAibWFwcGluZ3MiOiAiO0FBTUEsU0FBUyxhQUFhO0FBQ3RCLFNBQVMsWUFBcUI7QUFDdkIsU0FBUyxRQUNkLEtBQ0E7QUFDQSxTQUFPLE1BQU07QUFBQSxJQUNYLE9BQU8sRUFBRSxVQUFVLElBQUksU0FBUyxJQUFJO0FBQUEsSUFDcEMsUUFBUSxJQUFJLEtBQUs7QUFBQSxJQUNqQixPQUFPLElBQUksS0FBSyxTQUFTO0FBQUEsSUFDekIsV0FBVyxJQUFJLEtBQUssU0FBUztBQUFBLElBQzdCLGtCQUFrQixJQUFJLEtBQUssU0FBUztBQUFBLElBQ3BDLE9BQU87QUFBQSxFQUNULENBQUM7QUFDSDtBQUVPLFNBQVMsU0FDZCxLQU9BO0FBQ0EsTUFBSSxJQUFJLE9BQU87QUFDYixTQUFLLE1BQU0sSUFBSSxNQUFNLFNBQVMsSUFBSSxNQUFNLElBQUk7QUFBQSxFQUM5QztBQUVBLFNBQU87QUFBQSxJQUNMLE9BQU8sSUFBSSxPQUFPLE1BQU0sSUFBSSxDQUFDLFNBQVM7QUFDcEMsYUFBTyxFQUFFLFFBQVEsS0FBSyxJQUFJLEtBQVc7QUFBQSxJQUN2QyxDQUFDO0FBQUEsSUFDRCxVQUFVO0FBQUEsTUFDUixpQkFBaUIsUUFBUSxJQUFJLE1BQU0sS0FBSztBQUFBLE1BQ3hDLGFBQWEsUUFBUSxJQUFJLE9BQU8sU0FBUztBQUFBLE1BQ3pDLGFBQWEsSUFBSSxLQUFLO0FBQUEsTUFDdEIsV0FBVyxJQUFJLE9BQU87QUFBQSxJQUN4QjtBQUFBLEVBQ0Y7QUFDRjsiLAogICJuYW1lcyI6IFtdCn0K
+",
+      "dataSource": undefined,
+      "fieldName": "labels",
+      "pipelineFunctions": undefined,
+      "typeName": "Viewer",
+    },
+    {
+      "code": "// __tests__/out/resolvers/Query.getUser.ts
 import { get } from "@aws-appsync/utils/dynamodb";
 import { util } from "@aws-appsync/utils";
 function request(ctx) {
-  return get({ key: { id: ctx.identity.sub } });
+  return get({ key: { id: ctx.args.id } });
 }
 function response(ctx) {
   if (ctx.error) {
@@ -677,15 +636,56 @@ export {
   request,
   response
 };
-//# sourceMappingURL=data:application/json;base64,ewogICJ2ZXJzaW9uIjogMywKICAic291cmNlcyI6IFsicmVzb2x2ZXJzL1ZpZXdlci51c2VyLnRzIl0sCiAgIm1hcHBpbmdzIjogIjtBQUNBLFNBQVMsV0FBVztBQUNwQixTQUFTLFlBQXFCO0FBQ3ZCLFNBQVMsUUFDZCxLQUNBO0FBQ0EsU0FBTyxJQUFJLEVBQUUsS0FBSyxFQUFFLElBQUksSUFBSSxTQUFTLElBQUksRUFBRSxDQUFDO0FBQzlDO0FBRU8sU0FBUyxTQUNkLEtBQ0E7QUFDQSxNQUFJLElBQUksT0FBTztBQUNiLFNBQUssTUFBTSxJQUFJLE1BQU0sU0FBUyxJQUFJLE1BQU0sSUFBSTtBQUFBLEVBQzlDO0FBRUEsU0FBTyxJQUFJO0FBQ2I7IiwKICAibmFtZXMiOiBbXQp9Cg==
+//# sourceMappingURL=data:application/json;base64,ewogICJ2ZXJzaW9uIjogMywKICAic291cmNlcyI6IFsicmVzb2x2ZXJzL1F1ZXJ5LmdldFVzZXIudHMiXSwKICAibWFwcGluZ3MiOiAiO0FBQ0EsU0FBUyxXQUFXO0FBQ3BCLFNBQVMsWUFBcUI7QUFDdkIsU0FBUyxRQUNkLEtBQ0E7QUFDQSxTQUFPLElBQUksRUFBRSxLQUFLLEVBQUUsSUFBSSxJQUFJLEtBQUssR0FBRyxFQUFFLENBQUM7QUFDekM7QUFFTyxTQUFTLFNBQ2QsS0FPQTtBQUNBLE1BQUksSUFBSSxPQUFPO0FBQ2IsU0FBSyxNQUFNLElBQUksTUFBTSxTQUFTLElBQUksTUFBTSxJQUFJO0FBQUEsRUFDOUM7QUFFQSxTQUFPLElBQUk7QUFDYjsiLAogICJuYW1lcyI6IFtdCn0K
 ",
       "dataSource": undefined,
-      "fieldName": "user",
+      "fieldName": "getUser",
       "pipelineFunctions": undefined,
-      "typeName": "Viewer",
+      "typeName": "Query",
     },
-  },
-  "pipelineFunctions": {},
+    {
+      "code": "// __tests__/out/resolvers/Query.listUsers.ts
+import { query } from "@aws-appsync/utils/dynamodb";
+import { util } from "@aws-appsync/utils";
+function request(ctx) {
+  return query({
+    query: { sourceId: "User" },
+    filter: ctx.args.filter,
+    limit: ctx.args.first ?? 100,
+    nextToken: ctx.args.after ?? void 0,
+    scanIndexForward: ctx.args.sort === "ASC",
+    index: "byTypename"
+  });
+}
+function response(ctx) {
+  if (ctx.error) {
+    util.error(ctx.error.message, ctx.error.type);
+  }
+  return {
+    edges: ctx.result.items.map((node) => {
+      return { cursor: node.id, node };
+    }),
+    pageInfo: {
+      hasPreviousPage: Boolean(ctx.args?.after),
+      hasNextPage: Boolean(ctx.result.nextToken),
+      startCursor: ctx.args.after,
+      endCursor: ctx.result.nextToken
+    }
+  };
+}
+export {
+  request,
+  response
+};
+//# sourceMappingURL=data:application/json;base64,ewogICJ2ZXJzaW9uIjogMywKICAic291cmNlcyI6IFsicmVzb2x2ZXJzL1F1ZXJ5Lmxpc3RVc2Vycy50cyJdLAogICJtYXBwaW5ncyI6ICI7QUFDQSxTQUFTLGFBQWE7QUFDdEIsU0FBUyxZQUFxQjtBQUN2QixTQUFTLFFBQ2QsS0FNQTtBQUNBLFNBQU8sTUFBTTtBQUFBLElBQ1gsT0FBTyxFQUFFLFVBQVUsT0FBTztBQUFBLElBQzFCLFFBQVEsSUFBSSxLQUFLO0FBQUEsSUFDakIsT0FBTyxJQUFJLEtBQUssU0FBUztBQUFBLElBQ3pCLFdBQVcsSUFBSSxLQUFLLFNBQVM7QUFBQSxJQUM3QixrQkFBa0IsSUFBSSxLQUFLLFNBQVM7QUFBQSxJQUNwQyxPQUFPO0FBQUEsRUFDVCxDQUFDO0FBQ0g7QUFFTyxTQUFTLFNBQ2QsS0FPQTtBQUNBLE1BQUksSUFBSSxPQUFPO0FBQ2IsU0FBSyxNQUFNLElBQUksTUFBTSxTQUFTLElBQUksTUFBTSxJQUFJO0FBQUEsRUFDOUM7QUFFQSxTQUFPO0FBQUEsSUFDTCxPQUFPLElBQUksT0FBTyxNQUFNLElBQUksQ0FBQyxTQUFTO0FBQ3BDLGFBQU8sRUFBRSxRQUFRLEtBQUssSUFBSSxLQUFXO0FBQUEsSUFDdkMsQ0FBQztBQUFBLElBQ0QsVUFBVTtBQUFBLE1BQ1IsaUJBQWlCLFFBQVEsSUFBSSxNQUFNLEtBQUs7QUFBQSxNQUN4QyxhQUFhLFFBQVEsSUFBSSxPQUFPLFNBQVM7QUFBQSxNQUN6QyxhQUFhLElBQUksS0FBSztBQUFBLE1BQ3RCLFdBQVcsSUFBSSxPQUFPO0FBQUEsSUFDeEI7QUFBQSxFQUNGO0FBQ0Y7IiwKICAibmFtZXMiOiBbXQp9Cg==
+",
+      "dataSource": undefined,
+      "fieldName": "listUsers",
+      "pipelineFunctions": undefined,
+      "typeName": "Query",
+    },
+  ],
+  "pipelineFunctions": [],
   "schema": "enum UserStatus {
   ACTIVE
   DISABLED
@@ -889,10 +889,6 @@ type PageInfo {
   startCursor: String
   endCursor: String
 }
-
-directive @dataSource(name: String!) on OBJECT
-
-directive @resolver(source: String!) on FIELD_DEFINITION
 
 input CreateUserInput {
   id: ID

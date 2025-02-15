@@ -10,7 +10,7 @@ import { ensureOutputDirectory } from "../utils/output";
 import { TypeGenerator } from "../codegen";
 import { ResolverGenerator } from "../resolver/ResolverGenerator";
 import { ResolverConfig, DataSourceConfig } from "../utils/types";
-import { FieldResolver, FunctionResolver } from "../resolver";
+import { FieldResolver, FunctionResolver, ResolverBase } from "../resolver";
 
 export interface GraphQLTransformerOptions {
   definition: string;
@@ -40,8 +40,8 @@ export type PipelineFunctionOutput = {
 
 export type TransformerOutput = {
   schema: string;
-  fieldResolvers: Record<string, FieldResolverOutput>;
-  pipelineFunctions: Record<string, PipelineFunctionOutput>;
+  fieldResolvers: FieldResolverOutput[];
+  pipelineFunctions: PipelineFunctionOutput[];
 };
 
 export class GraphQLTransformer {
@@ -53,70 +53,52 @@ export class GraphQLTransformer {
     this.document = DocumentNode.fromSource(options.definition);
     this.context = new TransformerContext({ document: this.document });
     this.plugins = this._initPlugins(this.context);
-
-    for (const plugin of this.plugins) {
-      plugin.before();
-    }
   }
 
   private _initPlugins(context: TransformerContext) {
     return this.options.plugins.map((factory) => factory.create(context));
   }
 
-  private _generateResources() {
-    // Print source schema and resolvers.
-    const { outputDirectory } = this.options;
-
-    const outputPath = ensureOutputDirectory(outputDirectory);
-    // eslint-disable-next-line security/detect-non-literal-fs-filename
-    writeFileSync(path.resolve(outputPath, "schema.graphql"), this.document.print(), {
+  private _printSchema(outDir: string) {
+    writeFileSync(path.resolve(outDir, "schema.graphql"), this.document.print(), {
       encoding: "utf-8",
     });
 
     const typesGen = new TypeGenerator(this.context.document);
 
-    // eslint-disable-next-line security/detect-non-literal-fs-filename
     writeFileSync(
-      path.resolve(outputPath, "schema-types.ts"),
+      path.resolve(outDir, "schema-types.ts"),
       prettier.format(typesGen.generate(), { parser: "typescript" }),
       {
         encoding: "utf-8",
       }
     );
+  }
 
-    const resolverGenerator = new ResolverGenerator(this.context);
-    const resolversDir = ensureOutputDirectory(path.join(outputDirectory, "resolvers"));
+  private _printResolvers(outDir: string) {
+    const basePath = ensureOutputDirectory(path.join(outDir, "resolvers"));
+    const codegen = new ResolverGenerator(this.context);
 
-    resolverGenerator.generate();
+    codegen.generate();
 
     for (const [name, resolver] of this.context.resolvers.entries()) {
       if (!resolver.isReadonly) {
-        // eslint-disable-next-line security/detect-non-literal-fs-filename
         writeFileSync(
-          path.resolve(resolversDir, `${name}.ts`),
+          path.resolve(basePath, `${name}.ts`),
           prettier.format(resolver.print(), { parser: "typescript" }),
           { encoding: "utf-8" }
         );
 
-        resolver.setSource(path.resolve(resolversDir, `${name}.ts`));
+        resolver.setSource(path.resolve(basePath, `${name}.ts`));
       }
     }
   }
 
-  private _generateOutput() {
-    for (const plugin of this.plugins) {
-      plugin.after();
-    }
+  private _buildResolvers() {
+    const fieldResolvers: FieldResolverOutput[] = [];
+    const pipelineFunctions: PipelineFunctionOutput[] = [];
 
-    const output: TransformerOutput = {
-      schema: this.document.print(),
-      fieldResolvers: {},
-      pipelineFunctions: {},
-    };
-
-    // Build resolvers
-
-    const resolversBySource = new Map();
+    const resolversBySource = new Map<string, ResolverBase[]>();
 
     for (const resolver of this.context.resolvers.values()) {
       if (resolver.source) {
@@ -124,7 +106,7 @@ export class GraphQLTransformer {
           resolversBySource.set(resolver.source, []);
         }
 
-        resolversBySource.get(resolver.source).push(resolver);
+        resolversBySource.get(resolver.source)?.push(resolver);
       }
     }
 
@@ -158,36 +140,42 @@ export class GraphQLTransformer {
       if (resolverForPath) {
         for (const resolver of resolverForPath) {
           if (resolver instanceof FunctionResolver) {
-            output.pipelineFunctions[`${resolver.name}`] = {
+            pipelineFunctions.push({
               name: resolver.name,
               dataSource: resolver.dataSource,
               code: file.text,
-            };
+            });
           }
 
           if (resolver instanceof FieldResolver) {
-            output.fieldResolvers[`${resolver.typeName}.${resolver.fieldName}`] = {
+            fieldResolvers.push({
               typeName: resolver.typeName,
               fieldName: resolver.fieldName,
               pipelineFunctions: resolver.pipelineFunctions,
               dataSource: resolver.dataSource,
               code: file.text,
-            };
+            });
           }
         }
       }
     }
 
-    return output;
+    return { fieldResolvers, pipelineFunctions };
   }
 
-  /**
-   * Node transformation happens in 3 stages:
-   * 1. Execute - Adds additional nodes and necessary resources & creates resolvers;
-   * 2. Cleanup - Removes internal directives from the schema.
-   */
+  private _generateResources() {
+    const { outputDirectory } = this.options;
+    const outputPath = ensureOutputDirectory(outputDirectory);
 
-  public transform() {
+    this._printSchema(outputPath);
+    this._printResolvers(outputPath);
+  }
+
+  public transform(): TransformerOutput {
+    for (const plugin of this.plugins) {
+      plugin.before();
+    }
+
     const errors = this.document.validate();
 
     if (errors.length) {
@@ -210,8 +198,6 @@ export class GraphQLTransformer {
       }
     }
 
-    this._generateResources();
-
     // Stage 2. Cleanup
     for (const definition of this.document.definitions.values()) {
       for (const plugin of this.plugins) {
@@ -221,7 +207,18 @@ export class GraphQLTransformer {
       }
     }
 
-    // Generate output
-    return this._generateOutput();
+    for (const plugin of this.plugins) {
+      plugin.after();
+    }
+
+    this._generateResources();
+
+    const { fieldResolvers, pipelineFunctions } = this._buildResolvers();
+
+    return {
+      schema: this.document.print(),
+      fieldResolvers,
+      pipelineFunctions,
+    };
   }
 }

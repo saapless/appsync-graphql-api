@@ -103,7 +103,7 @@ describe("GraphQLTransformer", () => {
   const transformer = createTransformer({
     definition: schema,
     mode: "development",
-    outputDirectory: resolve(dirname(fileURLToPath(import.meta.url)), "../out"),
+    outputDirectory: resolve(dirname(fileURLToPath(import.meta.url)), "out"),
   });
 
   describe("createTransformer factory", () => {

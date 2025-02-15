@@ -1,6 +1,6 @@
 import { FieldResolver } from "../src/resolver";
 
-describe("resolver/FieldResolver", () => {
+describe("FieldResolver", () => {
   const resolver = FieldResolver.create("Query", "node");
   it("should create resolver code", () => {
     const { code } = resolver.serialize();
@@ -9,7 +9,7 @@ describe("resolver/FieldResolver", () => {
 
   describe("given a source", () => {
     it("parse resolver from source code", () => {
-      const fromSource = FieldResolver.fromSource("Query", "user", "function request() {}");
+      const fromSource = FieldResolver.fromSource("Query", "user", "Query.user.ts");
       expect(fromSource.isReadonly).toEqual(true);
     });
   });

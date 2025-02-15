@@ -54,6 +54,7 @@ export default tseslint.config(
     },
     rules: {
       "turbo/no-undeclared-env-vars": "error",
+      "security/detect-non-literal-fs-filename": "off",
       "import/order": [
         1,
         {

@@ -204,12 +204,12 @@ export class AppSyncGraphQLApi extends Construct {
   }
 
   private _createPipelineFunctions(
-    config: Record<string, PipelineFunctionOutput>,
+    configs: PipelineFunctionOutput[],
     dataSources: Map<string, BaseDataSource>
   ) {
     const stash = new Map<string, IAppsyncFunction>();
 
-    for (const func of Object.values(config)) {
+    for (const func of configs) {
       const dataSource = func.dataSource
         ? dataSources.get(func.dataSource)
         : dataSources.get(DEFAULT_DATA_SOURCE_NAME);
@@ -231,13 +231,13 @@ export class AppSyncGraphQLApi extends Construct {
   }
 
   private _createFieldResolvers(
-    configs: Record<string, FieldResolverOutput>,
+    configs: FieldResolverOutput[],
     dataSources: Map<string, BaseDataSource>,
     pipelineFunctions: Map<string, IAppsyncFunction>
   ) {
     const stash = new Map<string, Resolver>();
 
-    for (const config of Object.values(configs)) {
+    for (const config of configs) {
       const dataSource = config.dataSource
         ? dataSources.get(config.dataSource)
         : dataSources.get(DEFAULT_DATA_SOURCE_NAME);

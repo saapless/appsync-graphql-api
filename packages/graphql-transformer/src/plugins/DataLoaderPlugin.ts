@@ -82,7 +82,9 @@ export class DataLoaderPlugin extends TransformerPluginBase {
     }
   }
 
-  public cleanup(): void {}
+  public cleanup(): void {
+    this.context.document.removeNode("dataSource").removeNode("resolver");
+  }
 
   static create(context: TransformerContext) {
     return new DataLoaderPlugin(context);

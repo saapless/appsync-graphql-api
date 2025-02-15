@@ -1,6 +1,6 @@
 // Jest Snapshot v1, https://goo.gl/fbAQLP
 
-exports[`resolver/FieldResolver should create resolver code 1`] = `
+exports[`FieldResolver should create resolver code 1`] = `
 "import { Context } from "@aws-appsync/utils";
 export function request(ctx: Context<unknown, Record<string, unknown>, undefined, undefined>) {
 

@@ -1,7 +1,6 @@
-import { ResolverBase, ResolverKind } from "./ResolverBase";
+import { ResolverBase } from "./ResolverBase";
 
 export class FunctionResolver extends ResolverBase {
-  public readonly kind = ResolverKind.FUNCTION_RESOLVER;
   public readonly name: string;
 
   constructor(name: string, dataSource?: string, source?: string) {

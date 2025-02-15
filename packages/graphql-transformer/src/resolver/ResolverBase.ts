@@ -1,3 +1,4 @@
+import type { OutputFile } from "esbuild";
 import { CodeDocument } from "../codegen";
 
 export enum ResolverKind {
@@ -18,15 +19,13 @@ export enum ResolverKind {
  *     the dataSource result.
  */
 
-export abstract class ResolverBase {
-  abstract readonly kind: ResolverKind;
-
-  public readonly isReadonly: boolean = false;
-  public readonly dataSource?: string;
-  public readonly code: CodeDocument;
-  public source?: string;
-
+export class ResolverBase {
   private readonly _name: string;
+  public readonly isReadonly: boolean = false;
+  public readonly code: CodeDocument;
+  public readonly dataSource?: string;
+  public source?: string;
+  public output?: OutputFile;
 
   constructor(name: string, dataSource?: string, source?: string, isReadonly = false) {
     this._name = name;
@@ -39,7 +38,16 @@ export abstract class ResolverBase {
   public setSource(path: string) {
     this.source = path;
   }
+
+  public setOutput(output: OutputFile) {
+    this.output = output;
+  }
+
   public print(): string {
     return this.code.print();
+  }
+
+  static fromSource(name: string, source: string, dataSource?: string) {
+    return new ResolverBase(name, dataSource, source);
   }
 }

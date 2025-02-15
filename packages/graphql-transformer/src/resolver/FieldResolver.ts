@@ -1,7 +1,6 @@
-import { ResolverBase, ResolverKind } from "./ResolverBase";
+import { ResolverBase } from "./ResolverBase";
 
 export class FieldResolver extends ResolverBase {
-  public readonly kind = ResolverKind.FIELD_RESOLVER;
   public readonly typeName: string;
   public readonly fieldName: string;
   public readonly pipelineFunctions?: string[];
@@ -13,7 +12,7 @@ export class FieldResolver extends ResolverBase {
     pipelineFunctions?: string[],
     source?: string
   ) {
-    super(`${typeName}.${fieldName}`, dataSource, source);
+    super(`${typeName}.${fieldName}`, dataSource, source, Boolean(source));
 
     this.typeName = typeName;
     this.fieldName = fieldName;
