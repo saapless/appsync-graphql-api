@@ -1,5 +1,5 @@
 import { DocumentNode } from "../parser";
-import { ResolverBase } from "../resolver";
+import { ResolverManager, ResolverManagerConfig } from "../resolver/ResolverManager";
 import {
   AuthorizationRule,
   LoaderDescriptor,
@@ -8,7 +8,7 @@ import {
   WriteOperation,
 } from "../utils/types";
 
-interface TransformerContextConfig {
+export interface TransformerContextConfig extends ResolverManagerConfig {
   document: DocumentNode;
   defaultAuthorizationRule?: AuthorizationRule;
   readOperations?: ReadOperation[];
@@ -18,7 +18,7 @@ interface TransformerContextConfig {
 
 export class TransformerContext {
   public readonly document: DocumentNode;
-  public readonly resolvers: Map<string, ResolverBase> = new Map();
+  public readonly resolvers: ResolverManager;
   public readonly loaders: Map<string, LoaderDescriptor> = new Map();
   public readonly defaultAuthorizationRule: AuthorizationRule;
   public readonly readOperations: ReadOperation[];
@@ -27,6 +27,7 @@ export class TransformerContext {
 
   constructor(config: TransformerContextConfig) {
     this.document = config.document;
+    this.resolvers = new ResolverManager(this, config);
     this.defaultAuthorizationRule = config.defaultAuthorizationRule ?? { allow: "owner" };
     this.readOperations = config.readOperations ?? ["get", "list"];
     this.writeOperations = config.writeOperations ?? ["create", "update", "delete"];

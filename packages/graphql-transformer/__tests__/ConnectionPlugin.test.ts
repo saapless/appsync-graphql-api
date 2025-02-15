@@ -8,7 +8,6 @@ import {
   ObjectNode,
 } from "../src/parser";
 import { ConnectionPlugin } from "../src/plugins";
-import { FieldResolver } from "../src/resolver";
 
 const schema = /* GraphQL */ `
   type User {
@@ -108,7 +107,7 @@ describe("ConnectionPlugin", () => {
     });
 
     it.skip("creates field resolvers", () => {
-      expect(context.resolvers.get("Todo.resources")).toBeInstanceOf(FieldResolver);
+      // expect(context.resolvers.get("Todo.resources")).toBeInstanceOf(FieldResolver);
     });
   });
 

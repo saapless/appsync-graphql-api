@@ -11,7 +11,7 @@ import {
 import { pascalCase } from "../../utils/strings";
 import { CodeDeclaration, printAST, tc, TypeProperty } from "../code";
 
-export default class TypeGenerator {
+export class TypeGenerator {
   private readonly _definitions: CodeDeclaration[];
 
   constructor(protected document: DocumentNode) {

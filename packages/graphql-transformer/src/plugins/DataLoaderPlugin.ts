@@ -2,9 +2,10 @@ import { TransformerContext } from "../context";
 import {
   DefinitionNode,
   DirectiveDefinitionNode,
-  FieldNode,
   InputValueNode,
   InterfaceNode,
+  ListTypeNode,
+  NamedTypeNode,
   NonNullTypeNode,
   ObjectNode,
 } from "../parser";
@@ -22,26 +23,6 @@ export class DataLoaderPlugin extends TransformerPluginBase {
     super(context);
   }
 
-  private _generateMutationLoader(field: FieldNode) {
-    const fieldName = field.name;
-    // const typeName = field.type.getTypeName();
-    const resolver = this.context.resolvers.get(`Mutation.${fieldName}`);
-
-    if (resolver && !resolver.isReadonly) {
-      // resolver.addImport("@aws-appsync/utils", "util");
-    }
-  }
-
-  // private _generateQueryLoader(field: FieldNode) {
-  //   const fieldName = field.name;
-  //   const typeName = field.type.getTypeName();
-  // }
-
-  // private _generateConnectionLoader(source: ObjectNode | InterfaceNode, field: FieldNode) {
-  //   // const fieldName = field.name;
-  //   // const typeName = field.type.getTypeName();
-  // }
-
   public before() {
     this.context.document
       .addNode(
@@ -51,34 +32,30 @@ export class DataLoaderPlugin extends TransformerPluginBase {
       )
       .addNode(
         DirectiveDefinitionNode.create("resolver", "FIELD_DEFINITION", [
-          InputValueNode.create("source", NonNullTypeNode.create("String")),
+          InputValueNode.create("name", NonNullTypeNode.create("String")),
+          InputValueNode.create("dataSource", NamedTypeNode.create("String")),
+          InputValueNode.create("pipeline", ListTypeNode.create("String")),
         ])
       );
   }
 
   public match(definition: DefinitionNode) {
     if (definition instanceof ObjectNode || definition instanceof InterfaceNode) {
-      return true;
+      return definition.fields?.some((field) => field.hasDirective("resolver")) ?? false;
     }
 
     return false;
   }
 
   public execute(definition: ObjectNode | InterfaceNode) {
-    for (const field of definition.fields ?? []) {
-      const fieldResolver = this.context.resolvers.get(`${definition.name}.${field.name}`);
+    if (definition.fields) {
+      for (const field of definition.fields) {
+        if (field.hasDirective("resolver")) {
+          // generate resolver for definition
 
-      if (fieldResolver?.isReadonly) {
-        continue;
+          field.removeDirective("resolver");
+        }
       }
-
-      // if (definition.name === "Mutation") {
-      //   this._generateMutationLoader(field);
-      // } else if (definition.name === "Query") {
-      //   this._generateQueryLoader(field);
-      // } else if (field.hasDirective("connection")) {
-      //   this._generateConnectionLoader(definition, field);
-      // }
     }
   }
 

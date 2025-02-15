@@ -1,9 +1,29 @@
 import type { AuthorizationRule, Key, LoaderDescriptor } from "../../utils/types";
+import { TransformerContext } from "../../context";
 import { CodeDocument, PropertyValue, tc } from "../code";
 import { formatValue, keyValue } from "../utils";
+import { TransformExecutionError } from "../../utils/errors";
+import { ContextTypesGenerator } from "./ContextTypesGenerator";
 
-export default class DynamoDbGenerator {
-  constructor(protected code: CodeDocument) {}
+export class DynamoDbGenerator extends ContextTypesGenerator {
+  constructor(context: TransformerContext, code: CodeDocument) {
+    super(context, code);
+  }
+
+  private _setContextTypes(loader: LoaderDescriptor) {
+    this._setDefaultContextTypes(loader);
+
+    if (loader.action === "list") {
+      this.code.addImport("../schema-types", tc.named("DynamoDBQueryResult"));
+    }
+
+    this.code.addImport("../schema-types", tc.named(loader.target.name)).setContextArgs({
+      result:
+        loader.action === "list"
+          ? tc.typeRef("DynamoDBQueryResult", [tc.typeRef(loader.target.name)])
+          : tc.typeRef(loader.target.name),
+    });
+  }
 
   private _getKey(key: Key) {
     return tc.obj(
@@ -265,25 +285,14 @@ export default class DynamoDbGenerator {
     }
   }
 
-  /**
-   * Request:
-   * 1. Init request;
-   * 2. Preload auth;
-   * 3. Prepare operation;
-   * 4. Return operation;
-   *
-   * Response:
-   * 1. Check errors;
-   * 2. Post load auth;
-   * 3. Format result;
-   * 4. Return result;
-   */
-
   public generateFieldResolver(loader: LoaderDescriptor) {
-    if (loader.action) {
-      this._setOperation(loader);
+    this._setContextTypes(loader);
+
+    if (!loader.action) {
+      throw new TransformExecutionError("`loader.action` is required for DynamoDB resolvers");
     }
 
+    this._setOperation(loader);
     this._checkError();
     this._setReturn(loader);
   }

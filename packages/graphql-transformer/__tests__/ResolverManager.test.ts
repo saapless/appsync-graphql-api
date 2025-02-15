@@ -27,7 +27,7 @@ describe("ResolverManager", () => {
           }
         `),
       }),
-      { customResolverSource: path.resolve(__dirname, "../__fixtures__/customResolvers/") }
+      { customResolversSource: path.resolve(__dirname, "../__fixtures__/customResolvers/") }
     ) as unknown as TestResolverManager;
 
     it("stash custom defined resolvers", () => {

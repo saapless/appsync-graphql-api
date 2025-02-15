@@ -2,12 +2,13 @@ import path from "node:path";
 import fs from "node:fs";
 import { TransformerContext } from "../context";
 import { InterfaceNode, ObjectNode } from "../parser";
+import { DynamoDbGenerator } from "../codegen";
 import { FieldResolver } from "./FieldResolver";
 import { FunctionResolver } from "./FunctionResolver";
 import { ResolverBase } from "./ResolverBase";
 
 export type ResolverManagerConfig = {
-  readonly customResolverSource?: string;
+  readonly customResolversSource?: string;
 };
 
 export class ResolverManager {
@@ -19,8 +20,8 @@ export class ResolverManager {
   constructor(context: TransformerContext, config?: ResolverManagerConfig) {
     this._context = context;
 
-    if (config?.customResolverSource) {
-      this._createCustomResolvers(config.customResolverSource);
+    if (config?.customResolversSource) {
+      this._createCustomResolvers(config.customResolversSource);
     }
   }
 
@@ -67,7 +68,7 @@ export class ResolverManager {
     let resolver = this._fieldResolvers.get(key);
 
     if (!resolver) {
-      resolver = new FieldResolver(type, field);
+      resolver = FieldResolver.create(type, field);
       this._fieldResolvers.set(key, resolver);
     }
 
@@ -78,10 +79,66 @@ export class ResolverManager {
     let resolver = this._pipelineFunctions.get(name);
 
     if (!resolver) {
-      resolver = new FunctionResolver(name);
+      resolver = FunctionResolver.create(name);
       this._pipelineFunctions.set(name, resolver);
     }
 
     return resolver;
+  }
+
+  public hasFieldResolver(type: string, field: string) {
+    return this._fieldResolvers.has(`${type}.${field}`);
+  }
+
+  public hasPipelineFunction(name: string) {
+    return this._pipelineFunctions.has(name);
+  }
+
+  public getFieldResolver(type: string, field: string) {
+    return this._fieldResolvers.get(`${type}.${field}`);
+  }
+
+  public getPipelineFunction(name: string) {
+    return this._pipelineFunctions.get(name);
+  }
+
+  public getAllFieldResolvers() {
+    return Array.from(this._fieldResolvers.values());
+  }
+
+  public getAllPipelineFunctions() {
+    return Array.from(this._pipelineFunctions.values());
+  }
+
+  public setFieldResolver(resolver: FieldResolver) {
+    this._fieldResolvers.set(`${resolver.typeName}.${resolver.fieldName}`, resolver);
+    return this;
+  }
+
+  public setPipelineFunction(resolver: FunctionResolver) {
+    this._pipelineFunctions.set(resolver.name, resolver);
+    return this;
+  }
+
+  public hasCustomResolver(name: string) {
+    return this._customResolvers.has(name);
+  }
+
+  public getCustomResolver(name: string) {
+    return this._customResolvers.get(name);
+  }
+
+  public generate() {
+    for (const loader of this._context.loaders.values()) {
+      const resolver = this._getOrCreateFieldResolver(loader.typeName, loader.fieldName);
+
+      if (resolver.isReadonly) {
+        continue;
+      }
+
+      // TODO: We should instantiate the generator based on resolver.dataSource type;
+      const generator = new DynamoDbGenerator(this._context, resolver.code);
+      generator.generateFieldResolver(loader);
+    }
   }
 }

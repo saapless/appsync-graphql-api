@@ -8,20 +8,15 @@ import { DocumentNode } from "../parser";
 import { SchemaValidationError } from "../utils/errors";
 import { ensureOutputDirectory } from "../utils/output";
 import { TypeGenerator } from "../codegen";
-import { ResolverGenerator } from "../resolver/ResolverGenerator";
-import { ResolverConfig, DataSourceConfig } from "../utils/types";
 import { FieldResolver, FunctionResolver, ResolverBase } from "../resolver";
+import { TransformerContextConfig } from "../context/TransformerContext";
 
-export interface GraphQLTransformerOptions {
+export interface GraphQLTransformerOptions extends Omit<TransformerContextConfig, "document"> {
   definition: string;
   plugins: IPluginFactory[];
   // Absolute path for dev outputs
-  outputDirectory: string;
-
+  outDir: string;
   mode: "development" | "production";
-  fieldResolvers?: Array<ResolverConfig>;
-  pipelineFunctions?: Array<ResolverConfig>;
-  dataSources?: Array<DataSourceConfig>;
 }
 
 export type FieldResolverOutput = {
@@ -45,22 +40,29 @@ export type TransformerOutput = {
 };
 
 export class GraphQLTransformer {
-  readonly document: DocumentNode;
-  readonly context: TransformerContext;
-  readonly plugins: TransformerPluginBase[];
+  private readonly _mode: "development" | "production";
+  private readonly _outDir: string;
 
-  constructor(protected readonly options: GraphQLTransformerOptions) {
-    this.document = DocumentNode.fromSource(options.definition);
-    this.context = new TransformerContext({ document: this.document });
-    this.plugins = this._initPlugins(this.context);
+  readonly plugins: TransformerPluginBase[];
+  readonly context: TransformerContext;
+
+  constructor(options: GraphQLTransformerOptions) {
+    const { definition, outDir, plugins, mode, ...contextOptions } = options;
+    this._mode = mode;
+    this._outDir = outDir;
+    this.context = new TransformerContext({
+      document: DocumentNode.fromSource(definition),
+      ...contextOptions,
+    });
+    this.plugins = this._initPlugins(plugins, this.context);
   }
 
-  private _initPlugins(context: TransformerContext) {
-    return this.options.plugins.map((factory) => factory.create(context));
+  private _initPlugins(plugins: IPluginFactory[], context: TransformerContext) {
+    return plugins.map((factory) => factory.create(context));
   }
 
   private _printSchema(outDir: string) {
-    writeFileSync(path.resolve(outDir, "schema.graphql"), this.document.print(), {
+    writeFileSync(path.resolve(outDir, "schema.graphql"), this.context.document.print(), {
       encoding: "utf-8",
     });
 
@@ -77,19 +79,19 @@ export class GraphQLTransformer {
 
   private _printResolvers(outDir: string) {
     const basePath = ensureOutputDirectory(path.join(outDir, "resolvers"));
-    const codegen = new ResolverGenerator(this.context);
+    this.context.resolvers.generate();
 
-    codegen.generate();
-
-    for (const [name, resolver] of this.context.resolvers.entries()) {
+    for (const resolver of this.context.resolvers.getAllFieldResolvers()) {
       if (!resolver.isReadonly) {
+        const filename = `${resolver.typeName}.${resolver.fieldName}.ts`;
+
         writeFileSync(
-          path.resolve(basePath, `${name}.ts`),
+          path.resolve(basePath, filename),
           prettier.format(resolver.print(), { parser: "typescript" }),
           { encoding: "utf-8" }
         );
 
-        resolver.setSource(path.resolve(basePath, `${name}.ts`));
+        resolver.setSource(path.resolve(basePath, filename));
       }
     }
   }
@@ -100,7 +102,7 @@ export class GraphQLTransformer {
 
     const resolversBySource = new Map<string, ResolverBase[]>();
 
-    for (const resolver of this.context.resolvers.values()) {
+    for (const resolver of this.context.resolvers.getAllFieldResolvers()) {
       if (resolver.source) {
         if (!resolversBySource.has(resolver.source)) {
           resolversBySource.set(resolver.source, []);
@@ -114,7 +116,7 @@ export class GraphQLTransformer {
 
     const build = buildSync({
       entryPoints: buildPaths,
-      outdir: this.options.outputDirectory,
+      outdir: this._outDir,
       target: "esnext",
       sourcemap: "inline",
       sourcesContent: false,
@@ -164,8 +166,7 @@ export class GraphQLTransformer {
   }
 
   private _generateResources() {
-    const { outputDirectory } = this.options;
-    const outputPath = ensureOutputDirectory(outputDirectory);
+    const outputPath = ensureOutputDirectory(this._outDir);
 
     this._printSchema(outputPath);
     this._printResolvers(outputPath);
@@ -176,13 +177,13 @@ export class GraphQLTransformer {
       plugin.before();
     }
 
-    const errors = this.document.validate();
+    const errors = this.context.document.validate();
 
     if (errors.length) {
       throw new SchemaValidationError(errors);
     }
 
-    for (const definition of this.document.definitions.values()) {
+    for (const definition of this.context.document.definitions.values()) {
       for (const plugin of this.plugins) {
         if (plugin.match(definition)) {
           plugin.normalize(definition);
@@ -190,7 +191,7 @@ export class GraphQLTransformer {
       }
     }
 
-    for (const definition of this.document.definitions.values()) {
+    for (const definition of this.context.document.definitions.values()) {
       for (const plugin of this.plugins) {
         if (plugin.match(definition)) {
           plugin.execute(definition);
@@ -199,7 +200,7 @@ export class GraphQLTransformer {
     }
 
     // Stage 2. Cleanup
-    for (const definition of this.document.definitions.values()) {
+    for (const definition of this.context.document.definitions.values()) {
       for (const plugin of this.plugins) {
         if (plugin.match(definition)) {
           plugin.cleanup(definition);
@@ -216,7 +217,7 @@ export class GraphQLTransformer {
     const { fieldResolvers, pipelineFunctions } = this._buildResolvers();
 
     return {
-      schema: this.document.print(),
+      schema: this.context.document.print(),
       fieldResolvers,
       pipelineFunctions,
     };

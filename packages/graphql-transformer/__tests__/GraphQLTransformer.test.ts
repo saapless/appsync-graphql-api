@@ -1,7 +1,6 @@
 import { dirname, resolve } from "node:path";
 import { fileURLToPath } from "node:url";
 import { createTransformer, GraphQLTransformer } from "../src/transformer";
-import { FieldResolver } from "../src/resolver";
 import { FieldNode, NamedTypeNode, ObjectNode } from "../src/parser";
 import { SchemaValidationError } from "../src/utils/errors";
 
@@ -103,7 +102,7 @@ describe("GraphQLTransformer", () => {
   const transformer = createTransformer({
     definition: schema,
     mode: "development",
-    outputDirectory: resolve(dirname(fileURLToPath(import.meta.url)), "out"),
+    outDir: resolve(dirname(fileURLToPath(import.meta.url)), "out"),
   });
 
   describe("createTransformer factory", () => {
@@ -159,11 +158,6 @@ describe("GraphQLTransformer", () => {
         expect(nodeFieldTypename).toStrictEqual("Node");
       });
 
-      it.skip("adds Query.node resolver", () => {
-        const nodeResolver = context.resolvers.get("Query.node");
-        expect(nodeResolver).toBeInstanceOf(FieldResolver);
-      });
-
       it("extends models with Node interface", () => {
         const userNode = context.document.getNode("User") as ObjectNode;
         const taskNode = context.document.getNode("Task") as ObjectNode;
@@ -200,17 +194,6 @@ describe("GraphQLTransformer", () => {
         expect(context.document.getNode("DeleteUserInput")).toBeDefined();
         expect(context.document.getNode("UpsertTaskInput")).toBeDefined();
         expect(context.document.getNode("DeleteTaskInput")).toBeDefined();
-      });
-
-      it.skip("created operation resolvers", () => {
-        expect(context.resolvers.get("Query.getUser")).toBeDefined();
-        expect(context.resolvers.get("Query.listUsers")).toBeDefined();
-
-        expect(context.resolvers.get("Mutation.createUser")).toBeDefined();
-        expect(context.resolvers.get("Mutation.updateUser")).toBeDefined();
-        expect(context.resolvers.get("Mutation.deleteUser")).toBeDefined();
-        expect(context.resolvers.get("Mutation.upsertTask")).toBeDefined();
-        expect(context.resolvers.get("Mutation.deleteTask")).toBeDefined();
       });
     });
   });

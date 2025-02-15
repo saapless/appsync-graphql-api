@@ -276,7 +276,10 @@ export class ConnectionPlugin extends TransformerPluginBase {
           this._createEnumFilterInput(typeDef);
 
           filterInput.addField(
-            InputValueNode.create(field.name, NamedTypeNode.create(`${typeDef.name}Input`))
+            InputValueNode.create(
+              field.name,
+              NamedTypeNode.create(pascalCase(typeDef.name, "filter", "input"))
+            )
           );
         }
 

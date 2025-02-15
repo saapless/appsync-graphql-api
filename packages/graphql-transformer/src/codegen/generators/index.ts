@@ -1,2 +1,2 @@
-export { default as DynamoDbGenerator } from "./dynamodb";
-export { default as TypeGenerator } from "./type";
+export { DynamoDbGenerator } from "./DynamoDBGenerator";
+export { TypeGenerator } from "./type";
