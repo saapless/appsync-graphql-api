@@ -55,6 +55,7 @@ describe("ConnectionPlugin", () => {
       },
     },
   });
+
   const plugin = ConnectionPlugin.create(context);
 
   describe("on run `before` hook", () => {

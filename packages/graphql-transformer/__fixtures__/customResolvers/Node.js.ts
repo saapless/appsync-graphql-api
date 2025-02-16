@@ -6,10 +6,10 @@ export function request(ctx: Context): NONERequest {
   }
 
   return {
-    payload: {},
+    payload: ctx.args.module,
   };
 }
 
 export function response(ctx: Context): string {
-  return ctx.args.module;
+  return ctx.result;
 }

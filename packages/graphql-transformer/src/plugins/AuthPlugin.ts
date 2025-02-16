@@ -54,8 +54,8 @@ export class AuthPlugin extends TransformerPluginBase {
         ?.getArgumentsJSON<{ rules: AuthorizationRule[] }>();
 
       if (authRule?.rules) {
-        this.context.setFieldLoader(object.name, field.name, {
-          target: this.context.document.getNode(field.type.getTypeName()),
+        this.context.loader.setFieldLoader(object.name, field.name, {
+          targetName: field.type.getTypeName(),
           auth: rules,
         });
       }

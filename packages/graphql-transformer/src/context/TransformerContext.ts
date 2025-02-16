@@ -1,13 +1,8 @@
 import { DocumentNode } from "../parser";
 import { ResolverManager, ResolverManagerConfig } from "../resolver/ResolverManager";
 import { TransformExecutionError } from "../utils/errors";
-import {
-  AuthorizationRule,
-  FieldLoaderDescriptor,
-  Operation,
-  ReadOperation,
-  WriteOperation,
-} from "../utils/types";
+import { AuthorizationRule, Operation, ReadOperation, WriteOperation } from "../utils/types";
+import { ResolverLoader } from "./ResolverLoader";
 
 export type DataSourceType =
   | "DYNAMO_DB"
@@ -39,7 +34,7 @@ export const DEFAULT_WRITE_OPERATIONS: WriteOperation[] = ["create", "update", "
 export class TransformerContext {
   public readonly document: DocumentNode;
   public readonly resolvers: ResolverManager;
-  public readonly fieldLoaders: Map<string, FieldLoaderDescriptor> = new Map();
+  public readonly loader: ResolverLoader;
   public readonly defaultAuthorizationRule: AuthorizationRule;
   public readonly readOperations: ReadOperation[];
   public readonly writeOperations: WriteOperation[];
@@ -50,6 +45,7 @@ export class TransformerContext {
   constructor(config: TransformerContextConfig) {
     this.document = config.document;
     this.resolvers = new ResolverManager(this, config);
+    this.loader = new ResolverLoader();
     this.defaultDataSourceName = config.defaultDataSourceName;
     this.dataSourceConfig = config.dataSourceConfig;
     this.defaultAuthorizationRule = config.defaultAuthorizationRule ?? { allow: "owner" };
@@ -94,20 +90,5 @@ export class TransformerContext {
     }
 
     return Array.from(expandedOperations.values());
-  }
-
-  public setFieldLoader(
-    typeName: string,
-    fieldName: string,
-    loader: Partial<FieldLoaderDescriptor>
-  ) {
-    const key = `${typeName}.${fieldName}`;
-    const existingLoader = this.fieldLoaders.get(key);
-
-    if (existingLoader) {
-      this.fieldLoaders.set(key, { ...existingLoader, ...loader });
-    } else {
-      this.fieldLoaders.set(key, { ...loader, typeName, fieldName } as FieldLoaderDescriptor);
-    }
   }
 }

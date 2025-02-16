@@ -1,27 +1,38 @@
-import type { AuthorizationRule, Key, FieldLoaderDescriptor } from "../../utils/types";
+import type {
+  AuthorizationRule,
+  FieldLoaderDescriptor,
+  Key,
+  LoaderDescriptor,
+} from "../../utils/types";
 import { TransformerContext } from "../../context";
 import { CodeDocument, PropertyValue, tc } from "../code";
 import { formatValue, keyValue } from "../utils";
 import { TransformExecutionError } from "../../utils/errors";
 import { ContextTypesGenerator } from "./ContextTypesGenerator";
 
+function isFieldLoader(descriptor: LoaderDescriptor): descriptor is FieldLoaderDescriptor {
+  return Object.hasOwn(descriptor, "fieldName") && Object.hasOwn(descriptor, "typeName");
+}
+
 export class DynamoDbGenerator extends ContextTypesGenerator {
   constructor(context: TransformerContext, code: CodeDocument) {
     super(context, code);
   }
 
-  private _setContextTypes(loader: FieldLoaderDescriptor) {
-    this._setDefaultContextTypes(loader);
+  private _setContextTypes(loader: LoaderDescriptor) {
+    if (isFieldLoader(loader)) {
+      this._setDefaultContextTypes(loader);
+    }
 
     if (loader.action === "list") {
       this.code.addImport("../schema-types", tc.named("DynamoDBQueryResult"));
     }
 
-    this.code.addImport("../schema-types", tc.named(loader.target.name)).setContextArgs({
+    this.code.addImport("../schema-types", tc.named(loader.targetName)).setContextArgs({
       result:
         loader.action === "list"
-          ? tc.typeRef("DynamoDBQueryResult", [tc.typeRef(loader.target.name)])
-          : tc.typeRef(loader.target.name),
+          ? tc.typeRef("DynamoDBQueryResult", [tc.typeRef(loader.targetName)])
+          : tc.typeRef(loader.targetName),
     });
   }
 
@@ -53,14 +64,14 @@ export class DynamoDbGenerator extends ContextTypesGenerator {
     );
   }
 
-  private _getItem(descriptor: FieldLoaderDescriptor) {
+  private _getItem(descriptor: LoaderDescriptor) {
     this.code.addImport("@aws-appsync/utils/dynamodb", tc.named("get"));
     this.code.setRequest(
       tc.return(tc.call(tc.ref("get"), tc.obj({ key: this._getKey(descriptor.key) })))
     );
   }
 
-  private _queryItems(descriptor: FieldLoaderDescriptor) {
+  private _queryItems(descriptor: LoaderDescriptor) {
     this.code.addImport("@aws-appsync/utils/dynamodb", tc.named("query"));
     this.code.setRequest(
       tc.return(
@@ -79,8 +90,8 @@ export class DynamoDbGenerator extends ContextTypesGenerator {
     );
   }
 
-  private _putItem(operation: FieldLoaderDescriptor) {
-    const typename: string = operation.target.name;
+  private _putItem(operation: LoaderDescriptor) {
+    const typename: string = operation.targetName;
 
     this.code.addImport("@aws-appsync/utils/dynamodb", tc.named("put")).setRequest(
       tc.const(tc.obj(tc.ref("input")), tc.ref("ctx.args")),
@@ -160,7 +171,7 @@ export class DynamoDbGenerator extends ContextTypesGenerator {
       );
   }
 
-  private _deleteItem(operation: FieldLoaderDescriptor) {
+  private _deleteItem(operation: LoaderDescriptor) {
     this.code
       .addImport("@aws-appsync/utils/dynamodb", tc.named("update"), tc.named("operations"))
       .setRequest(
@@ -198,10 +209,6 @@ export class DynamoDbGenerator extends ContextTypesGenerator {
       );
   }
 
-  private _returnResult() {
-    this.code.setResponse(tc.return(tc.ref("ctx.result")));
-  }
-
   private _returnEdges() {
     this.code.setResponse(
       tc.return(
@@ -230,6 +237,21 @@ export class DynamoDbGenerator extends ContextTypesGenerator {
     );
   }
 
+  private _returnNode() {
+    this.code.setResponse(
+      tc.return(
+        tc.obj({
+          cursor: tc.ref("ctx.result.id"),
+          node: tc.ref("ctx.result"),
+        })
+      )
+    );
+  }
+
+  private _returnResult() {
+    this.code.setResponse(tc.return(tc.ref("ctx.result")));
+  }
+
   private _returnPrev() {
     this.code.setResponse(tc.return(tc.ref("ctx.prev")));
   }
@@ -250,7 +272,7 @@ export class DynamoDbGenerator extends ContextTypesGenerator {
       );
   }
 
-  _setOperation(operation: FieldLoaderDescriptor) {
+  _setOperation(operation: LoaderDescriptor) {
     switch (operation.action) {
       case "get":
         this._getItem(operation);
@@ -270,14 +292,17 @@ export class DynamoDbGenerator extends ContextTypesGenerator {
       case "upsert":
         break;
       default:
-        throw new Error(`Unknown operation ${operation.action}`);
+        // throw new Error(`Unknown operation ${operation.action}`);
+        break;
     }
   }
 
-  _setReturn(loader: FieldLoaderDescriptor) {
+  _setReturn(loader: LoaderDescriptor) {
     switch (loader.returnType) {
       case "edges":
         return this._returnEdges();
+      case "node":
+        return this._returnNode();
       case "prev":
         return this._returnPrev();
       default:
@@ -285,7 +310,7 @@ export class DynamoDbGenerator extends ContextTypesGenerator {
     }
   }
 
-  public generateFieldResolver(loader: FieldLoaderDescriptor) {
+  public generateTemplate(loader: LoaderDescriptor) {
     this._setContextTypes(loader);
 
     if (!loader.action) {

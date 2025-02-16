@@ -217,6 +217,56 @@ export {
       "typeName": "Task",
     },
     {
+      "code": "// __tests__/out/resolvers/Mutation.createLabelEdge.ts
+import { util } from "@aws-appsync/utils";
+function request(ctx) {
+}
+function response(ctx) {
+  if (ctx.error) {
+    util.error(ctx.error.message, ctx.error.type);
+  }
+  return ctx.prev;
+}
+export {
+  request,
+  response
+};
+//# sourceMappingURL=data:application/json;base64,ewogICJ2ZXJzaW9uIjogMywKICAic291cmNlcyI6IFsicmVzb2x2ZXJzL011dGF0aW9uLmNyZWF0ZUxhYmVsRWRnZS50cyJdLAogICJtYXBwaW5ncyI6ICI7QUFDQSxTQUFTLFlBQXFCO0FBQ3ZCLFNBQVMsUUFDZCxLQU1BO0FBQUM7QUFFSSxTQUFTLFNBQ2QsS0FPQTtBQUNBLE1BQUksSUFBSSxPQUFPO0FBQ2IsU0FBSyxNQUFNLElBQUksTUFBTSxTQUFTLElBQUksTUFBTSxJQUFJO0FBQUEsRUFDOUM7QUFFQSxTQUFPLElBQUk7QUFDYjsiLAogICJuYW1lcyI6IFtdCn0K
+",
+      "dataSource": "TestDataSource",
+      "fieldName": "createLabelEdge",
+      "pipelineFunctions": [
+        "createEdge",
+        "getEdgeNode",
+      ],
+      "typeName": "Mutation",
+    },
+    {
+      "code": "// __tests__/out/resolvers/Mutation.deleteLabelEdge.ts
+import { util } from "@aws-appsync/utils";
+function request(ctx) {
+}
+function response(ctx) {
+  if (ctx.error) {
+    util.error(ctx.error.message, ctx.error.type);
+  }
+  return ctx.prev;
+}
+export {
+  request,
+  response
+};
+//# sourceMappingURL=data:application/json;base64,ewogICJ2ZXJzaW9uIjogMywKICAic291cmNlcyI6IFsicmVzb2x2ZXJzL011dGF0aW9uLmRlbGV0ZUxhYmVsRWRnZS50cyJdLAogICJtYXBwaW5ncyI6ICI7QUFDQSxTQUFTLFlBQXFCO0FBQ3ZCLFNBQVMsUUFDZCxLQU1BO0FBQUM7QUFFSSxTQUFTLFNBQ2QsS0FPQTtBQUNBLE1BQUksSUFBSSxPQUFPO0FBQ2IsU0FBSyxNQUFNLElBQUksTUFBTSxTQUFTLElBQUksTUFBTSxJQUFJO0FBQUEsRUFDOUM7QUFFQSxTQUFPLElBQUk7QUFDYjsiLAogICJuYW1lcyI6IFtdCn0K
+",
+      "dataSource": "TestDataSource",
+      "fieldName": "deleteLabelEdge",
+      "pipelineFunctions": [
+        "getEdgeNode",
+        "deleteEdge",
+      ],
+      "typeName": "Mutation",
+    },
+    {
       "code": "// __tests__/out/resolvers/Task.subtasks.ts
 import { query } from "@aws-appsync/utils/dynamodb";
 import { util } from "@aws-appsync/utils";
@@ -907,6 +957,8 @@ type Mutation {
   deleteUser(input: DeleteUserInput!): User
   upsertTask(input: UpsertTaskInput!): Task
   deleteTask(input: DeleteTaskInput!): Task
+  createLabelEdge(input: LabelEdgeInput!): LabelEdge
+  deleteLabelEdge(input: LabelEdgeInput!): LabelEdge
   upsertLabel(input: UpsertLabelInput!): Label
   deleteLabel(input: DeleteLabelInput!): Label
   upsertFile(input: UpsertFileInput!): File
@@ -984,6 +1036,11 @@ input LabelFilterInput {
   and: [LabelFilterInput]
   or: [LabelFilterInput]
   not: LabelFilterInput
+}
+
+input LabelEdgeInput {
+  sourceId: ID!
+  targetId: ID!
 }
 
 type TaskConnection {

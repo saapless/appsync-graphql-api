@@ -94,6 +94,20 @@ export class GraphQLTransformer {
         resolver.setSource(path.resolve(basePath, filename));
       }
     }
+
+    for (const pipelineFunction of this.context.resolvers.getAllPipelineFunctions()) {
+      if (!pipelineFunction.isReadonly) {
+        const filename = `${pipelineFunction.name}.ts`;
+
+        writeFileSync(
+          path.resolve(basePath, filename),
+          prettier.format(pipelineFunction.print(), { parser: "typescript" }),
+          { encoding: "utf-8" }
+        );
+
+        pipelineFunction.setSource(path.resolve(basePath, filename));
+      }
+    }
   }
 
   private _buildResolvers() {

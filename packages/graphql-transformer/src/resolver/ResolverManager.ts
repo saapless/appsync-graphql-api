@@ -144,14 +144,15 @@ export class ResolverManager {
     return this._customResolvers.get(name);
   }
 
-  public generate() {
-    for (const loader of this._context.fieldLoaders.values()) {
+  private _generateFieldResolvers() {
+    for (const loader of this._context.loader.getAllFieldLoaders()) {
       const dataSourceName = loader.dataSource ?? this._context.defaultDataSourceName;
 
       const resolver = this._getOrCreateFieldResolver(
         loader.typeName,
         loader.fieldName,
-        dataSourceName
+        dataSourceName,
+        loader.pipeline
       );
 
       if (resolver.isReadonly) {
@@ -165,7 +166,33 @@ export class ResolverManager {
       }
 
       const generator = this._getResolverGenerator(dataSource.type, resolver.code);
-      generator.generateFieldResolver(loader);
+      generator.generateTemplate(loader);
     }
+  }
+
+  private _generatePipelineFunctions() {
+    for (const loader of this._context.loader.getAllFunctionLoaders()) {
+      const dataSourceName = loader.dataSource ?? this._context.defaultDataSourceName;
+
+      const resolver = this._getOrCreateFunctionResolver(loader.name, dataSourceName);
+
+      if (resolver.isReadonly) {
+        continue;
+      }
+
+      const dataSource = this._context.dataSourceConfig[`${dataSourceName}`];
+
+      if (!dataSource) {
+        throw new Error(`Data source ${dataSourceName} not found`);
+      }
+
+      const generator = this._getResolverGenerator(dataSource.type, resolver.code);
+      generator.generateTemplate(loader);
+    }
+  }
+
+  public generate() {
+    this._generateFieldResolvers();
+    this._generatePipelineFunctions();
   }
 }

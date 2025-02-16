@@ -1,7 +1,6 @@
-import { DefinitionNode } from "../parser";
-
 export type ReadOperation = "get" | "list" | "sync" | "subscribe";
 export type WriteOperation = "create" | "update" | "delete" | "upsert";
+export type EdgeOperation = "createEdge" | "deleteEdge";
 
 export type Operation = "read" | "write" | ReadOperation | WriteOperation;
 
@@ -47,16 +46,23 @@ export type Key<T extends string | number = string | number> = Record<
   KeyValue<T> & KeyOperator<T>
 >;
 
-export type FieldLoaderDescriptor = {
-  typeName: string;
-  fieldName: string;
+export type LoaderDescriptor = {
   dataSource: string;
-  pipeline?: string[];
-  action: WriteOperation | ReadOperation;
+  action: WriteOperation | ReadOperation | EdgeOperation;
   key: Key;
-  target: DefinitionNode;
+  targetName: string;
   relation?: RelationType;
   index?: string;
   auth?: AuthorizationRule[];
   returnType?: string;
+};
+
+export type FieldLoaderDescriptor = LoaderDescriptor & {
+  typeName: string;
+  fieldName: string;
+  pipeline?: string[];
+};
+
+export type PipelineFunctionLoaderDescriptor = LoaderDescriptor & {
+  name: string;
 };

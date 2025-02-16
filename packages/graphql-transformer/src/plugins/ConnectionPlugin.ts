@@ -342,14 +342,84 @@ export class ConnectionPlugin extends TransformerPluginBase {
     field: FieldNode,
     connection: FieldConnection
   ) {
-    this.context.setFieldLoader(parent.name, field.name, {
+    this.context.loader.setFieldLoader(parent.name, field.name, {
       typeName: parent.name,
       fieldName: field.name,
-      target: connection.target,
+      targetName: connection.target.name,
       action: "get",
       index: connection.index ?? undefined,
       key: { id: connection.key },
     });
+  }
+
+  private _createEdgeMutations(connection: FieldConnection) {
+    const edgeName = pascalCase(connection.target.name, "edge");
+    const edgeInputName = pascalCase(edgeName, "input");
+    const createFieldName = camelCase("create", edgeName);
+    const deleteFieldName = camelCase("delete", edgeName);
+
+    if (!this.context.document.hasNode(edgeInputName)) {
+      this.context.document.addNode(
+        InputObjectNode.create(edgeInputName, [
+          InputValueNode.create("sourceId", NonNullTypeNode.create("ID")),
+          InputValueNode.create("targetId", NonNullTypeNode.create("ID")),
+        ])
+      );
+    }
+
+    this.context.loader.setFunctionLoader("getEdgeNode", {
+      action: "get",
+      targetName: "Node",
+      dataSource: this.context.defaultDataSourceName,
+      returnType: "prev",
+      key: { id: { ref: "args.input.targetId" } },
+    });
+
+    const mutationNode = this.context.document.getMutationNode();
+
+    if (!mutationNode.hasField(createFieldName)) {
+      mutationNode.addField(
+        FieldNode.create(createFieldName, NamedTypeNode.create(edgeName), [
+          InputValueNode.create("input", NonNullTypeNode.create(edgeInputName)),
+        ])
+      );
+      this.context.loader.setFunctionLoader("createEdge", {
+        action: "create",
+        targetName: edgeName,
+        dataSource: this.context.defaultDataSourceName,
+        returnType: "prev",
+      });
+
+      this.context.loader.setFieldLoader("Mutation", createFieldName, {
+        action: "createEdge",
+        targetName: edgeName,
+        pipeline: ["createEdge", "getEdgeNode"],
+        returnType: "prev",
+      });
+    }
+
+    if (!mutationNode.hasField(deleteFieldName)) {
+      mutationNode.addField(
+        FieldNode.create(deleteFieldName, NamedTypeNode.create(edgeName), [
+          InputValueNode.create("input", NonNullTypeNode.create(edgeInputName)),
+        ])
+      );
+
+      this.context.loader.setFunctionLoader("deleteEdge", {
+        action: "delete",
+        targetName: edgeName,
+        dataSource: this.context.defaultDataSourceName,
+        key: { id: { ref: "prev.id" } },
+        returnType: "prev",
+      });
+
+      this.context.loader.setFieldLoader("Mutation", deleteFieldName, {
+        action: "deleteEdge",
+        targetName: edgeName,
+        pipeline: ["getEdgeNode", "deleteEdge"],
+        returnType: "prev",
+      });
+    }
   }
 
   private _createEdgesConnection(
@@ -385,17 +455,18 @@ export class ConnectionPlugin extends TransformerPluginBase {
       field.setType(NonNullTypeNode.create(typeName));
     }
 
-    this.context.setFieldLoader(parent.name, field.name, {
-      target: connection.target,
+    this.context.loader.setFieldLoader(parent.name, field.name, {
+      targetName: connection.target.name,
       action: "list",
       relation: connection.relation,
       returnType: "edges",
+      dataSource: this.context.defaultDataSourceName,
       index: connection.index ?? undefined,
       key: { sourceId: connection.key },
     });
 
     if (connection.relation === "manyToMany") {
-      // TODO: Create edge mutations
+      this._createEdgeMutations(connection);
     }
   }
 
