@@ -342,7 +342,9 @@ export class ConnectionPlugin extends TransformerPluginBase {
     field: FieldNode,
     connection: FieldConnection
   ) {
-    this.context.setLoader(parent.name, field.name, {
+    this.context.setFieldLoader(parent.name, field.name, {
+      typeName: parent.name,
+      fieldName: field.name,
       target: connection.target,
       action: "get",
       index: connection.index ?? undefined,
@@ -383,7 +385,7 @@ export class ConnectionPlugin extends TransformerPluginBase {
       field.setType(NonNullTypeNode.create(typeName));
     }
 
-    this.context.setLoader(parent.name, field.name, {
+    this.context.setFieldLoader(parent.name, field.name, {
       target: connection.target,
       action: "list",
       relation: connection.relation,

@@ -15,6 +15,15 @@ describe("ModelPlugin", () => {
         name: String!
       }
     `),
+    defaultDataSourceName: "TestDataSource",
+    dataSourceConfig: {
+      TestDataSource: {
+        type: "DYNAMO_DB",
+      },
+      NoneDataSource: {
+        type: "NONE",
+      },
+    },
   });
 
   const plugin = ModelPlugin.create(context);
@@ -87,12 +96,12 @@ describe("ModelPlugin", () => {
     });
 
     it.skip("creates operation resolvers", () => {
-      expect(context.resolvers.get("Query.getModel")).toBeDefined();
-      expect(context.resolvers.get("Query.listModels")).toBeDefined();
+      expect(context.resolvers.getFieldResolver("Query", "getModel")).toBeDefined();
+      expect(context.resolvers.getFieldResolver("Query", "listModels")).toBeDefined();
 
-      expect(context.resolvers.get("Mutation.createModel")).toBeDefined();
-      expect(context.resolvers.get("Mutation.updateModel")).toBeDefined();
-      expect(context.resolvers.get("Mutation.deleteModel")).toBeDefined();
+      expect(context.resolvers.getFieldResolver("Mutation", "createModel")).toBeDefined();
+      expect(context.resolvers.getFieldResolver("Mutation", "updateModel")).toBeDefined();
+      expect(context.resolvers.getFieldResolver("Mutation", "deleteModel")).toBeDefined();
     });
   });
 

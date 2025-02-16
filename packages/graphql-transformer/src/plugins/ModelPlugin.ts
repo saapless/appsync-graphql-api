@@ -312,7 +312,7 @@ export class ModelPlugin extends TransformerPluginBase {
       .getDirective("auth")
       ?.getArgumentsJSON<{ rules: AuthorizationRule[] }>();
 
-    this.context.setLoader("Mutation", fieldName, {
+    this.context.setFieldLoader("Mutation", fieldName, {
       action: verb,
       target: model,
       auth: authRules?.rules,

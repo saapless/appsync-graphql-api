@@ -43,7 +43,18 @@ const schema = /* GraphQL */ `
 `;
 
 describe("ConnectionPlugin", () => {
-  const context = new TransformerContext({ document: DocumentNode.fromSource(schema) });
+  const context = new TransformerContext({
+    document: DocumentNode.fromSource(schema),
+    defaultDataSourceName: "TestDataSource",
+    dataSourceConfig: {
+      TestDataSource: {
+        type: "DYNAMO_DB",
+      },
+      NoneDataSource: {
+        type: "NONE",
+      },
+    },
+  });
   const plugin = ConnectionPlugin.create(context);
 
   describe("on run `before` hook", () => {

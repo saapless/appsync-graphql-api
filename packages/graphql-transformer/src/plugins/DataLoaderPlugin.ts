@@ -2,6 +2,7 @@ import { TransformerContext } from "../context";
 import {
   DefinitionNode,
   DirectiveDefinitionNode,
+  FieldNode,
   InputValueNode,
   InterfaceNode,
   ListTypeNode,
@@ -9,13 +10,15 @@ import {
   NonNullTypeNode,
   ObjectNode,
 } from "../parser";
+import { FieldResolver } from "../resolver";
+import { TransformPluginExecutionError } from "../utils/errors";
 import { TransformerPluginBase } from "./TransformerPluginBase";
 
-/**
- * For each object, traverse the fields and add loaders based on connection directive
- * For Query field add loaders based on connection directive;
- * For mutation fields add loaders
- */
+type ResesolverDirectiveArgs = {
+  name: string;
+  dataSource?: string;
+  pipeline?: string[];
+};
 
 export class DataLoaderPlugin extends TransformerPluginBase {
   public readonly name = "DataLoaderPlugin";
@@ -47,19 +50,69 @@ export class DataLoaderPlugin extends TransformerPluginBase {
     return false;
   }
 
+  private _setFieldResolver(node: ObjectNode | InterfaceNode, field: FieldNode) {
+    const args = field.getDirective("resolver")?.getArgumentsJSON<ResesolverDirectiveArgs>();
+
+    if (!args?.name) {
+      throw new TransformPluginExecutionError(
+        "DataLoaderPlugin",
+        `Could not get resolver directive args. Type: ${node.name}, field: ${field.name}`
+      );
+    }
+
+    const currentResolver = this.context.resolvers.getCustomResolver(args.name);
+
+    if (!currentResolver) {
+      throw new TransformPluginExecutionError(
+        "DataLoaderPlugin",
+        `Could not find resolver with name ${args.name}`
+      );
+    }
+
+    const returnType = this.context.document.getNode(field.type.getTypeName());
+
+    let dataSource = args.dataSource;
+
+    if (returnType instanceof ObjectNode || returnType instanceof InterfaceNode) {
+      const directive = returnType.getDirective("dataSource");
+
+      if (directive) {
+        dataSource = directive.getArgumentsJSON<{ name: string }>().name;
+      }
+    }
+
+    this.context.resolvers.setFieldResolver(
+      FieldResolver.fromSource(
+        node.name,
+        field.name,
+        currentResolver.source!,
+        dataSource ?? this.context.defaultDataSourceName,
+        args.pipeline
+      )
+    );
+  }
+
   public execute(definition: ObjectNode | InterfaceNode) {
     if (definition.fields) {
       for (const field of definition.fields) {
         if (field.hasDirective("resolver")) {
-          // generate resolver for definition
-
-          field.removeDirective("resolver");
+          this._setFieldResolver(definition, field);
         }
       }
     }
   }
 
-  public cleanup(): void {
+  public cleanup(definition: ObjectNode | InterfaceNode): void {
+    definition.removeDirective("dataSource");
+
+    for (const field of definition.fields ?? []) {
+      if (field.hasDirective("resolver")) {
+        field.removeDirective("resolver");
+      }
+    }
+  }
+
+  public after(): void {
     this.context.document.removeNode("dataSource").removeNode("resolver");
   }
 

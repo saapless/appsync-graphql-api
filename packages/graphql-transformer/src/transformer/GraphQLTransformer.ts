@@ -183,6 +183,11 @@ export class GraphQLTransformer {
       throw new SchemaValidationError(errors);
     }
 
+    /**
+     * Plugins execute in 3 stages to handle interdependencies.
+     * Example: ModelPlugin needs connection keys, while ConnectionPlugin needs Query fields.
+     */
+
     for (const definition of this.context.document.definitions.values()) {
       for (const plugin of this.plugins) {
         if (plugin.match(definition)) {

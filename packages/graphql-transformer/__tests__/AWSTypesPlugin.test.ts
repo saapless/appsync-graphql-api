@@ -8,7 +8,18 @@ const schema = /* GraphQL */ `
   }
 `;
 
-const context = new TransformerContext({ document: DocumentNode.fromSource(schema) });
+const context = new TransformerContext({
+  document: DocumentNode.fromSource(schema),
+  defaultDataSourceName: "TestDataSource",
+  dataSourceConfig: {
+    TestDataSource: {
+      type: "DYNAMO_DB",
+    },
+    NoneDataSource: {
+      type: "NONE",
+    },
+  },
+});
 const plugin = AWSTypesPlugin.create(context);
 
 describe("AWSTypesPlugin", () => {

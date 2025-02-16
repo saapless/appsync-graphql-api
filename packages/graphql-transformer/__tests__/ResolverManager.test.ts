@@ -26,6 +26,15 @@ describe("ResolverManager", () => {
             getUser(id: ID!): User!
           }
         `),
+        defaultDataSourceName: "TestDataSource",
+        dataSourceConfig: {
+          TestDataSource: {
+            type: "DYNAMO_DB",
+          },
+          NoneDataSource: {
+            type: "NONE",
+          },
+        },
       }),
       { customResolversSource: path.resolve(__dirname, "../__fixtures__/customResolvers/") }
     ) as unknown as TestResolverManager;

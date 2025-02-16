@@ -25,6 +25,15 @@ describe("AuthPlugin", () => {
   const context = new TransformerContext({
     document: DocumentNode.fromSource(schema),
     defaultAuthorizationRule: { allow: "public" },
+    defaultDataSourceName: "TestDataSource",
+    dataSourceConfig: {
+      TestDataSource: {
+        type: "DYNAMO_DB",
+      },
+      NoneDataSource: {
+        type: "NONE",
+      },
+    },
   });
   const plugin = AuthPlugin.create(context);
 

@@ -2,7 +2,9 @@ import path from "node:path";
 import fs from "node:fs";
 import { TransformerContext } from "../context";
 import { InterfaceNode, ObjectNode } from "../parser";
-import { DynamoDbGenerator } from "../codegen";
+import { CodeDocument, DynamoDbGenerator } from "../codegen";
+
+import { DataSourceType } from "../context/TransformerContext";
 import { FieldResolver } from "./FieldResolver";
 import { FunctionResolver } from "./FunctionResolver";
 import { ResolverBase } from "./ResolverBase";
@@ -54,36 +56,50 @@ export class ResolverManager {
 
       if (this._isFieldResolverName(name)) {
         const [typeName, fieldName] = name.split(".");
-        const resolver = FieldResolver.fromSource(typeName, fieldName, source);
+        const resolver = FieldResolver.fromSource(typeName, fieldName, file);
         this._fieldResolvers.set(name, resolver);
       }
 
-      const resolver = ResolverBase.fromSource(name, source);
+      const resolver = ResolverBase.fromSource(name, file);
       this._customResolvers.set(name, resolver);
     }
   }
 
-  private _getOrCreateFieldResolver(type: string, field: string): FieldResolver {
+  private _getOrCreateFieldResolver(
+    type: string,
+    field: string,
+    dataSource: string,
+    pipelineFunctions?: string[]
+  ): FieldResolver {
     const key = `${type}.${field}`;
     let resolver = this._fieldResolvers.get(key);
 
     if (!resolver) {
-      resolver = FieldResolver.create(type, field);
+      resolver = FieldResolver.create(type, field, dataSource, pipelineFunctions);
       this._fieldResolvers.set(key, resolver);
     }
 
     return resolver;
   }
 
-  private _getOrCreateFunctionResolver(name: string): FunctionResolver {
+  private _getOrCreateFunctionResolver(name: string, dataSource: string): FunctionResolver {
     let resolver = this._pipelineFunctions.get(name);
 
     if (!resolver) {
-      resolver = FunctionResolver.create(name);
+      resolver = FunctionResolver.create(name, dataSource);
       this._pipelineFunctions.set(name, resolver);
     }
 
     return resolver;
+  }
+
+  private _getResolverGenerator(dataSourceType: DataSourceType, code: CodeDocument) {
+    switch (dataSourceType) {
+      case "DYNAMO_DB":
+        return new DynamoDbGenerator(this._context, code);
+      default:
+        throw new Error(`Unsupported data source type: ${dataSourceType}`);
+    }
   }
 
   public hasFieldResolver(type: string, field: string) {
@@ -129,15 +145,26 @@ export class ResolverManager {
   }
 
   public generate() {
-    for (const loader of this._context.loaders.values()) {
-      const resolver = this._getOrCreateFieldResolver(loader.typeName, loader.fieldName);
+    for (const loader of this._context.fieldLoaders.values()) {
+      const dataSourceName = loader.dataSource ?? this._context.defaultDataSourceName;
+
+      const resolver = this._getOrCreateFieldResolver(
+        loader.typeName,
+        loader.fieldName,
+        dataSourceName
+      );
 
       if (resolver.isReadonly) {
         continue;
       }
 
-      // TODO: We should instantiate the generator based on resolver.dataSource type;
-      const generator = new DynamoDbGenerator(this._context, resolver.code);
+      const dataSource = this._context.dataSourceConfig[`${dataSourceName}`];
+
+      if (!dataSource) {
+        throw new Error(`Data source ${dataSourceName} not found`);
+      }
+
+      const generator = this._getResolverGenerator(dataSource.type, resolver.code);
       generator.generateFieldResolver(loader);
     }
   }

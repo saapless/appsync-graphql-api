@@ -1,4 +1,4 @@
-import type { AuthorizationRule, Key, LoaderDescriptor } from "../../utils/types";
+import type { AuthorizationRule, Key, FieldLoaderDescriptor } from "../../utils/types";
 import { TransformerContext } from "../../context";
 import { CodeDocument, PropertyValue, tc } from "../code";
 import { formatValue, keyValue } from "../utils";
@@ -10,7 +10,7 @@ export class DynamoDbGenerator extends ContextTypesGenerator {
     super(context, code);
   }
 
-  private _setContextTypes(loader: LoaderDescriptor) {
+  private _setContextTypes(loader: FieldLoaderDescriptor) {
     this._setDefaultContextTypes(loader);
 
     if (loader.action === "list") {
@@ -53,14 +53,14 @@ export class DynamoDbGenerator extends ContextTypesGenerator {
     );
   }
 
-  private _getItem(descriptor: LoaderDescriptor) {
+  private _getItem(descriptor: FieldLoaderDescriptor) {
     this.code.addImport("@aws-appsync/utils/dynamodb", tc.named("get"));
     this.code.setRequest(
       tc.return(tc.call(tc.ref("get"), tc.obj({ key: this._getKey(descriptor.key) })))
     );
   }
 
-  private _queryItems(descriptor: LoaderDescriptor) {
+  private _queryItems(descriptor: FieldLoaderDescriptor) {
     this.code.addImport("@aws-appsync/utils/dynamodb", tc.named("query"));
     this.code.setRequest(
       tc.return(
@@ -79,7 +79,7 @@ export class DynamoDbGenerator extends ContextTypesGenerator {
     );
   }
 
-  private _putItem(operation: LoaderDescriptor) {
+  private _putItem(operation: FieldLoaderDescriptor) {
     const typename: string = operation.target.name;
 
     this.code.addImport("@aws-appsync/utils/dynamodb", tc.named("put")).setRequest(
@@ -160,7 +160,7 @@ export class DynamoDbGenerator extends ContextTypesGenerator {
       );
   }
 
-  private _deleteItem(operation: LoaderDescriptor) {
+  private _deleteItem(operation: FieldLoaderDescriptor) {
     this.code
       .addImport("@aws-appsync/utils/dynamodb", tc.named("update"), tc.named("operations"))
       .setRequest(
@@ -250,7 +250,7 @@ export class DynamoDbGenerator extends ContextTypesGenerator {
       );
   }
 
-  _setOperation(operation: LoaderDescriptor) {
+  _setOperation(operation: FieldLoaderDescriptor) {
     switch (operation.action) {
       case "get":
         this._getItem(operation);
@@ -274,7 +274,7 @@ export class DynamoDbGenerator extends ContextTypesGenerator {
     }
   }
 
-  _setReturn(loader: LoaderDescriptor) {
+  _setReturn(loader: FieldLoaderDescriptor) {
     switch (loader.returnType) {
       case "edges":
         return this._returnEdges();
@@ -285,7 +285,7 @@ export class DynamoDbGenerator extends ContextTypesGenerator {
     }
   }
 
-  public generateFieldResolver(loader: LoaderDescriptor) {
+  public generateFieldResolver(loader: FieldLoaderDescriptor) {
     this._setContextTypes(loader);
 
     if (!loader.action) {

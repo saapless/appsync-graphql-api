@@ -1,7 +1,7 @@
 import { TransformerContext } from "../../context";
 import { ObjectNode } from "../../parser";
 import { pascalCase } from "../../utils/strings";
-import { LoaderDescriptor } from "../../utils/types";
+import { FieldLoaderDescriptor } from "../../utils/types";
 import { CodeDocument, tc } from "../code";
 
 export class ContextTypesGenerator {
@@ -13,7 +13,7 @@ export class ContextTypesGenerator {
     this.context = context;
   }
 
-  protected _setDefaultContextTypes(loader: LoaderDescriptor) {
+  protected _setDefaultContextTypes(loader: FieldLoaderDescriptor) {
     const fieldHasArgs = Boolean(
       (this.context.document.getNode(loader.typeName) as ObjectNode)?.getField(loader.fieldName)
         ?.arguments?.length

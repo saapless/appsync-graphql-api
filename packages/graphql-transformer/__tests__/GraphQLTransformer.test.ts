@@ -103,6 +103,15 @@ describe("GraphQLTransformer", () => {
     definition: schema,
     mode: "development",
     outDir: resolve(dirname(fileURLToPath(import.meta.url)), "out"),
+    defaultDataSourceName: "TestDataSource",
+    dataSourceConfig: {
+      TestDataSource: {
+        type: "DYNAMO_DB",
+      },
+      NoneDataSource: {
+        type: "NONE",
+      },
+    },
   });
 
   describe("createTransformer factory", () => {
@@ -124,6 +133,15 @@ describe("GraphQLTransformer", () => {
     it("throws SchemaValidationError", () => {
       const transformer = createTransformer({
         definition: schema.replace("type Viewer", "type Viewer2"),
+        defaultDataSourceName: "TestDataSource",
+        dataSourceConfig: {
+          TestDataSource: {
+            type: "DYNAMO_DB",
+          },
+          NoneDataSource: {
+            type: "NONE",
+          },
+        },
       });
 
       expect(() => transformer.transform()).toThrow(SchemaValidationError);

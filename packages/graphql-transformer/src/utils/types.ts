@@ -47,26 +47,16 @@ export type Key<T extends string | number = string | number> = Record<
   KeyValue<T> & KeyOperator<T>
 >;
 
-export type LoaderDescriptor = {
+export type FieldLoaderDescriptor = {
   typeName: string;
   fieldName: string;
-  target: DefinitionNode;
+  dataSource: string;
+  pipeline?: string[];
   action: WriteOperation | ReadOperation;
   key: Key;
+  target: DefinitionNode;
   relation?: RelationType;
   index?: string;
   auth?: AuthorizationRule[];
   returnType?: string;
-};
-
-export type ResolverConfig = {
-  name: string;
-  source?: string;
-  code?: string;
-};
-
-export type DataSourceConfig = {
-  name: string;
-  type: string;
-  default: boolean;
 };
