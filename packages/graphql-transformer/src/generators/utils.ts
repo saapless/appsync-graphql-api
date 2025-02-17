@@ -1,7 +1,7 @@
 /* eslint-disable security/detect-object-injection */
 
-import { KeyValue } from "../utils/types";
-import { PropertyValue, tc } from "./code";
+import { FieldLoaderDescriptor, KeyValue, LoaderDescriptor } from "../utils/types";
+import { PropertyValue, tc } from "../codegen";
 
 export function formatValue(value: unknown): PropertyValue {
   if (typeof value === "string") {
@@ -41,4 +41,8 @@ export function keyValue<T extends string | number>(obj: KeyValue<T>) {
   }
   if (obj.eq) return typeof obj.eq === "string" ? tc.str(obj.eq) : tc.num(obj.eq);
   throw new Error("Invalid key value");
+}
+
+export function isFieldLoader(descriptor: LoaderDescriptor): descriptor is FieldLoaderDescriptor {
+  return Object.hasOwn(descriptor, "fieldName") && Object.hasOwn(descriptor, "typeName");
 }

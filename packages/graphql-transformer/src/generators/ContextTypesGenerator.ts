@@ -1,8 +1,8 @@
-import { TransformerContext } from "../../context";
-import { ObjectNode } from "../../parser";
-import { pascalCase } from "../../utils/strings";
-import { FieldLoaderDescriptor } from "../../utils/types";
-import { CodeDocument, tc } from "../code";
+import { TransformerContext } from "../context";
+import { ObjectNode } from "../parser";
+import { pascalCase } from "../utils/strings";
+import { FieldLoaderDescriptor } from "../utils/types";
+import { CodeDocument, tc } from "../codegen";
 
 export class ContextTypesGenerator {
   protected readonly code: CodeDocument;

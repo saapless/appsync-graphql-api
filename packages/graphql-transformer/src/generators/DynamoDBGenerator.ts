@@ -1,18 +1,9 @@
-import type {
-  AuthorizationRule,
-  FieldLoaderDescriptor,
-  Key,
-  LoaderDescriptor,
-} from "../../utils/types";
-import { TransformerContext } from "../../context";
-import { CodeDocument, PropertyValue, tc } from "../code";
-import { formatValue, keyValue } from "../utils";
-import { TransformExecutionError } from "../../utils/errors";
+import type { AuthorizationRule, Key, LoaderDescriptor } from "../utils/types";
+import { TransformerContext } from "../context";
+import { CodeDocument, PropertyValue, tc } from "../codegen";
+import { TransformExecutionError } from "../utils/errors";
+import { formatValue, isFieldLoader, keyValue } from "./utils";
 import { ContextTypesGenerator } from "./ContextTypesGenerator";
-
-function isFieldLoader(descriptor: LoaderDescriptor): descriptor is FieldLoaderDescriptor {
-  return Object.hasOwn(descriptor, "fieldName") && Object.hasOwn(descriptor, "typeName");
-}
 
 export class DynamoDbGenerator extends ContextTypesGenerator {
   constructor(context: TransformerContext, code: CodeDocument) {
@@ -24,13 +15,13 @@ export class DynamoDbGenerator extends ContextTypesGenerator {
       this._setDefaultContextTypes(loader);
     }
 
-    if (loader.action === "list") {
+    if (loader.action.type === "queryItems") {
       this.code.addImport("../schema-types", tc.named("DynamoDBQueryResult"));
     }
 
     this.code.addImport("../schema-types", tc.named(loader.targetName)).setContextArgs({
       result:
-        loader.action === "list"
+        loader.action.type === "queryItems"
           ? tc.typeRef("DynamoDBQueryResult", [tc.typeRef(loader.targetName)])
           : tc.typeRef(loader.targetName),
     });
@@ -67,7 +58,7 @@ export class DynamoDbGenerator extends ContextTypesGenerator {
   private _getItem(descriptor: LoaderDescriptor) {
     this.code.addImport("@aws-appsync/utils/dynamodb", tc.named("get"));
     this.code.setRequest(
-      tc.return(tc.call(tc.ref("get"), tc.obj({ key: this._getKey(descriptor.key) })))
+      tc.return(tc.call(tc.ref("get"), tc.obj({ key: this._getKey(descriptor.action.key) })))
     );
   }
 
@@ -78,20 +69,20 @@ export class DynamoDbGenerator extends ContextTypesGenerator {
         tc.call(
           tc.ref("query"),
           tc.obj({
-            query: this._getKey(descriptor.key),
+            query: this._getKey(descriptor.action.key),
             filter: tc.ref("ctx.args.filter"),
             limit: tc.coalesce(tc.ref("ctx.args.first"), tc.num(100)),
             nextToken: tc.coalesce(tc.ref("ctx.args.after"), tc.undef()),
             scanIndexForward: tc.eq(tc.ref("ctx.args.sort"), tc.str("ASC")),
-            index: descriptor.index ? tc.str(descriptor.index) : tc.undef(),
+            index: descriptor.action.index ? tc.str(descriptor.action.index) : tc.undef(),
           })
         )
       )
     );
   }
 
-  private _putItem(operation: LoaderDescriptor) {
-    const typename: string = operation.targetName;
+  private _putItem(descriptor: LoaderDescriptor) {
+    const typename: string = descriptor.targetName;
 
     this.code.addImport("@aws-appsync/utils/dynamodb", tc.named("put")).setRequest(
       tc.const(tc.obj(tc.ref("input")), tc.ref("ctx.args")),
@@ -171,7 +162,7 @@ export class DynamoDbGenerator extends ContextTypesGenerator {
       );
   }
 
-  private _deleteItem(operation: LoaderDescriptor) {
+  private _deleteItem(descriptor: LoaderDescriptor) {
     this.code
       .addImport("@aws-appsync/utils/dynamodb", tc.named("update"), tc.named("operations"))
       .setRequest(
@@ -180,7 +171,7 @@ export class DynamoDbGenerator extends ContextTypesGenerator {
           tc.call(
             tc.ref("update"),
             tc.obj({
-              key: this._getKey(operation.key),
+              key: this._getKey(descriptor.action.key),
               update: tc.obj({
                 updatedAt: tc.call(tc.ref("operations.replace"), [
                   tc.call(tc.ref("util.time.nowISO8601"), []),
@@ -272,27 +263,25 @@ export class DynamoDbGenerator extends ContextTypesGenerator {
       );
   }
 
-  _setOperation(operation: LoaderDescriptor) {
-    switch (operation.action) {
-      case "get":
-        this._getItem(operation);
+  _setOperation(descriptor: LoaderDescriptor) {
+    switch (descriptor.action.type) {
+      case "getItem":
+        this._getItem(descriptor);
         break;
-      case "list":
-        this._queryItems(operation);
+      case "queryItems":
+        this._queryItems(descriptor);
         break;
-      case "create":
-        this._putItem(operation);
+      case "putItem":
+        this._putItem(descriptor);
         break;
-      case "update":
+      case "updateItem":
         this._updateItem();
         break;
-      case "delete":
-        this._deleteItem(operation);
-        break;
-      case "upsert":
+      case "removeItem":
+        this._deleteItem(descriptor);
         break;
       default:
-        // throw new Error(`Unknown operation ${operation.action}`);
+        console.warn(`Unknown or not implemented operation ${descriptor.action.type}`);
         break;
     }
   }

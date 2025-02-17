@@ -119,8 +119,24 @@ export {
     },
     {
       "code": "// __tests__/out/resolvers/Mutation.upsertTask.ts
+import { update, operations } from "@aws-appsync/utils/dynamodb";
 import { util } from "@aws-appsync/utils";
 function request(ctx) {
+  const { input } = ctx.args;
+  const updatedAt = input.updatedAt ?? util.time.nowISO8601();
+  const attributes = { ...input, id: input.id, updatedAt };
+  const item = { _version: operations.increment(1) };
+  for (const [key, value] of Object.entries(attributes)) {
+    item[key] = operations.replace(value);
+  }
+  return update({
+    key: { id: input.id },
+    update: item,
+    condition: {
+      id: { attributeExists: true },
+      _version: { eq: input._version }
+    }
+  });
 }
 function response(ctx) {
   if (ctx.error) {
@@ -132,7 +148,7 @@ export {
   request,
   response
 };
-//# sourceMappingURL=data:application/json;base64,ewogICJ2ZXJzaW9uIjogMywKICAic291cmNlcyI6IFsicmVzb2x2ZXJzL011dGF0aW9uLnVwc2VydFRhc2sudHMiXSwKICAibWFwcGluZ3MiOiAiO0FBQ0EsU0FBUyxZQUFxQjtBQUN2QixTQUFTLFFBQ2QsS0FNQTtBQUFDO0FBRUksU0FBUyxTQUNkLEtBT0E7QUFDQSxNQUFJLElBQUksT0FBTztBQUNiLFNBQUssTUFBTSxJQUFJLE1BQU0sU0FBUyxJQUFJLE1BQU0sSUFBSTtBQUFBLEVBQzlDO0FBRUEsU0FBTyxJQUFJO0FBQ2I7IiwKICAibmFtZXMiOiBbXQp9Cg==
+//# sourceMappingURL=data:application/json;base64,ewogICJ2ZXJzaW9uIjogMywKICAic291cmNlcyI6IFsicmVzb2x2ZXJzL011dGF0aW9uLnVwc2VydFRhc2sudHMiXSwKICAibWFwcGluZ3MiOiAiO0FBQ0EsU0FBUyxRQUFRLGtCQUFrQjtBQUNuQyxTQUFTLFlBQXFCO0FBQ3ZCLFNBQVMsUUFDZCxLQU1BO0FBQ0EsUUFBTSxFQUFFLE1BQU0sSUFBSSxJQUFJO0FBQ3RCLFFBQU0sWUFBWSxNQUFNLGFBQWEsS0FBSyxLQUFLLFdBQVc7QUFDMUQsUUFBTSxhQUFhLEVBQUUsR0FBRyxPQUFPLElBQUksTUFBTSxJQUFJLFVBQXFCO0FBQ2xFLFFBQU0sT0FBZ0MsRUFBRSxVQUFVLFdBQVcsVUFBVSxDQUFDLEVBQUU7QUFDMUUsYUFBVyxDQUFDLEtBQUssS0FBSyxLQUFLLE9BQU8sUUFBUSxVQUFVLEdBQUc7QUFDckQsU0FBSyxHQUFHLElBQUksV0FBVyxRQUFRLEtBQUs7QUFBQSxFQUN0QztBQUVBLFNBQU8sT0FBTztBQUFBLElBQ1osS0FBSyxFQUFFLElBQUksTUFBTSxHQUFHO0FBQUEsSUFDcEIsUUFBUTtBQUFBLElBQ1IsV0FBVztBQUFBLE1BQ1QsSUFBSSxFQUFFLGlCQUFpQixLQUFLO0FBQUEsTUFDNUIsVUFBVSxFQUFFLElBQUksTUFBTSxTQUFTO0FBQUEsSUFDakM7QUFBQSxFQUNGLENBQUM7QUFDSDtBQUVPLFNBQVMsU0FDZCxLQU9BO0FBQ0EsTUFBSSxJQUFJLE9BQU87QUFDYixTQUFLLE1BQU0sSUFBSSxNQUFNLFNBQVMsSUFBSSxNQUFNLElBQUk7QUFBQSxFQUM5QztBQUVBLFNBQU8sSUFBSTtBQUNiOyIsCiAgIm5hbWVzIjogW10KfQo=
 ",
       "dataSource": "TestDataSource",
       "fieldName": "upsertTask",
@@ -236,8 +252,8 @@ export {
       "dataSource": "TestDataSource",
       "fieldName": "createLabelEdge",
       "pipelineFunctions": [
-        "createEdge",
-        "getEdgeNode",
+        "ddbPutItem",
+        "ddbGetItem",
       ],
       "typeName": "Mutation",
     },
@@ -261,8 +277,8 @@ export {
       "dataSource": "TestDataSource",
       "fieldName": "deleteLabelEdge",
       "pipelineFunctions": [
-        "getEdgeNode",
-        "deleteEdge",
+        "ddbGetItem",
+        "ddbDeleteItem",
       ],
       "typeName": "Mutation",
     },
@@ -391,8 +407,24 @@ export {
     },
     {
       "code": "// __tests__/out/resolvers/Mutation.upsertLabel.ts
+import { update, operations } from "@aws-appsync/utils/dynamodb";
 import { util } from "@aws-appsync/utils";
 function request(ctx) {
+  const { input } = ctx.args;
+  const updatedAt = input.updatedAt ?? util.time.nowISO8601();
+  const attributes = { ...input, id: input.id, updatedAt };
+  const item = { _version: operations.increment(1) };
+  for (const [key, value] of Object.entries(attributes)) {
+    item[key] = operations.replace(value);
+  }
+  return update({
+    key: { id: input.id },
+    update: item,
+    condition: {
+      id: { attributeExists: true },
+      _version: { eq: input._version }
+    }
+  });
 }
 function response(ctx) {
   if (ctx.error) {
@@ -404,7 +436,7 @@ export {
   request,
   response
 };
-//# sourceMappingURL=data:application/json;base64,ewogICJ2ZXJzaW9uIjogMywKICAic291cmNlcyI6IFsicmVzb2x2ZXJzL011dGF0aW9uLnVwc2VydExhYmVsLnRzIl0sCiAgIm1hcHBpbmdzIjogIjtBQUNBLFNBQVMsWUFBcUI7QUFDdkIsU0FBUyxRQUNkLEtBTUE7QUFBQztBQUVJLFNBQVMsU0FDZCxLQU9BO0FBQ0EsTUFBSSxJQUFJLE9BQU87QUFDYixTQUFLLE1BQU0sSUFBSSxNQUFNLFNBQVMsSUFBSSxNQUFNLElBQUk7QUFBQSxFQUM5QztBQUVBLFNBQU8sSUFBSTtBQUNiOyIsCiAgIm5hbWVzIjogW10KfQo=
+//# sourceMappingURL=data:application/json;base64,ewogICJ2ZXJzaW9uIjogMywKICAic291cmNlcyI6IFsicmVzb2x2ZXJzL011dGF0aW9uLnVwc2VydExhYmVsLnRzIl0sCiAgIm1hcHBpbmdzIjogIjtBQUNBLFNBQVMsUUFBUSxrQkFBa0I7QUFDbkMsU0FBUyxZQUFxQjtBQUN2QixTQUFTLFFBQ2QsS0FNQTtBQUNBLFFBQU0sRUFBRSxNQUFNLElBQUksSUFBSTtBQUN0QixRQUFNLFlBQVksTUFBTSxhQUFhLEtBQUssS0FBSyxXQUFXO0FBQzFELFFBQU0sYUFBYSxFQUFFLEdBQUcsT0FBTyxJQUFJLE1BQU0sSUFBSSxVQUFxQjtBQUNsRSxRQUFNLE9BQWdDLEVBQUUsVUFBVSxXQUFXLFVBQVUsQ0FBQyxFQUFFO0FBQzFFLGFBQVcsQ0FBQyxLQUFLLEtBQUssS0FBSyxPQUFPLFFBQVEsVUFBVSxHQUFHO0FBQ3JELFNBQUssR0FBRyxJQUFJLFdBQVcsUUFBUSxLQUFLO0FBQUEsRUFDdEM7QUFFQSxTQUFPLE9BQU87QUFBQSxJQUNaLEtBQUssRUFBRSxJQUFJLE1BQU0sR0FBRztBQUFBLElBQ3BCLFFBQVE7QUFBQSxJQUNSLFdBQVc7QUFBQSxNQUNULElBQUksRUFBRSxpQkFBaUIsS0FBSztBQUFBLE1BQzVCLFVBQVUsRUFBRSxJQUFJLE1BQU0sU0FBUztBQUFBLElBQ2pDO0FBQUEsRUFDRixDQUFDO0FBQ0g7QUFFTyxTQUFTLFNBQ2QsS0FPQTtBQUNBLE1BQUksSUFBSSxPQUFPO0FBQ2IsU0FBSyxNQUFNLElBQUksTUFBTSxTQUFTLElBQUksTUFBTSxJQUFJO0FBQUEsRUFDOUM7QUFFQSxTQUFPLElBQUk7QUFDYjsiLAogICJuYW1lcyI6IFtdCn0K
 ",
       "dataSource": "TestDataSource",
       "fieldName": "upsertLabel",
@@ -449,8 +481,24 @@ export {
     },
     {
       "code": "// __tests__/out/resolvers/Mutation.upsertFile.ts
+import { update, operations } from "@aws-appsync/utils/dynamodb";
 import { util } from "@aws-appsync/utils";
 function request(ctx) {
+  const { input } = ctx.args;
+  const updatedAt = input.updatedAt ?? util.time.nowISO8601();
+  const attributes = { ...input, id: input.id, updatedAt };
+  const item = { _version: operations.increment(1) };
+  for (const [key, value] of Object.entries(attributes)) {
+    item[key] = operations.replace(value);
+  }
+  return update({
+    key: { id: input.id },
+    update: item,
+    condition: {
+      id: { attributeExists: true },
+      _version: { eq: input._version }
+    }
+  });
 }
 function response(ctx) {
   if (ctx.error) {
@@ -462,7 +510,7 @@ export {
   request,
   response
 };
-//# sourceMappingURL=data:application/json;base64,ewogICJ2ZXJzaW9uIjogMywKICAic291cmNlcyI6IFsicmVzb2x2ZXJzL011dGF0aW9uLnVwc2VydEZpbGUudHMiXSwKICAibWFwcGluZ3MiOiAiO0FBQ0EsU0FBUyxZQUFxQjtBQUN2QixTQUFTLFFBQ2QsS0FNQTtBQUFDO0FBRUksU0FBUyxTQUNkLEtBT0E7QUFDQSxNQUFJLElBQUksT0FBTztBQUNiLFNBQUssTUFBTSxJQUFJLE1BQU0sU0FBUyxJQUFJLE1BQU0sSUFBSTtBQUFBLEVBQzlDO0FBRUEsU0FBTyxJQUFJO0FBQ2I7IiwKICAibmFtZXMiOiBbXQp9Cg==
+//# sourceMappingURL=data:application/json;base64,ewogICJ2ZXJzaW9uIjogMywKICAic291cmNlcyI6IFsicmVzb2x2ZXJzL011dGF0aW9uLnVwc2VydEZpbGUudHMiXSwKICAibWFwcGluZ3MiOiAiO0FBQ0EsU0FBUyxRQUFRLGtCQUFrQjtBQUNuQyxTQUFTLFlBQXFCO0FBQ3ZCLFNBQVMsUUFDZCxLQU1BO0FBQ0EsUUFBTSxFQUFFLE1BQU0sSUFBSSxJQUFJO0FBQ3RCLFFBQU0sWUFBWSxNQUFNLGFBQWEsS0FBSyxLQUFLLFdBQVc7QUFDMUQsUUFBTSxhQUFhLEVBQUUsR0FBRyxPQUFPLElBQUksTUFBTSxJQUFJLFVBQXFCO0FBQ2xFLFFBQU0sT0FBZ0MsRUFBRSxVQUFVLFdBQVcsVUFBVSxDQUFDLEVBQUU7QUFDMUUsYUFBVyxDQUFDLEtBQUssS0FBSyxLQUFLLE9BQU8sUUFBUSxVQUFVLEdBQUc7QUFDckQsU0FBSyxHQUFHLElBQUksV0FBVyxRQUFRLEtBQUs7QUFBQSxFQUN0QztBQUVBLFNBQU8sT0FBTztBQUFBLElBQ1osS0FBSyxFQUFFLElBQUksTUFBTSxHQUFHO0FBQUEsSUFDcEIsUUFBUTtBQUFBLElBQ1IsV0FBVztBQUFBLE1BQ1QsSUFBSSxFQUFFLGlCQUFpQixLQUFLO0FBQUEsTUFDNUIsVUFBVSxFQUFFLElBQUksTUFBTSxTQUFTO0FBQUEsSUFDakM7QUFBQSxFQUNGLENBQUM7QUFDSDtBQUVPLFNBQVMsU0FDZCxLQU9BO0FBQ0EsTUFBSSxJQUFJLE9BQU87QUFDYixTQUFLLE1BQU0sSUFBSSxNQUFNLFNBQVMsSUFBSSxNQUFNLElBQUk7QUFBQSxFQUM5QztBQUVBLFNBQU8sSUFBSTtBQUNiOyIsCiAgIm5hbWVzIjogW10KfQo=
 ",
       "dataSource": "TestDataSource",
       "fieldName": "upsertFile",
@@ -507,8 +555,24 @@ export {
     },
     {
       "code": "// __tests__/out/resolvers/Mutation.upsertTimeTracker.ts
+import { update, operations } from "@aws-appsync/utils/dynamodb";
 import { util } from "@aws-appsync/utils";
 function request(ctx) {
+  const { input } = ctx.args;
+  const updatedAt = input.updatedAt ?? util.time.nowISO8601();
+  const attributes = { ...input, id: input.id, updatedAt };
+  const item = { _version: operations.increment(1) };
+  for (const [key, value] of Object.entries(attributes)) {
+    item[key] = operations.replace(value);
+  }
+  return update({
+    key: { id: input.id },
+    update: item,
+    condition: {
+      id: { attributeExists: true },
+      _version: { eq: input._version }
+    }
+  });
 }
 function response(ctx) {
   if (ctx.error) {
@@ -520,7 +584,7 @@ export {
   request,
   response
 };
-//# sourceMappingURL=data:application/json;base64,ewogICJ2ZXJzaW9uIjogMywKICAic291cmNlcyI6IFsicmVzb2x2ZXJzL011dGF0aW9uLnVwc2VydFRpbWVUcmFja2VyLnRzIl0sCiAgIm1hcHBpbmdzIjogIjtBQUNBLFNBQVMsWUFBcUI7QUFDdkIsU0FBUyxRQUNkLEtBTUE7QUFBQztBQUVJLFNBQVMsU0FDZCxLQU9BO0FBQ0EsTUFBSSxJQUFJLE9BQU87QUFDYixTQUFLLE1BQU0sSUFBSSxNQUFNLFNBQVMsSUFBSSxNQUFNLElBQUk7QUFBQSxFQUM5QztBQUVBLFNBQU8sSUFBSTtBQUNiOyIsCiAgIm5hbWVzIjogW10KfQo=
+//# sourceMappingURL=data:application/json;base64,ewogICJ2ZXJzaW9uIjogMywKICAic291cmNlcyI6IFsicmVzb2x2ZXJzL011dGF0aW9uLnVwc2VydFRpbWVUcmFja2VyLnRzIl0sCiAgIm1hcHBpbmdzIjogIjtBQUNBLFNBQVMsUUFBUSxrQkFBa0I7QUFDbkMsU0FBUyxZQUFxQjtBQUN2QixTQUFTLFFBQ2QsS0FNQTtBQUNBLFFBQU0sRUFBRSxNQUFNLElBQUksSUFBSTtBQUN0QixRQUFNLFlBQVksTUFBTSxhQUFhLEtBQUssS0FBSyxXQUFXO0FBQzFELFFBQU0sYUFBYSxFQUFFLEdBQUcsT0FBTyxJQUFJLE1BQU0sSUFBSSxVQUFxQjtBQUNsRSxRQUFNLE9BQWdDLEVBQUUsVUFBVSxXQUFXLFVBQVUsQ0FBQyxFQUFFO0FBQzFFLGFBQVcsQ0FBQyxLQUFLLEtBQUssS0FBSyxPQUFPLFFBQVEsVUFBVSxHQUFHO0FBQ3JELFNBQUssR0FBRyxJQUFJLFdBQVcsUUFBUSxLQUFLO0FBQUEsRUFDdEM7QUFFQSxTQUFPLE9BQU87QUFBQSxJQUNaLEtBQUssRUFBRSxJQUFJLE1BQU0sR0FBRztBQUFBLElBQ3BCLFFBQVE7QUFBQSxJQUNSLFdBQVc7QUFBQSxNQUNULElBQUksRUFBRSxpQkFBaUIsS0FBSztBQUFBLE1BQzVCLFVBQVUsRUFBRSxJQUFJLE1BQU0sU0FBUztBQUFBLElBQ2pDO0FBQUEsRUFDRixDQUFDO0FBQ0g7QUFFTyxTQUFTLFNBQ2QsS0FPQTtBQUNBLE1BQUksSUFBSSxPQUFPO0FBQ2IsU0FBSyxNQUFNLElBQUksTUFBTSxTQUFTLElBQUksTUFBTSxJQUFJO0FBQUEsRUFDOUM7QUFFQSxTQUFPLElBQUk7QUFDYjsiLAogICJuYW1lcyI6IFtdCn0K
 ",
       "dataSource": "TestDataSource",
       "fieldName": "upsertTimeTracker",

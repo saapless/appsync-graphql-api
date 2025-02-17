@@ -7,7 +7,7 @@ import { IPluginFactory, TransformerPluginBase } from "../plugins";
 import { DocumentNode } from "../parser";
 import { SchemaValidationError } from "../utils/errors";
 import { ensureOutputDirectory } from "../utils/output";
-import { TypeGenerator } from "../codegen";
+import { TypesGenerator } from "../generators";
 import { FieldResolver, FunctionResolver, ResolverBase } from "../resolver";
 import { TransformerContextConfig } from "../context/TransformerContext";
 
@@ -66,7 +66,7 @@ export class GraphQLTransformer {
       encoding: "utf-8",
     });
 
-    const typesGen = new TypeGenerator(this.context.document);
+    const typesGen = new TypesGenerator(this.context.document);
 
     writeFileSync(
       path.resolve(outDir, "schema-types.ts"),

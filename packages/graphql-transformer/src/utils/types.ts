@@ -46,14 +46,33 @@ export type Key<T extends string | number = string | number> = Record<
   KeyValue<T> & KeyOperator<T>
 >;
 
+export type LoaderActionType =
+  | "getItem"
+  | "queryItems"
+  | "putItem"
+  | "updateItem"
+  | "removeItem"
+  | "createEdge"
+  | "deleteEdge"
+  | "queryEdges"
+  | "getItemCommand"
+  | "batchGetItemsCommand"
+  | "queryItemsCommand"
+  | "updateItemCommand"
+  | "deleteItemCommand"
+  | "putItemCommand";
+
+export type LoaderAction = {
+  type: LoaderActionType;
+  key: Key;
+  index?: string;
+};
+
 export type LoaderDescriptor = {
   dataSource: string;
-  action: WriteOperation | ReadOperation | EdgeOperation;
-  key: Key;
   targetName: string;
-  relation?: RelationType;
-  index?: string;
-  auth?: AuthorizationRule[];
+  action: LoaderAction;
+  authRules?: AuthorizationRule[];
   returnType?: string;
 };
 

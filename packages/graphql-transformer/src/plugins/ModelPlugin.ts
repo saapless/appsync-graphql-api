@@ -17,7 +17,7 @@ import {
 } from "../parser";
 import { InvalidDefinitionError, TransformExecutionError } from "../utils/errors";
 import { camelCase, pascalCase, pluralize } from "../utils/strings";
-import { AuthorizationRule, WriteOperation } from "../utils/types";
+import { AuthorizationRule, LoaderActionType, WriteOperation } from "../utils/types";
 import { TransformerPluginBase } from "./TransformerPluginBase";
 
 type ModelOperationType =
@@ -290,6 +290,19 @@ export class ModelPlugin extends TransformerPluginBase {
     this.context.document.addNode(input);
   }
 
+  private _getVerbAction(verb: WriteOperation): LoaderActionType {
+    switch (verb) {
+      case "create":
+        return "putItem";
+      case "update":
+        return "updateItem";
+      case "delete":
+        return "removeItem";
+      case "upsert":
+        return "updateItem";
+    }
+  }
+
   private _createMutation(model: ObjectNode, verb: WriteOperation, nonNullIdOrVersion = false) {
     const fieldName = camelCase(verb, model.name);
     const inputName = pascalCase(verb, model.name, "input");
@@ -313,10 +326,12 @@ export class ModelPlugin extends TransformerPluginBase {
       ?.getArgumentsJSON<{ rules: AuthorizationRule[] }>();
 
     this.context.loader.setFieldLoader("Mutation", fieldName, {
-      action: verb,
+      action: {
+        type: this._getVerbAction(verb),
+        key: { id: { ref: "args.input.id" } },
+      },
       targetName: model.name,
-      auth: authRules?.rules,
-      key: { id: { ref: "args.input.id" } },
+      authRules: authRules?.rules,
     });
   }
 

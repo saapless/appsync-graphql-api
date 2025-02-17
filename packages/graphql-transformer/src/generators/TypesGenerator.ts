@@ -7,11 +7,11 @@ import {
   NonNullTypeNode,
   ObjectNode,
   UnionNode,
-} from "../../parser";
-import { pascalCase } from "../../utils/strings";
-import { CodeDeclaration, printAST, tc, TypeProperty } from "../code";
+} from "../parser";
+import { pascalCase } from "../utils/strings";
+import { CodeDeclaration, printAST, tc, TypeProperty } from "../codegen";
 
-export class TypeGenerator {
+export class TypesGenerator {
   private readonly _definitions: CodeDeclaration[];
 
   constructor(protected document: DocumentNode) {

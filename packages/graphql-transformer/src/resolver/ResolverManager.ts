@@ -2,9 +2,10 @@ import path from "node:path";
 import fs from "node:fs";
 import { TransformerContext } from "../context";
 import { InterfaceNode, ObjectNode } from "../parser";
-import { CodeDocument, DynamoDbGenerator } from "../codegen";
+import { CodeDocument } from "../codegen";
 
 import { DataSourceType } from "../context/TransformerContext";
+import { DynamoDbGenerator } from "../generators";
 import { FieldResolver } from "./FieldResolver";
 import { FunctionResolver } from "./FunctionResolver";
 import { ResolverBase } from "./ResolverBase";

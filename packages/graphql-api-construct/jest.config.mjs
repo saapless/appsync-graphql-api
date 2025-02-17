@@ -1,11 +1,18 @@
+import path from "node:path";
+import { fileURLToPath } from "node:url";
 import { createDefaultEsmPreset } from "ts-jest";
 
-/**
- * @type {import('ts-jest').JestConfigWithTsJest}
- */
+const __dirname = path.dirname(fileURLToPath(import.meta.url));
 
+/** @type {import('ts-jest').JestConfigWithTsJest} */
 const config = {
-  ...createDefaultEsmPreset({ tsconfig: "tsconfig.json", useESM: true }),
+  testMatch: ["**/__tests__/**/?(*.)+(spec|test).[jt]s?(x)", "**/?(*.)+(spec|test).[jt]s?(x)"],
+  testEnvironment: "node",
+  extensionsToTreatAsEsm: [".ts"],
+  ...createDefaultEsmPreset({
+    tsconfig: path.resolve(__dirname, "../../tsconfig.json"),
+    useESM: true,
+  }),
 };
 
 export default config;

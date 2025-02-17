@@ -346,9 +346,11 @@ export class ConnectionPlugin extends TransformerPluginBase {
       typeName: parent.name,
       fieldName: field.name,
       targetName: connection.target.name,
-      action: "get",
-      index: connection.index ?? undefined,
-      key: { id: connection.key },
+      action: {
+        type: "getItem",
+        key: { id: connection.key },
+        index: connection.index ?? undefined,
+      },
     });
   }
 
@@ -367,12 +369,14 @@ export class ConnectionPlugin extends TransformerPluginBase {
       );
     }
 
-    this.context.loader.setFunctionLoader("getEdgeNode", {
-      action: "get",
+    this.context.loader.setFunctionLoader("ddbGetItem", {
       targetName: "Node",
       dataSource: this.context.defaultDataSourceName,
+      action: {
+        type: "getItemCommand",
+        key: { id: { ref: "args.input.targetId" } },
+      },
       returnType: "prev",
-      key: { id: { ref: "args.input.targetId" } },
     });
 
     const mutationNode = this.context.document.getMutationNode();
@@ -383,17 +387,20 @@ export class ConnectionPlugin extends TransformerPluginBase {
           InputValueNode.create("input", NonNullTypeNode.create(edgeInputName)),
         ])
       );
-      this.context.loader.setFunctionLoader("createEdge", {
-        action: "create",
+      this.context.loader.setFunctionLoader("ddbPutItem", {
         targetName: edgeName,
         dataSource: this.context.defaultDataSourceName,
+        action: {
+          type: "putItemCommand",
+          key: {},
+        },
         returnType: "prev",
       });
 
       this.context.loader.setFieldLoader("Mutation", createFieldName, {
-        action: "createEdge",
         targetName: edgeName,
-        pipeline: ["createEdge", "getEdgeNode"],
+        pipeline: ["ddbPutItem", "ddbGetItem"],
+        action: { type: "createEdge", key: {} },
         returnType: "prev",
       });
     }
@@ -405,18 +412,20 @@ export class ConnectionPlugin extends TransformerPluginBase {
         ])
       );
 
-      this.context.loader.setFunctionLoader("deleteEdge", {
-        action: "delete",
+      this.context.loader.setFunctionLoader("ddbDeleteItem", {
         targetName: edgeName,
         dataSource: this.context.defaultDataSourceName,
-        key: { id: { ref: "prev.id" } },
+        action: {
+          type: "deleteItemCommand",
+          key: {},
+        },
         returnType: "prev",
       });
 
       this.context.loader.setFieldLoader("Mutation", deleteFieldName, {
-        action: "deleteEdge",
         targetName: edgeName,
-        pipeline: ["getEdgeNode", "deleteEdge"],
+        pipeline: ["ddbGetItem", "ddbDeleteItem"],
+        action: { type: "deleteEdge", key: {} },
         returnType: "prev",
       });
     }
@@ -457,12 +466,13 @@ export class ConnectionPlugin extends TransformerPluginBase {
 
     this.context.loader.setFieldLoader(parent.name, field.name, {
       targetName: connection.target.name,
-      action: "list",
-      relation: connection.relation,
+      action: {
+        type: "queryItems",
+        key: { sourceId: connection.key },
+        index: connection.index ?? undefined,
+      },
       returnType: "edges",
       dataSource: this.context.defaultDataSourceName,
-      index: connection.index ?? undefined,
-      key: { sourceId: connection.key },
     });
 
     if (connection.relation === "manyToMany") {

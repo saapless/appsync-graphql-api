@@ -6,8 +6,8 @@ const config = {
   verbose: true,
   testMatch: ["**/__tests__/**/?(*.)+(spec|test).[jt]s?(x)", "**/?(*.)+(spec|test).[jt]s?(x)"],
   testEnvironment: "node",
-  projects: ["<rootDir>/packages/*"],
   extensionsToTreatAsEsm: [".ts"],
+  projects: ["<rootDir>/packages/*"],
   ...createDefaultEsmPreset({ tsconfig: "<rootDir>/tsconfig.json", useESM: true }),
 };
 

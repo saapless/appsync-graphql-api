@@ -56,7 +56,7 @@ export class AuthPlugin extends TransformerPluginBase {
       if (authRule?.rules) {
         this.context.loader.setFieldLoader(object.name, field.name, {
           targetName: field.type.getTypeName(),
-          auth: rules,
+          authRules: rules,
         });
       }
     }
