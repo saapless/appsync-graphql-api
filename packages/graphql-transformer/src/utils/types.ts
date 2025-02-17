@@ -58,9 +58,9 @@ export type LoaderActionType =
   | "getItemCommand"
   | "batchGetItemsCommand"
   | "queryItemsCommand"
+  | "putItemCommand"
   | "updateItemCommand"
-  | "deleteItemCommand"
-  | "putItemCommand";
+  | "deleteItemCommand";
 
 export type LoaderAction = {
   type: LoaderActionType;

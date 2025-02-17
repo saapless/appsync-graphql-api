@@ -464,18 +464,53 @@ export class ConnectionPlugin extends TransformerPluginBase {
       field.setType(NonNullTypeNode.create(typeName));
     }
 
-    this.context.loader.setFieldLoader(parent.name, field.name, {
-      targetName: connection.target.name,
-      action: {
-        type: "queryItems",
-        key: { sourceId: connection.key },
-        index: connection.index ?? undefined,
-      },
-      returnType: "edges",
-      dataSource: this.context.defaultDataSourceName,
-    });
+    if (connection.relation === "oneToMany") {
+      this.context.loader.setFieldLoader(parent.name, field.name, {
+        targetName: connection.target.name,
+        action: {
+          type: "queryItems",
+          key: { sourceId: connection.key },
+          index: connection.index ?? undefined,
+        },
+        returnType: "edges",
+        dataSource: this.context.defaultDataSourceName,
+      });
+    } else {
+      this.context.loader.setFunctionLoader("ddbQueryItems", {
+        targetName: connection.target.name,
+        dataSource: this.context.defaultDataSourceName,
+        action: {
+          type: "queryItemsCommand",
+          key: {},
+        },
+        returnType: "result",
+      });
 
-    if (connection.relation === "manyToMany") {
+      this.context.loader.setFunctionLoader("ddbBatchGetItems", {
+        targetName: connection.target.name,
+        dataSource: this.context.defaultDataSourceName,
+        action: {
+          type: "batchGetItemsCommand",
+          key: {},
+        },
+        returnType: "edges",
+      });
+
+      this.context.loader.setFieldLoader(parent.name, field.name, {
+        targetName: target.name,
+        pipeline: ["ddbQueryItems", "ddbBatchGet"],
+        dataSource: this.context.defaultDataSourceName,
+        action: {
+          type: "queryEdges",
+          key: {
+            sourceId: connection.key,
+            _sk: { beginsWith: { eq: pascalCase(target.name, "Edge") } },
+          },
+          index: connection.index ?? undefined,
+        },
+        returnType: "prev",
+      });
+
       this._createEdgeMutations(connection);
     }
   }

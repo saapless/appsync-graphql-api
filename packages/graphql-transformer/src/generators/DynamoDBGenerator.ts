@@ -55,6 +55,7 @@ export class DynamoDbGenerator extends ContextTypesGenerator {
     );
   }
 
+  // #region Field Operations
   private _getItem(descriptor: LoaderDescriptor) {
     this.code.addImport("@aws-appsync/utils/dynamodb", tc.named("get"));
     this.code.setRequest(
@@ -99,7 +100,7 @@ export class DynamoDbGenerator extends ContextTypesGenerator {
           updatedAt: tc.coalesce(tc.ref("input.updatedAt"), tc.ref("createdAt")),
           __typename: tc.str(typename),
           _version: tc.coalesce(tc.ref("input._version"), tc.num(1)),
-          _sk: tc.tick(`${typename}\${id}`),
+          _sk: tc.tick(`${typename}#\${id}`),
         })
       ),
       tc.return(
@@ -188,6 +189,145 @@ export class DynamoDbGenerator extends ContextTypesGenerator {
         )
       );
   }
+
+  // #endregion Field Operations
+
+  // #reqion Edges Operations
+
+  private _createEdge(descriptor: LoaderDescriptor) {
+    const typename: string = descriptor.targetName;
+    this.code.setRequest(
+      tc.const(tc.obj(tc.ref("input")), tc.ref("ctx.args")),
+      tc.const("id", tc.tick("${input.sourceId}#${input.targetId}")),
+      tc.const("timestamp", tc.call(tc.ref("util.time.nowISO8601"), [])),
+      tc.const(
+        "createItemCommand",
+        tc.obj({
+          key: tc.obj({ id: tc.ref("id") }),
+          item: tc.obj(tc.spread("input"), {
+            id: tc.ref("id"),
+            createdAt: tc.ref("timestamp"),
+            updatedAt: tc.ref("timestamp"),
+            __typename: tc.str(typename),
+            _sk: tc.tick(`${typename}#\${id}`),
+          }),
+          condition: tc.obj({
+            id: tc.obj({
+              attributeExists: tc.bool(false),
+            }),
+          }),
+        })
+      ),
+      tc.const(
+        "getItemCommand",
+        tc.obj({
+          key: tc.obj({ id: tc.ref("input.targetId") }),
+        })
+      ),
+      tc.return(tc.obj({ commands: tc.arr(tc.ref("createItemCommand"), tc.ref("getItemCommand")) }))
+    );
+  }
+
+  private _deleteEdge() {
+    this.code.setRequest(
+      tc.const(tc.obj(tc.ref("input")), tc.ref("ctx.args")),
+      tc.const("id", tc.tick("${input.sourceId}#${input.targetId}")),
+      tc.const(
+        "deleteItemCommand",
+        tc.obj({
+          key: tc.obj({ id: tc.ref("id") }),
+          condition: tc.obj({
+            id: tc.obj({ attributeExists: tc.bool(true) }),
+          }),
+        })
+      ),
+      tc.const(
+        "getItemCommand",
+        tc.obj({
+          key: tc.obj({ id: tc.ref("input.targetId") }),
+        })
+      ),
+      tc.return(tc.obj({ commands: tc.arr(tc.ref("deleteItemCommand"), tc.ref("getItemCommand")) }))
+    );
+  }
+
+  private _queryEdges(descriptor: LoaderDescriptor) {
+    this.code.setRequest(
+      tc.const(
+        "queryItemsCommand",
+        tc.obj({
+          query: this._getKey(descriptor.action.key),
+          filter: tc.ref("ctx.args.filter"),
+          limit: tc.coalesce(tc.ref("ctx.args.first"), tc.num(100)),
+          nextToken: tc.coalesce(tc.ref("ctx.args.after"), tc.undef()),
+          scanIndexForward: tc.eq(tc.ref("ctx.args.sort"), tc.str("ASC")),
+          index: descriptor.action.index ? tc.str(descriptor.action.index) : tc.undef(),
+        })
+      ),
+      tc.const("batchGetItemsCommand", tc.obj({ tables: tc.obj({}) })),
+      tc.return(
+        tc.obj({ commands: tc.arr(tc.ref("queryItemsCommand"), tc.ref("batchGetItemsCommand")) })
+      )
+    );
+  }
+  // #endretion Edges Operations
+
+  // #region Pipeline Function Commands
+  private _getItemCommand() {
+    this.code
+      .addImport("@aws-appsync/utils/dynamodb", tc.named("get"))
+      .setRequest(
+        tc.const("command", tc.call(tc.ref("ctx.prev.result.commands.shift"), [])),
+        tc.return(tc.call(tc.ref("get"), tc.ref("command")))
+      );
+  }
+
+  private _batchGetItemsCommand() {
+    this.code
+      .addImport("@aws-appsync/utils/dynamodb", tc.named("batchGet"))
+      .setRequest(
+        tc.const("command", tc.call(tc.ref("ctx.prev.result.commands.shift"), [])),
+        tc.return(tc.call(tc.ref("batchGet"), tc.ref("command")))
+      );
+  }
+
+  private _queryItemsCommand() {
+    this.code
+      .addImport("@aws-appsync/utils/dynamodb", tc.named("query"))
+      .setRequest(
+        tc.const("command", tc.call(tc.ref("ctx.prev.result.commands.shift"), [])),
+        tc.return(tc.call(tc.ref("query"), tc.ref("command")))
+      );
+  }
+
+  private _putItemCommand() {
+    this.code
+      .addImport("@aws-appsync/utils/dynamodb", tc.named("put"))
+      .setRequest(
+        tc.const("command", tc.call(tc.ref("ctx.prev.result.commands.shift"), [])),
+        tc.return(tc.call(tc.ref("put"), tc.ref("command")))
+      );
+  }
+
+  private _updateItemCommand() {
+    this.code
+      .addImport("@aws-appsync/utils/dynamodb", tc.named("update"))
+      .setRequest(
+        tc.const("command", tc.call(tc.ref("ctx.prev.result.commands.shift"), [])),
+        tc.return(tc.call(tc.ref("update"), tc.ref("command")))
+      );
+  }
+
+  private _deleteItemCommand() {
+    this.code
+      .addImport("@aws-appsync/utils/dynamodb", tc.named("remove"))
+      .setRequest(
+        tc.const("command", tc.call(tc.ref("ctx.prev.result.commands.shift"), [])),
+        tc.return(tc.call(tc.ref("remove"), tc.ref("command")))
+      );
+  }
+
+  // #endreqion Pipeline Functions Commands
 
   private _checkError() {
     this.code
@@ -280,9 +420,36 @@ export class DynamoDbGenerator extends ContextTypesGenerator {
       case "removeItem":
         this._deleteItem(descriptor);
         break;
-      default:
-        console.warn(`Unknown or not implemented operation ${descriptor.action.type}`);
+
+      case "createEdge":
+        this._createEdge(descriptor);
         break;
+      case "deleteEdge":
+        this._deleteEdge();
+        break;
+      case "queryEdges":
+        this._queryEdges(descriptor);
+        break;
+      case "getItemCommand":
+        this._getItemCommand();
+        break;
+      case "batchGetItemsCommand":
+        this._batchGetItemsCommand();
+        break;
+      case "queryItemsCommand":
+        this._queryItemsCommand();
+        break;
+      case "putItemCommand":
+        this._putItemCommand();
+        break;
+      case "updateItemCommand":
+        this._updateItemCommand();
+        break;
+      case "deleteItemCommand":
+        this._deleteItemCommand();
+        break;
+      default:
+        throw new TransformExecutionError(`Unknown operation ${descriptor.action.type}`);
     }
   }
 

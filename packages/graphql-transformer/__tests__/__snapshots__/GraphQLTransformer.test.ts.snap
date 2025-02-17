@@ -18,7 +18,7 @@ function request(ctx) {
     updatedAt: input.updatedAt ?? createdAt,
     __typename: "User",
     _version: input._version ?? 1,
-    _sk: \`User\${id}\`
+    _sk: \`User#\${id}\`
   };
   return put({
     key: { id: item.id },
@@ -36,7 +36,7 @@ export {
   request,
   response
 };
-//# sourceMappingURL=data:application/json;base64,ewogICJ2ZXJzaW9uIjogMywKICAic291cmNlcyI6IFsicmVzb2x2ZXJzL011dGF0aW9uLmNyZWF0ZVVzZXIudHMiXSwKICAibWFwcGluZ3MiOiAiO0FBQ0EsU0FBUyxXQUFXO0FBQ3BCLFNBQVMsWUFBcUI7QUFDdkIsU0FBUyxRQUNkLEtBTUE7QUFDQSxRQUFNLEVBQUUsTUFBTSxJQUFJLElBQUk7QUFDdEIsUUFBTSxLQUFLLE1BQU0sTUFBTSxLQUFLLE9BQU87QUFDbkMsUUFBTSxZQUFZLE1BQU0sYUFBYSxLQUFLLEtBQUssV0FBVztBQUMxRCxRQUFNLE9BQU87QUFBQSxJQUNYLEdBQUc7QUFBQSxJQUNIO0FBQUEsSUFDQTtBQUFBLElBQ0EsV0FBVyxNQUFNLGFBQWE7QUFBQSxJQUM5QixZQUFZO0FBQUEsSUFDWixVQUFVLE1BQU0sWUFBWTtBQUFBLElBQzVCLEtBQUssT0FBTyxFQUFFO0FBQUEsRUFDaEI7QUFDQSxTQUFPLElBQUk7QUFBQSxJQUNULEtBQUssRUFBRSxJQUFJLEtBQUssR0FBRztBQUFBLElBQ25CO0FBQUEsSUFDQSxXQUFXLEVBQUUsSUFBSSxFQUFFLGlCQUFpQixNQUFNLEVBQUU7QUFBQSxFQUM5QyxDQUFDO0FBQ0g7QUFFTyxTQUFTLFNBQ2QsS0FPQTtBQUNBLE1BQUksSUFBSSxPQUFPO0FBQ2IsU0FBSyxNQUFNLElBQUksTUFBTSxTQUFTLElBQUksTUFBTSxJQUFJO0FBQUEsRUFDOUM7QUFFQSxTQUFPLElBQUk7QUFDYjsiLAogICJuYW1lcyI6IFtdCn0K
+//# sourceMappingURL=data:application/json;base64,ewogICJ2ZXJzaW9uIjogMywKICAic291cmNlcyI6IFsicmVzb2x2ZXJzL011dGF0aW9uLmNyZWF0ZVVzZXIudHMiXSwKICAibWFwcGluZ3MiOiAiO0FBQ0EsU0FBUyxXQUFXO0FBQ3BCLFNBQVMsWUFBcUI7QUFDdkIsU0FBUyxRQUNkLEtBTUE7QUFDQSxRQUFNLEVBQUUsTUFBTSxJQUFJLElBQUk7QUFDdEIsUUFBTSxLQUFLLE1BQU0sTUFBTSxLQUFLLE9BQU87QUFDbkMsUUFBTSxZQUFZLE1BQU0sYUFBYSxLQUFLLEtBQUssV0FBVztBQUMxRCxRQUFNLE9BQU87QUFBQSxJQUNYLEdBQUc7QUFBQSxJQUNIO0FBQUEsSUFDQTtBQUFBLElBQ0EsV0FBVyxNQUFNLGFBQWE7QUFBQSxJQUM5QixZQUFZO0FBQUEsSUFDWixVQUFVLE1BQU0sWUFBWTtBQUFBLElBQzVCLEtBQUssUUFBUSxFQUFFO0FBQUEsRUFDakI7QUFDQSxTQUFPLElBQUk7QUFBQSxJQUNULEtBQUssRUFBRSxJQUFJLEtBQUssR0FBRztBQUFBLElBQ25CO0FBQUEsSUFDQSxXQUFXLEVBQUUsSUFBSSxFQUFFLGlCQUFpQixNQUFNLEVBQUU7QUFBQSxFQUM5QyxDQUFDO0FBQ0g7QUFFTyxTQUFTLFNBQ2QsS0FPQTtBQUNBLE1BQUksSUFBSSxPQUFPO0FBQ2IsU0FBSyxNQUFNLElBQUksTUFBTSxTQUFTLElBQUksTUFBTSxJQUFJO0FBQUEsRUFDOUM7QUFFQSxTQUFPLElBQUk7QUFDYjsiLAogICJuYW1lcyI6IFtdCn0K
 ",
       "dataSource": "TestDataSource",
       "fieldName": "createUser",
@@ -193,49 +193,18 @@ export {
     },
     {
       "code": "// __tests__/out/resolvers/Task.labels.ts
-import { query } from "@aws-appsync/utils/dynamodb";
 import { util } from "@aws-appsync/utils";
 function request(ctx) {
-  return query({
-    query: { sourceId: ctx.source?.id },
+  const queryItemsCommand = {
+    query: { sourceId: ctx.source?.id, _sk: { beginsWith: "LabelEdge" } },
     filter: ctx.args.filter,
     limit: ctx.args.first ?? 100,
     nextToken: ctx.args.after ?? void 0,
     scanIndexForward: ctx.args.sort === "ASC",
     index: "bySourceId"
-  });
-}
-function response(ctx) {
-  if (ctx.error) {
-    util.error(ctx.error.message, ctx.error.type);
-  }
-  return {
-    edges: ctx.result.items.map((node) => {
-      return { cursor: node.id, node };
-    }),
-    pageInfo: {
-      hasPreviousPage: Boolean(ctx.args?.after),
-      hasNextPage: Boolean(ctx.result.nextToken),
-      startCursor: ctx.args.after,
-      endCursor: ctx.result.nextToken
-    }
   };
-}
-export {
-  request,
-  response
-};
-//# sourceMappingURL=data:application/json;base64,ewogICJ2ZXJzaW9uIjogMywKICAic291cmNlcyI6IFsicmVzb2x2ZXJzL1Rhc2subGFiZWxzLnRzIl0sCiAgIm1hcHBpbmdzIjogIjtBQU1BLFNBQVMsYUFBYTtBQUN0QixTQUFTLFlBQXFCO0FBQ3ZCLFNBQVMsUUFDZCxLQUNBO0FBQ0EsU0FBTyxNQUFNO0FBQUEsSUFDWCxPQUFPLEVBQUUsVUFBVSxJQUFJLFFBQVEsR0FBRztBQUFBLElBQ2xDLFFBQVEsSUFBSSxLQUFLO0FBQUEsSUFDakIsT0FBTyxJQUFJLEtBQUssU0FBUztBQUFBLElBQ3pCLFdBQVcsSUFBSSxLQUFLLFNBQVM7QUFBQSxJQUM3QixrQkFBa0IsSUFBSSxLQUFLLFNBQVM7QUFBQSxJQUNwQyxPQUFPO0FBQUEsRUFDVCxDQUFDO0FBQ0g7QUFFTyxTQUFTLFNBQ2QsS0FPQTtBQUNBLE1BQUksSUFBSSxPQUFPO0FBQ2IsU0FBSyxNQUFNLElBQUksTUFBTSxTQUFTLElBQUksTUFBTSxJQUFJO0FBQUEsRUFDOUM7QUFFQSxTQUFPO0FBQUEsSUFDTCxPQUFPLElBQUksT0FBTyxNQUFNLElBQUksQ0FBQyxTQUFTO0FBQ3BDLGFBQU8sRUFBRSxRQUFRLEtBQUssSUFBSSxLQUFXO0FBQUEsSUFDdkMsQ0FBQztBQUFBLElBQ0QsVUFBVTtBQUFBLE1BQ1IsaUJBQWlCLFFBQVEsSUFBSSxNQUFNLEtBQUs7QUFBQSxNQUN4QyxhQUFhLFFBQVEsSUFBSSxPQUFPLFNBQVM7QUFBQSxNQUN6QyxhQUFhLElBQUksS0FBSztBQUFBLE1BQ3RCLFdBQVcsSUFBSSxPQUFPO0FBQUEsSUFDeEI7QUFBQSxFQUNGO0FBQ0Y7IiwKICAibmFtZXMiOiBbXQp9Cg==
-",
-      "dataSource": "TestDataSource",
-      "fieldName": "labels",
-      "pipelineFunctions": undefined,
-      "typeName": "Task",
-    },
-    {
-      "code": "// __tests__/out/resolvers/Mutation.createLabelEdge.ts
-import { util } from "@aws-appsync/utils";
-function request(ctx) {
+  const batchGetItemsCommand = { tables: {} };
+  return { commands: [queryItemsCommand, batchGetItemsCommand] };
 }
 function response(ctx) {
   if (ctx.error) {
@@ -247,7 +216,49 @@ export {
   request,
   response
 };
-//# sourceMappingURL=data:application/json;base64,ewogICJ2ZXJzaW9uIjogMywKICAic291cmNlcyI6IFsicmVzb2x2ZXJzL011dGF0aW9uLmNyZWF0ZUxhYmVsRWRnZS50cyJdLAogICJtYXBwaW5ncyI6ICI7QUFDQSxTQUFTLFlBQXFCO0FBQ3ZCLFNBQVMsUUFDZCxLQU1BO0FBQUM7QUFFSSxTQUFTLFNBQ2QsS0FPQTtBQUNBLE1BQUksSUFBSSxPQUFPO0FBQ2IsU0FBSyxNQUFNLElBQUksTUFBTSxTQUFTLElBQUksTUFBTSxJQUFJO0FBQUEsRUFDOUM7QUFFQSxTQUFPLElBQUk7QUFDYjsiLAogICJuYW1lcyI6IFtdCn0K
+//# sourceMappingURL=data:application/json;base64,ewogICJ2ZXJzaW9uIjogMywKICAic291cmNlcyI6IFsicmVzb2x2ZXJzL1Rhc2subGFiZWxzLnRzIl0sCiAgIm1hcHBpbmdzIjogIjtBQUNBLFNBQVMsWUFBcUI7QUFDdkIsU0FBUyxRQUNkLEtBQ0E7QUFDQSxRQUFNLG9CQUFvQjtBQUFBLElBQ3hCLE9BQU8sRUFBRSxVQUFVLElBQUksUUFBUSxJQUFJLEtBQUssRUFBRSxZQUFZLFlBQVksRUFBRTtBQUFBLElBQ3BFLFFBQVEsSUFBSSxLQUFLO0FBQUEsSUFDakIsT0FBTyxJQUFJLEtBQUssU0FBUztBQUFBLElBQ3pCLFdBQVcsSUFBSSxLQUFLLFNBQVM7QUFBQSxJQUM3QixrQkFBa0IsSUFBSSxLQUFLLFNBQVM7QUFBQSxJQUNwQyxPQUFPO0FBQUEsRUFDVDtBQUNBLFFBQU0sdUJBQXVCLEVBQUUsUUFBUSxDQUFDLEVBQUU7QUFDMUMsU0FBTyxFQUFFLFVBQVUsQ0FBQyxtQkFBbUIsb0JBQW9CLEVBQUU7QUFDL0Q7QUFFTyxTQUFTLFNBQ2QsS0FDQTtBQUNBLE1BQUksSUFBSSxPQUFPO0FBQ2IsU0FBSyxNQUFNLElBQUksTUFBTSxTQUFTLElBQUksTUFBTSxJQUFJO0FBQUEsRUFDOUM7QUFFQSxTQUFPLElBQUk7QUFDYjsiLAogICJuYW1lcyI6IFtdCn0K
+",
+      "dataSource": "TestDataSource",
+      "fieldName": "labels",
+      "pipelineFunctions": [
+        "ddbQueryItems",
+        "ddbBatchGet",
+      ],
+      "typeName": "Task",
+    },
+    {
+      "code": "// __tests__/out/resolvers/Mutation.createLabelEdge.ts
+import { util } from "@aws-appsync/utils";
+function request(ctx) {
+  const { input } = ctx.args;
+  const id = \`\${input.sourceId}#\${input.targetId}\`;
+  const timestamp = util.time.nowISO8601();
+  const createItemCommand = {
+    key: { id },
+    item: {
+      ...input,
+      id,
+      createdAt: timestamp,
+      updatedAt: timestamp,
+      __typename: "LabelEdge",
+      _sk: \`LabelEdge#\${id}\`
+    },
+    condition: { id: { attributeExists: false } }
+  };
+  const getItemCommand = { key: { id: input.targetId } };
+  return { commands: [createItemCommand, getItemCommand] };
+}
+function response(ctx) {
+  if (ctx.error) {
+    util.error(ctx.error.message, ctx.error.type);
+  }
+  return ctx.prev;
+}
+export {
+  request,
+  response
+};
+//# sourceMappingURL=data:application/json;base64,ewogICJ2ZXJzaW9uIjogMywKICAic291cmNlcyI6IFsicmVzb2x2ZXJzL011dGF0aW9uLmNyZWF0ZUxhYmVsRWRnZS50cyJdLAogICJtYXBwaW5ncyI6ICI7QUFDQSxTQUFTLFlBQXFCO0FBQ3ZCLFNBQVMsUUFDZCxLQU1BO0FBQ0EsUUFBTSxFQUFFLE1BQU0sSUFBSSxJQUFJO0FBQ3RCLFFBQU0sS0FBSyxHQUFHLE1BQU0sUUFBUSxJQUFJLE1BQU0sUUFBUTtBQUM5QyxRQUFNLFlBQVksS0FBSyxLQUFLLFdBQVc7QUFDdkMsUUFBTSxvQkFBb0I7QUFBQSxJQUN4QixLQUFLLEVBQUUsR0FBTztBQUFBLElBQ2QsTUFBTTtBQUFBLE1BQ0osR0FBRztBQUFBLE1BQ0g7QUFBQSxNQUNBLFdBQVc7QUFBQSxNQUNYLFdBQVc7QUFBQSxNQUNYLFlBQVk7QUFBQSxNQUNaLEtBQUssYUFBYSxFQUFFO0FBQUEsSUFDdEI7QUFBQSxJQUNBLFdBQVcsRUFBRSxJQUFJLEVBQUUsaUJBQWlCLE1BQU0sRUFBRTtBQUFBLEVBQzlDO0FBQ0EsUUFBTSxpQkFBaUIsRUFBRSxLQUFLLEVBQUUsSUFBSSxNQUFNLFNBQVMsRUFBRTtBQUNyRCxTQUFPLEVBQUUsVUFBVSxDQUFDLG1CQUFtQixjQUFjLEVBQUU7QUFDekQ7QUFFTyxTQUFTLFNBQ2QsS0FPQTtBQUNBLE1BQUksSUFBSSxPQUFPO0FBQ2IsU0FBSyxNQUFNLElBQUksTUFBTSxTQUFTLElBQUksTUFBTSxJQUFJO0FBQUEsRUFDOUM7QUFFQSxTQUFPLElBQUk7QUFDYjsiLAogICJuYW1lcyI6IFtdCn0K
 ",
       "dataSource": "TestDataSource",
       "fieldName": "createLabelEdge",
@@ -261,6 +272,14 @@ export {
       "code": "// __tests__/out/resolvers/Mutation.deleteLabelEdge.ts
 import { util } from "@aws-appsync/utils";
 function request(ctx) {
+  const { input } = ctx.args;
+  const id = \`\${input.sourceId}#\${input.targetId}\`;
+  const deleteItemCommand = {
+    key: { id },
+    condition: { id: { attributeExists: true } }
+  };
+  const getItemCommand = { key: { id: input.targetId } };
+  return { commands: [deleteItemCommand, getItemCommand] };
 }
 function response(ctx) {
   if (ctx.error) {
@@ -272,7 +291,7 @@ export {
   request,
   response
 };
-//# sourceMappingURL=data:application/json;base64,ewogICJ2ZXJzaW9uIjogMywKICAic291cmNlcyI6IFsicmVzb2x2ZXJzL011dGF0aW9uLmRlbGV0ZUxhYmVsRWRnZS50cyJdLAogICJtYXBwaW5ncyI6ICI7QUFDQSxTQUFTLFlBQXFCO0FBQ3ZCLFNBQVMsUUFDZCxLQU1BO0FBQUM7QUFFSSxTQUFTLFNBQ2QsS0FPQTtBQUNBLE1BQUksSUFBSSxPQUFPO0FBQ2IsU0FBSyxNQUFNLElBQUksTUFBTSxTQUFTLElBQUksTUFBTSxJQUFJO0FBQUEsRUFDOUM7QUFFQSxTQUFPLElBQUk7QUFDYjsiLAogICJuYW1lcyI6IFtdCn0K
+//# sourceMappingURL=data:application/json;base64,ewogICJ2ZXJzaW9uIjogMywKICAic291cmNlcyI6IFsicmVzb2x2ZXJzL011dGF0aW9uLmRlbGV0ZUxhYmVsRWRnZS50cyJdLAogICJtYXBwaW5ncyI6ICI7QUFDQSxTQUFTLFlBQXFCO0FBQ3ZCLFNBQVMsUUFDZCxLQU1BO0FBQ0EsUUFBTSxFQUFFLE1BQU0sSUFBSSxJQUFJO0FBQ3RCLFFBQU0sS0FBSyxHQUFHLE1BQU0sUUFBUSxJQUFJLE1BQU0sUUFBUTtBQUM5QyxRQUFNLG9CQUFvQjtBQUFBLElBQ3hCLEtBQUssRUFBRSxHQUFPO0FBQUEsSUFDZCxXQUFXLEVBQUUsSUFBSSxFQUFFLGlCQUFpQixLQUFLLEVBQUU7QUFBQSxFQUM3QztBQUNBLFFBQU0saUJBQWlCLEVBQUUsS0FBSyxFQUFFLElBQUksTUFBTSxTQUFTLEVBQUU7QUFDckQsU0FBTyxFQUFFLFVBQVUsQ0FBQyxtQkFBbUIsY0FBYyxFQUFFO0FBQ3pEO0FBRU8sU0FBUyxTQUNkLEtBT0E7QUFDQSxNQUFJLElBQUksT0FBTztBQUNiLFNBQUssTUFBTSxJQUFJLE1BQU0sU0FBUyxJQUFJLE1BQU0sSUFBSTtBQUFBLEVBQzlDO0FBRUEsU0FBTyxJQUFJO0FBQ2I7IiwKICAibmFtZXMiOiBbXQp9Cg==
 ",
       "dataSource": "TestDataSource",
       "fieldName": "deleteLabelEdge",
