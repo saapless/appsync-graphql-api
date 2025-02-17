@@ -61,20 +61,23 @@ export class GraphQLTransformer {
     return plugins.map((factory) => factory.create(context));
   }
 
-  private _printSchema(outDir: string) {
-    writeFileSync(path.resolve(outDir, "schema.graphql"), this.context.document.print(), {
-      encoding: "utf-8",
-    });
-
+  private _printSchemaTypes() {
+    const outputPath = ensureOutputDirectory(this._outDir);
     const typesGen = new TypesGenerator(this.context.document);
 
     writeFileSync(
-      path.resolve(outDir, "schema-types.ts"),
+      path.resolve(outputPath, "schema-types.ts"),
       prettier.format(typesGen.generate(), { parser: "typescript" }),
       {
         encoding: "utf-8",
       }
     );
+  }
+
+  private _printSchema(outDir: string) {
+    writeFileSync(path.resolve(outDir, "schema.graphql"), this.context.document.print(), {
+      encoding: "utf-8",
+    });
   }
 
   private _printResolvers(outDir: string) {
@@ -180,10 +183,8 @@ export class GraphQLTransformer {
   }
 
   private _generateResources() {
-    const outputPath = ensureOutputDirectory(this._outDir);
-
-    this._printSchema(outputPath);
-    this._printResolvers(outputPath);
+    this._printSchema(this._outDir);
+    this._printResolvers(this._outDir);
   }
 
   public transform(): TransformerOutput {
@@ -218,7 +219,8 @@ export class GraphQLTransformer {
       }
     }
 
-    // Stage 2. Cleanup
+    this._printSchemaTypes();
+
     for (const definition of this.context.document.definitions.values()) {
       for (const plugin of this.plugins) {
         if (plugin.match(definition)) {

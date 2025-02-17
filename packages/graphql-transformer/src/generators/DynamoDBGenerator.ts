@@ -1,8 +1,8 @@
-import type { AuthorizationRule, Key, LoaderDescriptor } from "../utils/types";
+import type { AuthorizationRule, LoaderDescriptor } from "../utils/types";
 import { TransformerContext } from "../context";
-import { CodeDocument, PropertyValue, tc } from "../codegen";
+import { CodeDocument, tc } from "../codegen";
 import { TransformExecutionError } from "../utils/errors";
-import { formatValue, isFieldLoader, keyValue } from "./utils";
+import { formatValue, isFieldLoader, parseKey } from "./utils";
 import { ContextTypesGenerator } from "./ContextTypesGenerator";
 
 export class DynamoDbGenerator extends ContextTypesGenerator {
@@ -10,56 +10,118 @@ export class DynamoDbGenerator extends ContextTypesGenerator {
     super(context, code);
   }
 
+  // #region Context Types
+  private _setQueryItemsCtx(descriptor: LoaderDescriptor) {
+    this.code
+      .addImport(
+        "../schema-types",
+        tc.named("DynamoDBQueryResult"),
+        tc.named(descriptor.targetName)
+      )
+      .setContextArgs({
+        result: tc.typeRef("DynamoDBQueryResult", [tc.typeRef(descriptor.targetName)]),
+      });
+  }
+
+  private _setbatchGetCommandCtx() {
+    this.code
+      .addImport("@aws-appsync/utils", tc.named("DynamoDBBatchGetItemRequest"))
+      .addImport(
+        "../schema-types",
+        tc.named("DynamoDbBatchGetResult"),
+        tc.named("PipelinePrevResult"),
+        tc.named("Node")
+      )
+      .setContextArgs({
+        prev: tc.typeRef("PipelinePrevResult", [tc.typeRef("DynamoDBBatchGetItemRequest")]),
+        result: tc.typeRef("DynamoDbBatchGetResult", [tc.typeRef("Node")]),
+      });
+  }
+
+  private _setGetItemCommandCtx() {
+    this.code
+      .addImport("@aws-appsync/utils/dynamodb", tc.named("GetInput"))
+      .addImport("../schema-types", tc.named("PipelinePrevResult"), tc.named("Node"))
+      .setContextArgs({
+        prev: tc.typeRef("PipelinePrevResult", [tc.typeRef("GetInput")]),
+        result: tc.typeRef("Node"),
+      });
+  }
+
+  private _setPutItemCommandCtx() {
+    this.code
+      .addImport("@aws-appsync/utils/dynamodb", tc.named("PutInput"))
+      .addImport("../schema-types", tc.named("PipelinePrevResult"), tc.named("Node"))
+      .setContextArgs({
+        prev: tc.typeRef("PipelinePrevResult", [tc.typeRef("PutInput")]),
+        result: tc.typeRef("Node"),
+      });
+  }
+
+  private _setDeleteItemCommandCtx() {
+    this.code
+      .addImport("@aws-appsync/utils/dynamodb", tc.named("RemoveInput"))
+      .addImport("../schema-types", tc.named("PipelinePrevResult"), tc.named("Node"))
+      .setContextArgs({
+        prev: tc.typeRef("PipelinePrevResult", [tc.typeRef("RemoveInput")]),
+        result: tc.typeRef("Node"),
+      });
+  }
+
+  private _setQueryItemsCommandCtx() {
+    this.code
+      .addImport("@aws-appsync/utils/dynamodb", tc.named("QueryInput"))
+      .addImport(
+        "../schema-types",
+        tc.named("PipelinePrevResult"),
+        tc.named("Node"),
+        tc.named("DynamoDBQueryResult")
+      )
+      .setContextArgs({
+        prev: tc.typeRef("PipelinePrevResult", [tc.typeRef("QueryInput", [tc.typeRef("Node")])]),
+        result: tc.typeRef("DynamoDBQueryResult", [tc.typeRef("Node")]),
+      });
+  }
+
   private _setContextTypes(loader: LoaderDescriptor) {
     if (isFieldLoader(loader)) {
       this._setDefaultContextTypes(loader);
     }
 
-    if (loader.action.type === "queryItems") {
-      this.code.addImport("../schema-types", tc.named("DynamoDBQueryResult"));
+    switch (loader.action.type) {
+      case "queryItems":
+        this._setQueryItemsCtx(loader);
+        break;
+      case "batchGetItemsCommand":
+        this._setbatchGetCommandCtx();
+        break;
+      case "getItemCommand":
+        this._setGetItemCommandCtx();
+        break;
+      case "putItemCommand":
+        this._setPutItemCommandCtx();
+        break;
+      case "deleteItemCommand":
+        this._setDeleteItemCommandCtx();
+        break;
+      case "queryItemsCommand":
+        this._setQueryItemsCommandCtx();
+        break;
+      default:
+        this.code.addImport("../schema-types", tc.named(loader.targetName)).setContextArgs({
+          result: tc.typeRef(loader.targetName),
+        });
+        break;
     }
-
-    this.code.addImport("../schema-types", tc.named(loader.targetName)).setContextArgs({
-      result:
-        loader.action.type === "queryItems"
-          ? tc.typeRef("DynamoDBQueryResult", [tc.typeRef(loader.targetName)])
-          : tc.typeRef(loader.targetName),
-    });
   }
 
-  private _getKey(key: Key) {
-    return tc.obj(
-      Object.entries(key).reduce(
-        (agg, [name, op]) => {
-          if (op.ref || op.eq) {
-            Object.assign(agg, { [name]: keyValue(op) });
-          } else if (op.le) {
-            Object.assign(agg, { [name]: tc.obj({ le: keyValue(op.le) }) });
-          } else if (op.lt) {
-            Object.assign(agg, { [name]: tc.obj({ lt: keyValue(op.lt) }) });
-          } else if (op.ge) {
-            Object.assign(agg, { [name]: tc.obj({ ge: keyValue(op.ge) }) });
-          } else if (op.gt) {
-            Object.assign(agg, { [name]: tc.obj({ gt: keyValue(op.gt) }) });
-          } else if (op.between) {
-            Object.assign(agg, {
-              [name]: tc.obj({ between: tc.arr(...op.between.map((i) => keyValue(i))) }),
-            });
-          } else if (op.beginsWith) {
-            Object.assign(agg, { [name]: tc.obj({ beginsWith: keyValue(op.beginsWith) }) });
-          }
-          return agg;
-        },
-        {} as Record<string, PropertyValue>
-      )
-    );
-  }
+  // #endregion Context Types
 
   // #region Field Operations
   private _getItem(descriptor: LoaderDescriptor) {
     this.code.addImport("@aws-appsync/utils/dynamodb", tc.named("get"));
     this.code.setRequest(
-      tc.return(tc.call(tc.ref("get"), tc.obj({ key: this._getKey(descriptor.action.key) })))
+      tc.return(tc.call(tc.ref("get"), tc.obj({ key: parseKey(descriptor.action.key) })))
     );
   }
 
@@ -70,7 +132,7 @@ export class DynamoDbGenerator extends ContextTypesGenerator {
         tc.call(
           tc.ref("query"),
           tc.obj({
-            query: this._getKey(descriptor.action.key),
+            query: parseKey(descriptor.action.key),
             filter: tc.ref("ctx.args.filter"),
             limit: tc.coalesce(tc.ref("ctx.args.first"), tc.num(100)),
             nextToken: tc.coalesce(tc.ref("ctx.args.after"), tc.undef()),
@@ -172,7 +234,7 @@ export class DynamoDbGenerator extends ContextTypesGenerator {
           tc.call(
             tc.ref("update"),
             tc.obj({
-              key: this._getKey(descriptor.action.key),
+              key: parseKey(descriptor.action.key),
               update: tc.obj({
                 updatedAt: tc.call(tc.ref("operations.replace"), [
                   tc.call(tc.ref("util.time.nowISO8601"), []),
@@ -192,7 +254,7 @@ export class DynamoDbGenerator extends ContextTypesGenerator {
 
   // #endregion Field Operations
 
-  // #reqion Edges Operations
+  // #region Edges Operations
 
   private _createEdge(descriptor: LoaderDescriptor) {
     const typename: string = descriptor.targetName;
@@ -256,7 +318,7 @@ export class DynamoDbGenerator extends ContextTypesGenerator {
       tc.const(
         "queryItemsCommand",
         tc.obj({
-          query: this._getKey(descriptor.action.key),
+          query: parseKey(descriptor.action.key),
           filter: tc.ref("ctx.args.filter"),
           limit: tc.coalesce(tc.ref("ctx.args.first"), tc.num(100)),
           nextToken: tc.coalesce(tc.ref("ctx.args.after"), tc.undef()),
@@ -270,7 +332,8 @@ export class DynamoDbGenerator extends ContextTypesGenerator {
       )
     );
   }
-  // #endretion Edges Operations
+
+  // #endregion Edges Operations
 
   // #region Pipeline Function Commands
   private _getItemCommand() {
@@ -278,17 +341,28 @@ export class DynamoDbGenerator extends ContextTypesGenerator {
       .addImport("@aws-appsync/utils/dynamodb", tc.named("get"))
       .setRequest(
         tc.const("command", tc.call(tc.ref("ctx.prev.result.commands.shift"), [])),
-        tc.return(tc.call(tc.ref("get"), tc.ref("command")))
+        tc.if(
+          tc.not(tc.ref("command")),
+          tc.return(tc.call(tc.ref("runtime.earlyReturn"), [tc.null()]))
+        ),
+        tc.return(tc.call(tc.ref("get"), tc.ref("command.payload")))
       );
   }
 
   private _batchGetItemsCommand() {
-    this.code
-      .addImport("@aws-appsync/utils/dynamodb", tc.named("batchGet"))
-      .setRequest(
-        tc.const("command", tc.call(tc.ref("ctx.prev.result.commands.shift"), [])),
-        tc.return(tc.call(tc.ref("batchGet"), tc.ref("command")))
-      );
+    this.code.addImport("@aws-appsync/utils", tc.named("runtime")).setRequest(
+      tc.const("command", tc.call(tc.ref("ctx.prev.result.commands.shift"), [])),
+      tc.if(
+        tc.not(tc.ref("command")),
+        tc.return(tc.call(tc.ref("runtime.earlyReturn"), [tc.null()]))
+      ),
+      tc.return(
+        tc.obj({
+          operation: tc.str("BatchGetItem"),
+          tables: tc.obj({}),
+        })
+      )
+    );
   }
 
   private _queryItemsCommand() {
@@ -296,7 +370,11 @@ export class DynamoDbGenerator extends ContextTypesGenerator {
       .addImport("@aws-appsync/utils/dynamodb", tc.named("query"))
       .setRequest(
         tc.const("command", tc.call(tc.ref("ctx.prev.result.commands.shift"), [])),
-        tc.return(tc.call(tc.ref("query"), tc.ref("command")))
+        tc.if(
+          tc.not(tc.ref("command")),
+          tc.return(tc.call(tc.ref("runtime.earlyReturn"), [tc.null()]))
+        ),
+        tc.return(tc.call(tc.ref("query"), tc.ref("command.payload")))
       );
   }
 
@@ -305,7 +383,11 @@ export class DynamoDbGenerator extends ContextTypesGenerator {
       .addImport("@aws-appsync/utils/dynamodb", tc.named("put"))
       .setRequest(
         tc.const("command", tc.call(tc.ref("ctx.prev.result.commands.shift"), [])),
-        tc.return(tc.call(tc.ref("put"), tc.ref("command")))
+        tc.if(
+          tc.not(tc.ref("command")),
+          tc.return(tc.call(tc.ref("runtime.earlyReturn"), [tc.null()]))
+        ),
+        tc.return(tc.call(tc.ref("put"), tc.ref("command.payload")))
       );
   }
 
@@ -314,7 +396,11 @@ export class DynamoDbGenerator extends ContextTypesGenerator {
       .addImport("@aws-appsync/utils/dynamodb", tc.named("update"))
       .setRequest(
         tc.const("command", tc.call(tc.ref("ctx.prev.result.commands.shift"), [])),
-        tc.return(tc.call(tc.ref("update"), tc.ref("command")))
+        tc.if(
+          tc.not(tc.ref("command")),
+          tc.return(tc.call(tc.ref("runtime.earlyReturn"), [tc.null()]))
+        ),
+        tc.return(tc.call(tc.ref("update"), tc.ref("command.payload")))
       );
   }
 
@@ -323,11 +409,15 @@ export class DynamoDbGenerator extends ContextTypesGenerator {
       .addImport("@aws-appsync/utils/dynamodb", tc.named("remove"))
       .setRequest(
         tc.const("command", tc.call(tc.ref("ctx.prev.result.commands.shift"), [])),
+        tc.if(
+          tc.not(tc.ref("command")),
+          tc.return(tc.call(tc.ref("runtime.earlyReturn"), [tc.null()]))
+        ),
         tc.return(tc.call(tc.ref("remove"), tc.ref("command")))
       );
   }
 
-  // #endreqion Pipeline Functions Commands
+  // #endregion Pipeline Functions Commands
 
   private _checkError() {
     this.code
@@ -377,14 +467,6 @@ export class DynamoDbGenerator extends ContextTypesGenerator {
         })
       )
     );
-  }
-
-  private _returnResult() {
-    this.code.setResponse(tc.return(tc.ref("ctx.result")));
-  }
-
-  private _returnPrev() {
-    this.code.setResponse(tc.return(tc.ref("ctx.prev")));
   }
 
   auth(rules: AuthorizationRule[]) {
@@ -454,15 +536,25 @@ export class DynamoDbGenerator extends ContextTypesGenerator {
   }
 
   _setReturn(loader: LoaderDescriptor) {
+    if (!loader.returnType) {
+      this.code.setResponse(tc.return(tc.ref("ctx.result")));
+      return;
+    }
+
     switch (loader.returnType) {
       case "edges":
         return this._returnEdges();
       case "node":
         return this._returnNode();
       case "prev":
-        return this._returnPrev();
+        this.code.setResponse(tc.return(tc.ref("ctx.prev.result")));
+        break;
+      case "result":
+        this.code.setResponse(tc.return(tc.ref("ctx.result")));
+        break;
       default:
-        return this._returnResult();
+        this.code.setResponse(tc.return(tc.ref(loader.returnType)));
+        break;
     }
   }
 

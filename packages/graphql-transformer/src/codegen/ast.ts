@@ -159,13 +159,10 @@ export type Literal =
 export interface TypeIdentifier extends Node {
   _kind: NodeKind.TYPE_IDENTIFIER;
   name: string;
-  parameters?: Array<TypeIdentifier | Literal | TypeExtendsExpression>;
+  parameters?: Array<TypeExpression>;
 }
 
-function _typeRef(
-  name: string,
-  params?: Array<TypeIdentifier | Literal | TypeExtendsExpression>
-): TypeIdentifier {
+function _typeRef(name: string, params?: Array<TypeExpression>): TypeIdentifier {
   return {
     _kind: NodeKind.TYPE_IDENTIFIER,
     name,
@@ -231,8 +228,6 @@ function _typeObj(props: Array<TypeProperty>): TypeDefinition {
   };
 }
 
-type TypeExpression = TypeIdentifier | TypeBinaryExpression | Literal | TypeDefinition;
-
 export interface TypeDeclaration extends Node {
   _kind: NodeKind.TYPE_DECLARATION;
   name: TypeIdentifier;
@@ -280,6 +275,13 @@ function _typeExtends(name: string | TypeIdentifier, right: TypeExpression): Typ
     right,
   };
 }
+
+export type TypeExpression =
+  | TypeIdentifier
+  | TypeBinaryExpression
+  | Literal
+  | TypeDefinition
+  | TypeExtendsExpression;
 
 const types = {
   typeRef: _typeRef,

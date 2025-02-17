@@ -9,16 +9,16 @@ import {
   Block,
   ModuleDeclaration,
   Declaration,
-  TypeIdentifier,
+  TypeExpression,
 } from "./ast";
 import { printAST } from "./printer";
 
 type ContextArgs = {
-  args?: TypeIdentifier;
-  stash?: TypeIdentifier;
-  prev?: TypeIdentifier;
-  source?: TypeIdentifier;
-  result?: TypeIdentifier;
+  args?: TypeExpression;
+  stash?: TypeExpression;
+  prev?: TypeExpression;
+  source?: TypeExpression;
+  result?: TypeExpression;
 };
 
 export class CodeDocument {

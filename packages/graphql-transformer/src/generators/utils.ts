@@ -1,6 +1,6 @@
 /* eslint-disable security/detect-object-injection */
 
-import { FieldLoaderDescriptor, KeyValue, LoaderDescriptor } from "../utils/types";
+import { FieldLoaderDescriptor, Key, KeyValue, LoaderDescriptor } from "../utils/types";
 import { PropertyValue, tc } from "../codegen";
 
 export function formatValue(value: unknown): PropertyValue {
@@ -45,4 +45,32 @@ export function keyValue<T extends string | number>(obj: KeyValue<T>) {
 
 export function isFieldLoader(descriptor: LoaderDescriptor): descriptor is FieldLoaderDescriptor {
   return Object.hasOwn(descriptor, "fieldName") && Object.hasOwn(descriptor, "typeName");
+}
+
+export function parseKey(key: Key) {
+  return tc.obj(
+    Object.entries(key).reduce(
+      (agg, [name, op]) => {
+        if (op.ref || op.eq) {
+          Object.assign(agg, { [name]: keyValue(op) });
+        } else if (op.le) {
+          Object.assign(agg, { [name]: tc.obj({ le: keyValue(op.le) }) });
+        } else if (op.lt) {
+          Object.assign(agg, { [name]: tc.obj({ lt: keyValue(op.lt) }) });
+        } else if (op.ge) {
+          Object.assign(agg, { [name]: tc.obj({ ge: keyValue(op.ge) }) });
+        } else if (op.gt) {
+          Object.assign(agg, { [name]: tc.obj({ gt: keyValue(op.gt) }) });
+        } else if (op.between) {
+          Object.assign(agg, {
+            [name]: tc.obj({ between: tc.arr(...op.between.map((i) => keyValue(i))) }),
+          });
+        } else if (op.beginsWith) {
+          Object.assign(agg, { [name]: tc.obj({ beginsWith: keyValue(op.beginsWith) }) });
+        }
+        return agg;
+      },
+      {} as Record<string, PropertyValue>
+    )
+  );
 }

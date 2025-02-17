@@ -28,12 +28,7 @@ export class TypesGenerator {
       ),
       tc.export(
         tc.typeDef(
-          tc.typeRef("DynamoDBQueryResult", [
-            tc.typeExtends(
-              "T",
-              tc.typeRef("Record", [tc.typeRef("string"), tc.typeRef("unknown")])
-            ),
-          ]),
+          tc.typeRef("DynamoDBQueryResult", [tc.typeRef("T = unknown")]),
           tc.typeObj([
             tc.typeProp("items", tc.typeRef("Array", [tc.typeRef("T")]), false),
             tc.typeProp(
@@ -46,12 +41,7 @@ export class TypesGenerator {
       ),
       tc.export(
         tc.typeDef(
-          tc.typeRef("DynamoDbBatchGetResult", [
-            tc.typeExtends(
-              "T",
-              tc.typeRef("Record", [tc.typeRef("string"), tc.typeRef("unknown")])
-            ),
-          ]),
+          tc.typeRef("DynamoDbBatchGetResult", [tc.typeExtends("T", tc.typeRef("Node"))]),
           tc.typeObj([
             tc.typeProp(
               "data",
@@ -65,6 +55,41 @@ export class TypesGenerator {
                 tc.typeRef("Array", [tc.typeRef("Pick", [tc.typeRef("T"), tc.str("id")])]),
               ]),
               false
+            ),
+          ])
+        )
+      ),
+      tc.export(
+        tc.typeDef(
+          tc.typeRef("PipelineCommandInstructions"),
+          tc.typeRef("Record", [tc.typeRef("string"), tc.typeRef("unknown")])
+        )
+      ),
+      tc.export(
+        tc.typeDef(
+          tc.typeRef("PipelineCommand", [tc.typeRef("T = unknown")]),
+          tc.typeObj([
+            tc.typeProp("payload", tc.typeRef("T")),
+            tc.typeProp("instructions", tc.typeRef("PipelineCommandInstructions"), true),
+          ])
+        )
+      ),
+      tc.export(
+        tc.typeDef(
+          tc.typeRef("PipelinePrevResult", [
+            tc.typeRef("TCommand = unknown"),
+            tc.typeRef("TResult = unknown"),
+          ]),
+          tc.typeObj([
+            tc.typeProp(
+              "result",
+              tc.typeObj([
+                tc.typeProp(
+                  "commands",
+                  tc.typeRef("Array", [tc.typeRef("PipelineCommand", [tc.typeRef("TCommand")])])
+                ),
+                tc.typeProp("results", tc.typeRef("Array", [tc.typeRef("TResult")]), true),
+              ])
             ),
           ])
         )
@@ -104,7 +129,9 @@ export class TypesGenerator {
         agg.push(
           tc.typeProp(
             arg.name,
-            this._value(arg.type.getTypeName()),
+            arg.type instanceof NonNullTypeNode
+              ? this._value(arg.type.getTypeName())
+              : tc.typeRef("Maybe", [this._value(arg.type.getTypeName())]),
             !(arg.type instanceof NonNullTypeNode)
           )
         );
@@ -121,7 +148,9 @@ export class TypesGenerator {
       props.push(
         tc.typeProp(
           field.name,
-          this._value(field.type.getTypeName()),
+          field.type instanceof NonNullTypeNode
+            ? this._value(field.type.getTypeName())
+            : tc.typeRef("Maybe", [this._value(field.type.getTypeName())]),
           !(field.type instanceof NonNullTypeNode)
         )
       );
@@ -149,7 +178,9 @@ export class TypesGenerator {
             node.fields?.map((field) => {
               return tc.typeProp(
                 field.name,
-                this._value(field.type.getTypeName()),
+                field.type instanceof NonNullTypeNode
+                  ? this._value(field.type.getTypeName())
+                  : tc.typeRef("Maybe", [this._value(field.type.getTypeName())]),
                 !(field.type instanceof NonNullTypeNode)
               );
             }) ?? []
@@ -167,7 +198,9 @@ export class TypesGenerator {
         props.push(
           tc.typeProp(
             field.name,
-            this._value(field.type.getTypeName()),
+            field.type instanceof NonNullTypeNode
+              ? this._value(field.type.getTypeName())
+              : tc.typeRef("Maybe", [this._value(field.type.getTypeName())]),
             !(field.type instanceof NonNullTypeNode)
           )
         );
