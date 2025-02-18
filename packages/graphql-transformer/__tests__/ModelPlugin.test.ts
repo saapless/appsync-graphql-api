@@ -35,12 +35,6 @@ describe("ModelPlugin", () => {
       expect(context.document.getNode("ModelOperation")).toBeInstanceOf(EnumNode);
     });
 
-    it("adds helper directive definitions", () => {
-      expect(context.document.getNode("readonly")).toBeInstanceOf(DirectiveDefinitionNode);
-      expect(context.document.getNode("writeonly")).toBeInstanceOf(DirectiveDefinitionNode);
-      expect(context.document.getNode("private")).toBeInstanceOf(DirectiveDefinitionNode);
-    });
-
     it(`adds scalar model inputs`, () => {
       expect(context.document.getNode("ModelStringInput")).toBeInstanceOf(InputObjectNode);
       expect(context.document.getNode("ModelIntInput")).toBeInstanceOf(InputObjectNode);
@@ -117,11 +111,6 @@ describe("ModelPlugin", () => {
     it("removes `model` directive definition", () => {
       expect(context.document.getNode("model")).toBeUndefined();
       expect(context.document.getNode("ModelOperation")).toBeUndefined();
-    });
-    it("removes helper directives definitions", () => {
-      expect(context.document.getNode("readonly")).toBeUndefined();
-      expect(context.document.getNode("writeonly")).toBeUndefined();
-      expect(context.document.getNode("private")).toBeUndefined();
     });
   });
 });

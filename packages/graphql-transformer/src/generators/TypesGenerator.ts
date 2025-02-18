@@ -41,7 +41,7 @@ export class TypesGenerator {
       ),
       tc.export(
         tc.typeDef(
-          tc.typeRef("DynamoDbBatchGetResult", [tc.typeExtends("T", tc.typeRef("Node"))]),
+          tc.typeRef("DynamoDBBatchGetResult", [tc.typeExtends("T", tc.typeRef("Node"))]),
           tc.typeObj([
             tc.typeProp(
               "data",
@@ -61,16 +61,16 @@ export class TypesGenerator {
       ),
       tc.export(
         tc.typeDef(
-          tc.typeRef("PipelineCommandInstructions"),
-          tc.typeRef("Record", [tc.typeRef("string"), tc.typeRef("unknown")])
-        )
-      ),
-      tc.export(
-        tc.typeDef(
-          tc.typeRef("PipelineCommand", [tc.typeRef("T = unknown")]),
+          tc.typeRef("PipelineFlow", [
+            tc.typeRef("TCommand = unknown"),
+            tc.typeRef("TResult = unknown"),
+          ]),
           tc.typeObj([
-            tc.typeProp("payload", tc.typeRef("T")),
-            tc.typeProp("instructions", tc.typeRef("PipelineCommandInstructions"), true),
+            tc.typeProp(
+              "commands",
+              tc.typeRef("TCommand extends Array<any> ? TCommand : [TCommand]")
+            ),
+            tc.typeProp("results", tc.typeRef("TResult extends Array<any> ? TResult : [TResult]")),
           ])
         )
       ),
@@ -83,18 +83,7 @@ export class TypesGenerator {
           tc.typeObj([
             tc.typeProp(
               "result",
-              tc.typeObj([
-                tc.typeProp(
-                  "commands",
-                  tc.typeRef(
-                    "TCommand extends Array<any> ? {[K in keyof TCommand]: PipelineCommand<TCommand[K]>} : [PipelineCommand<TCommand>]"
-                  )
-                ),
-                tc.typeProp(
-                  "results",
-                  tc.typeRef("TResult extends Array<any> ? TResult : [TResult]")
-                ),
-              ])
+              tc.typeRef("PipelineFlow", [tc.typeRef("TCommand"), tc.typeRef("TResult")])
             ),
           ])
         )

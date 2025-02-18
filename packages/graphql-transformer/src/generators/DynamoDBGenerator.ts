@@ -28,13 +28,16 @@ export class DynamoDbGenerator extends ContextTypesGenerator {
       .addImport("@aws-appsync/utils", tc.named("DynamoDBBatchGetItemRequest"))
       .addImport(
         "../schema-types",
-        tc.named("DynamoDbBatchGetResult"),
+        tc.named("DynamoDBBatchGetResult"),
         tc.named("PipelinePrevResult"),
         tc.named("Node")
       )
       .setContextArgs({
-        prev: tc.typeRef("PipelinePrevResult", [tc.typeRef("DynamoDBBatchGetItemRequest")]),
-        result: tc.typeRef("DynamoDbBatchGetResult", [tc.typeRef("Node")]),
+        prev: tc.typeRef("PipelinePrevResult", [
+          tc.typeRef("DynamoDBBatchGetItemRequest"),
+          tc.typeRef("DynamoDBBatchGetResult", [tc.typeRef("Node")]),
+        ]),
+        result: tc.typeRef("DynamoDBBatchGetResult", [tc.typeRef("Node")]),
       });
   }
 
@@ -43,7 +46,7 @@ export class DynamoDbGenerator extends ContextTypesGenerator {
       .addImport("@aws-appsync/utils/dynamodb", tc.named(input))
       .addImport("../schema-types", tc.named("PipelinePrevResult"), tc.named("Node"))
       .setContextArgs({
-        prev: tc.typeRef("PipelinePrevResult", [tc.typeRef(input)]),
+        prev: tc.typeRef("PipelinePrevResult", [tc.typeRef(input), tc.typeRef("Node")]),
         result: tc.typeRef("Node"),
       });
   }
@@ -58,7 +61,10 @@ export class DynamoDbGenerator extends ContextTypesGenerator {
         tc.named("DynamoDBQueryResult")
       )
       .setContextArgs({
-        prev: tc.typeRef("PipelinePrevResult", [tc.typeRef("QueryInput", [tc.typeRef("Node")])]),
+        prev: tc.typeRef("PipelinePrevResult", [
+          tc.typeRef("QueryInput", [tc.typeRef("Node")]),
+          tc.typeRef("DynamoDBQueryResult", [tc.typeRef("Node")]),
+        ]),
         result: tc.typeRef("DynamoDBQueryResult", [tc.typeRef("Node")]),
       });
   }
@@ -315,19 +321,17 @@ export class DynamoDbGenerator extends ContextTypesGenerator {
       tc.const(
         "createItemCommand",
         tc.obj({
-          payload: tc.obj({
-            key: tc.obj({ id: tc.ref("id") }),
-            item: tc.obj(tc.spread("input"), {
-              id: tc.ref("id"),
-              createdAt: tc.ref("timestamp"),
-              updatedAt: tc.ref("timestamp"),
-              __typename: tc.str(typename),
-              _sk: tc.tick(`${typename}#\${id}`),
-            }),
-            condition: tc.obj({
-              id: tc.obj({
-                attributeExists: tc.bool(false),
-              }),
+          key: tc.obj({ id: tc.ref("id") }),
+          item: tc.obj(tc.spread("input"), {
+            id: tc.ref("id"),
+            createdAt: tc.ref("timestamp"),
+            updatedAt: tc.ref("timestamp"),
+            __typename: tc.str(typename),
+            _sk: tc.tick(`${typename}#\${id}`),
+          }),
+          condition: tc.obj({
+            id: tc.obj({
+              attributeExists: tc.bool(false),
             }),
           }),
         })
@@ -335,9 +339,7 @@ export class DynamoDbGenerator extends ContextTypesGenerator {
       tc.const(
         "getItemCommand",
         tc.obj({
-          payload: tc.obj({
-            key: tc.obj({ id: tc.ref("input.targetId") }),
-          }),
+          key: tc.obj({ id: tc.ref("input.targetId") }),
         })
       ),
       tc.return(
@@ -356,20 +358,16 @@ export class DynamoDbGenerator extends ContextTypesGenerator {
       tc.const(
         "deleteItemCommand",
         tc.obj({
-          payload: tc.obj({
-            key: tc.obj({ id: tc.ref("id") }),
-            condition: tc.obj({
-              id: tc.obj({ attributeExists: tc.bool(true) }),
-            }),
+          key: tc.obj({ id: tc.ref("id") }),
+          condition: tc.obj({
+            id: tc.obj({ attributeExists: tc.bool(true) }),
           }),
         })
       ),
       tc.const(
         "getItemCommand",
         tc.obj({
-          payload: tc.obj({
-            key: tc.obj({ id: tc.ref("input.targetId") }),
-          }),
+          key: tc.obj({ id: tc.ref("input.targetId") }),
         })
       ),
       tc.return(
@@ -382,34 +380,38 @@ export class DynamoDbGenerator extends ContextTypesGenerator {
   }
 
   private _queryEdges(descriptor: LoaderDescriptor) {
+    const dataSource = this.context.dataSources.getDataSource(descriptor.dataSource);
+
+    if (dataSource.type !== "DYNAMO_DB") {
+      throw new TransformExecutionError(
+        `DataSource ${descriptor.dataSource} is not a DynamoDB data source`
+      );
+    }
+
     this.code.setRequest(
       tc.const(
         "queryItemsCommand",
         tc.obj({
-          payload: tc.obj({
-            query: parseKey(descriptor.action.key),
-            filter: tc.ref("ctx.args.filter"),
-            limit: tc.coalesce(tc.ref("ctx.args.first"), tc.num(100)),
-            nextToken: tc.coalesce(tc.ref("ctx.args.after"), tc.undef()),
-            scanIndexForward: tc.eq(tc.ref("ctx.args.sort"), tc.str("ASC")),
-            index: descriptor.action.index ? tc.str(descriptor.action.index) : tc.undef(),
-          }),
+          query: parseKey(descriptor.action.key),
+          filter: tc.ref("ctx.args.filter"),
+          limit: tc.coalesce(tc.ref("ctx.args.first"), tc.num(100)),
+          nextToken: tc.coalesce(tc.ref("ctx.args.after"), tc.undef()),
+          scanIndexForward: tc.eq(tc.ref("ctx.args.sort"), tc.str("ASC")),
+          index: descriptor.action.index ? tc.str(descriptor.action.index) : tc.undef(),
         })
       ),
       tc.const(
         "batchGetItemsCommand",
         tc.obj({
-          payload: tc.obj({
-            operation: tc.str("BatchGetItem"),
-            tables: tc.obj({}),
-          }),
-          instructions: tc.obj({
-            tableName: tc.str(""),
-            fromPrevResults: tc.bool(true),
-            prevResultIndex: tc.num(0),
-            prevResultType: tc.str("queryItems"),
-            keyPath: tc.str("targetId"),
-          }),
+          operation: tc.str("BatchGetItem"),
+          tables: tc.obj({}),
+          // instructions: tc.obj({
+          //   fromPrevResult: tc.bool(true),
+          //   prevResultIndex: tc.num(0),
+          //   tableName: tc.str(dataSource.config.tableName),
+          //   prevResultType: tc.str("queryItems"),
+          //   keyPath: tc.str("targetId"),
+          // }),
         })
       ),
       tc.return(
@@ -424,85 +426,55 @@ export class DynamoDbGenerator extends ContextTypesGenerator {
   // #endregion Edges Operations
 
   // #region Pipeline Function Commands
-  private _getItemCommand() {
+
+  private _getCommand() {
+    return [
+      tc.const("command", tc.call(tc.ref("ctx.prev.result.commands.shift"), [])),
+      tc.if(
+        tc.not(tc.ref("command")),
+        tc.return(
+          tc.call(tc.ref("util.error"), [
+            tc.str("Undefined pipeline command"),
+            tc.str("PipelineCommandException"),
+          ])
+        )
+      ),
+    ];
+  }
+
+  private _getItemCommand(action: string) {
     this.code
-      .addImport("@aws-appsync/utils/dynamodb", tc.named("get"))
-      .setRequest(
-        tc.const("command", tc.call(tc.ref("ctx.prev.result.commands.shift"), [])),
-        tc.if(
-          tc.not(tc.ref("command")),
-          tc.return(tc.call(tc.ref("runtime.earlyReturn"), [tc.null()]))
-        ),
-        tc.return(tc.call(tc.ref("get"), tc.ref("command.payload")))
-      );
+      .addImport("@aws-appsync/utils/dynamodb", tc.named(action))
+      .setRequest(...this._getCommand(), tc.return(tc.call(tc.ref(action), tc.ref("command"))));
   }
 
   private _batchGetItemsCommand() {
     this.code.addImport("@aws-appsync/utils", tc.named("runtime")).setRequest(
-      tc.const("command", tc.call(tc.ref("ctx.prev.result.commands.shift"), [])),
-      tc.if(
-        tc.not(tc.ref("command")),
-        tc.return(tc.call(tc.ref("runtime.earlyReturn"), [tc.null()]))
-      ),
+      ...this._getCommand(),
+      // tc.if(tc.ref("command.instructions?.fromPrevResult"), [
+      //   tc.const(
+      //     "prevResult",
+      //     tc.ref("ctx.prev.result.results?.[`${command.instructions.prevResultIndex}`]")
+      //   ),
+
+      //   tc.const(
+      //     "keys",
+      //     tc.call(tc.ref("prevResult.items.map"), [
+      //       tc.arrow(tc.ref("item"), tc.ref("({ id: item[command.instructions.keyPath] })")),
+      //     ])
+      //   ),
+      //   tc.assign(
+      //     tc.ref("command.payload.tables[command.instructions.tableName]"),
+      //     tc.call(tc.ref("keys.filter"), [tc.ref("Boolean")])
+      //   ),
+      // ]),
       tc.return(
         tc.obj({
           operation: tc.str("BatchGetItem"),
-          tables: tc.obj({}),
+          tables: tc.ref("command.tables"),
         })
       )
     );
-  }
-
-  private _queryItemsCommand() {
-    this.code
-      .addImport("@aws-appsync/utils/dynamodb", tc.named("query"))
-      .setRequest(
-        tc.const("command", tc.call(tc.ref("ctx.prev.result.commands.shift"), [])),
-        tc.if(
-          tc.not(tc.ref("command")),
-          tc.return(tc.call(tc.ref("runtime.earlyReturn"), [tc.null()]))
-        ),
-        tc.return(tc.call(tc.ref("query"), tc.ref("command.payload")))
-      );
-  }
-
-  private _putItemCommand() {
-    this.code
-      .addImport("@aws-appsync/utils/dynamodb", tc.named("put"))
-      .setRequest(
-        tc.const("command", tc.call(tc.ref("ctx.prev.result.commands.shift"), [])),
-        tc.if(
-          tc.not(tc.ref("command")),
-          tc.return(tc.call(tc.ref("runtime.earlyReturn"), [tc.null()]))
-        ),
-        tc.return(tc.call(tc.ref("put"), tc.ref("command.payload")))
-      );
-  }
-
-  private _updateItemCommand() {
-    this.code
-      .addImport("@aws-appsync/utils/dynamodb", tc.named("update"))
-      .setRequest(
-        tc.const("command", tc.call(tc.ref("ctx.prev.result.commands.shift"), [])),
-        tc.if(
-          tc.not(tc.ref("command")),
-          tc.return(tc.call(tc.ref("runtime.earlyReturn"), [tc.null()]))
-        ),
-        tc.return(tc.call(tc.ref("update"), tc.ref("command.payload")))
-      );
-  }
-
-  private _deleteItemCommand() {
-    this.code
-      .addImport("@aws-appsync/utils/dynamodb", tc.named("remove"))
-      .setRequest(
-        tc.const("command", tc.call(tc.ref("ctx.prev.result.commands.shift"), [])),
-        tc.if(
-          tc.not(tc.ref("command")),
-          tc.return(tc.call(tc.ref("runtime.earlyReturn"), [tc.null()]))
-        ),
-        tc.return(tc.call(tc.ref("remove"), tc.ref("command.payload")))
-      );
   }
 
   // #endregion Pipeline Functions Commands
@@ -535,22 +507,22 @@ export class DynamoDbGenerator extends ContextTypesGenerator {
         this._queryEdges(descriptor);
         break;
       case "getItemCommand":
-        this._getItemCommand();
+        this._getItemCommand("get");
+        break;
+      case "putItemCommand":
+        this._getItemCommand("put");
+        break;
+      case "updateItemCommand":
+        this._getItemCommand("update");
+        break;
+      case "deleteItemCommand":
+        this._getItemCommand("remove");
+        break;
+      case "queryItemsCommand":
+        this._getItemCommand("query");
         break;
       case "batchGetItemsCommand":
         this._batchGetItemsCommand();
-        break;
-      case "queryItemsCommand":
-        this._queryItemsCommand();
-        break;
-      case "putItemCommand":
-        this._putItemCommand();
-        break;
-      case "updateItemCommand":
-        this._updateItemCommand();
-        break;
-      case "deleteItemCommand":
-        this._deleteItemCommand();
         break;
       default:
         throw new TransformExecutionError(`Unknown operation ${descriptor.action.type}`);

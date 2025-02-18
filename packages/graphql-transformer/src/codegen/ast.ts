@@ -819,7 +819,7 @@ export interface IfStatement extends Node {
 
 function _if(
   condition: Expression | Definition,
-  consequent: Block,
+  consequent: Block | Block[],
   altername?: Block
 ): IfStatement {
   return {

@@ -164,7 +164,6 @@ export class ResolverManager {
       const dataSourceName = loader.dataSource ?? this._context.dataSources.primaryDataSourceName;
 
       const resolver = this._getOrCreateFunctionResolver(loader.name, dataSourceName);
-
       this._generateResolver(resolver, loader);
     }
   }

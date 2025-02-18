@@ -6,6 +6,7 @@ import {
   DataLoaderPlugin,
   IPluginFactory,
 } from "../plugins";
+import { UtilitiesPlugin } from "../plugins/UtilitiesPlugin";
 import { GraphQLTransformer, GraphQLTransformerOptions } from "./GraphQLTransformer";
 
 export function createTransformer(options: Partial<GraphQLTransformerOptions>) {
@@ -21,6 +22,7 @@ export function createTransformer(options: Partial<GraphQLTransformerOptions>) {
 
   const plugins: IPluginFactory[] = [
     AWSTypesPlugin,
+    UtilitiesPlugin,
     NodeInterfacePlugin,
     ModelPlugin,
     ConnectionPlugin,

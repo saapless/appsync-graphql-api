@@ -227,8 +227,9 @@ export class ModelPlugin extends TransformerPluginBase {
     } else {
       for (const field of model.fields ?? []) {
         if (
-          field.hasDirective("readonly") ||
-          field.hasDirective("private") ||
+          field.hasDirective("readOnly") ||
+          field.hasDirective("serverOnly") ||
+          field.hasDirective("clientOnly") ||
           field.hasDirective("hasOne") ||
           field.hasDirective("hasMany")
         ) {
@@ -269,8 +270,9 @@ export class ModelPlugin extends TransformerPluginBase {
         if (typeDef instanceof ObjectNode) {
           if (
             typeDef.hasDirective("model") ||
-            typeDef.hasDirective("readonly") ||
-            typeDef.hasDirective("private") ||
+            typeDef.hasDirective("readOnly") ||
+            typeDef.hasDirective("serverOnly") ||
+            typeDef.hasDirective("clientOnly") ||
             typeDef.hasInterface("Node")
           ) {
             continue;
@@ -364,10 +366,7 @@ export class ModelPlugin extends TransformerPluginBase {
             ),
           ]
         )
-      )
-      .addNode(DirectiveDefinitionNode.create("readonly", ["OBJECT", "FIELD_DEFINITION"]))
-      .addNode(DirectiveDefinitionNode.create("writeonly", ["FIELD_DEFINITION"]))
-      .addNode(DirectiveDefinitionNode.create("private", ["FIELD_DEFINITION"]));
+      );
 
     this._createModelSizeInput();
     this._createModelStringInput();
@@ -419,25 +418,10 @@ export class ModelPlugin extends TransformerPluginBase {
 
   public cleanup(definition: ObjectNode): void {
     definition.removeDirective("model");
-
-    for (const field of definition.fields ?? []) {
-      if (field.hasDirective("readonly")) {
-        field.removeDirective("readonly");
-      }
-
-      if (field.hasDirective("writeonly") || field.hasDirective("private")) {
-        definition.removeField(field.name);
-      }
-    }
   }
 
   public after(): void {
-    this.context.document
-      .removeNode("model")
-      .removeNode("ModelOperation")
-      .removeNode("readonly")
-      .removeNode("writeonly")
-      .removeNode("private");
+    this.context.document.removeNode("model").removeNode("ModelOperation");
   }
 
   static create(context: TransformerContext) {

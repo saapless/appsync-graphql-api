@@ -129,6 +129,16 @@ export class GraphQLTransformer {
       }
     }
 
+    for (const pipelineFunction of this.context.resolvers.getAllPipelineFunctions()) {
+      if (pipelineFunction.source) {
+        if (!resolversBySource.has(pipelineFunction.source)) {
+          resolversBySource.set(pipelineFunction.source, []);
+        }
+
+        resolversBySource.get(pipelineFunction.source)?.push(pipelineFunction);
+      }
+    }
+
     const buildPaths = Array.from(resolversBySource.keys());
 
     const build = buildSync({
@@ -219,6 +229,18 @@ export class GraphQLTransformer {
       }
     }
 
+    /**
+     * We clean up internal declaration first because we don't want to polute the schema types
+     * with internal, processing only types that can confused the user.
+     *
+     * After this we generate the types with hints from directives, then we cleanup
+     * the declared schema.
+     * */
+
+    for (const plugin of this.plugins) {
+      plugin.after();
+    }
+
     this._printSchemaTypes();
 
     for (const definition of this.context.document.definitions.values()) {
@@ -227,10 +249,6 @@ export class GraphQLTransformer {
           plugin.cleanup(definition);
         }
       }
-    }
-
-    for (const plugin of this.plugins) {
-      plugin.after();
     }
 
     this._generateResources();

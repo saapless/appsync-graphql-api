@@ -225,7 +225,11 @@ export class ConnectionPlugin extends TransformerPluginBase {
       }
 
       for (const field of fields.values()) {
-        if (field.hasDirective("writeonly") || field.hasDirective("private")) {
+        if (
+          field.hasDirective("writeOnly") ||
+          field.hasDirective("serverOnly") ||
+          field.hasDirective("clientOnly")
+        ) {
           continue;
         }
 
@@ -331,7 +335,7 @@ export class ConnectionPlugin extends TransformerPluginBase {
     if (!node.hasField(key)) {
       node.addField(
         FieldNode.create(key, NamedTypeNode.create("ID"), null, [
-          isPrivate ? DirectiveNode.create("private") : DirectiveNode.create("writeonly"),
+          isPrivate ? DirectiveNode.create("serverOnly") : DirectiveNode.create("writeOnly"),
         ])
       );
     }

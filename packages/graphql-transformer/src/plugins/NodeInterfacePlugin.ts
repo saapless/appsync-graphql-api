@@ -61,7 +61,7 @@ export class NodeInterfacePlugin extends TransformerPluginBase {
     if (!node.hasField("_deleted")) {
       node.addField(
         FieldNode.create("_deleted", NamedTypeNode.create("Boolean"), null, [
-          DirectiveNode.create("readonly"),
+          DirectiveNode.create("readOnly"),
         ])
       );
     }
@@ -69,7 +69,7 @@ export class NodeInterfacePlugin extends TransformerPluginBase {
     if (!node.hasField("__typename")) {
       node.addField(
         FieldNode.create("__typename", NonNullTypeNode.create("String"), null, [
-          DirectiveNode.create("private"),
+          DirectiveNode.create("serverOnly"),
         ])
       );
     }
@@ -77,7 +77,7 @@ export class NodeInterfacePlugin extends TransformerPluginBase {
     if (!node.hasField("_sk")) {
       node.addField(
         FieldNode.create("_sk", NonNullTypeNode.create("String"), null, [
-          DirectiveNode.create("private"),
+          DirectiveNode.create("serverOnly"),
         ])
       );
     }
