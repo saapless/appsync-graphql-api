@@ -52,7 +52,6 @@ export class GraphQLDefinition {
     let definition: string = "";
 
     for (const path of paths) {
-      // eslint-disable-next-line security/detect-non-literal-fs-filename
       definition += readFileSync(path, { encoding: "utf-8" });
     }
 

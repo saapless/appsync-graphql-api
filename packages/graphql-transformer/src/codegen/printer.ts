@@ -41,6 +41,7 @@ export type ASTPrintReducer<T extends NodeKind = NodeKind> = {
 // #endregion Types
 
 // #region Printer
+
 const printReducer: ASTPrintReducer = {
   Array: (node) => wrap("[", join(", ", node.elements), "]"),
   ArrowFunctionExpression: (node) =>
@@ -134,6 +135,7 @@ const printReducer: ASTPrintReducer = {
       node.definition
     ),
   TypeExtendsExpression: (node) => join(" ", node.left, "extends", node.right),
+  TypeTupleExpression: (node) => wrap("[", join(", ", node.elements), "]"),
 };
 
 export function printAST<T extends ASTNode>(
@@ -147,7 +149,7 @@ export function printAST<T extends ASTNode>(
   const ctx: PrintContext = context ?? {};
 
   const printed = { ...node } as PrintedNode<T["_kind"]>;
-  // Traverse child keys and replace them with their string representations
+
   for (const [key, value] of Object.entries(node)) {
     if (isNode(value)) {
       if (Array.isArray(value)) {

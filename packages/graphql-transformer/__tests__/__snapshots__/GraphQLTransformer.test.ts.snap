@@ -196,27 +196,50 @@ export {
 import { util } from "@aws-appsync/utils";
 function request(ctx) {
   const queryItemsCommand = {
-    query: { sourceId: ctx.source?.id, _sk: { beginsWith: "LabelEdge" } },
-    filter: ctx.args.filter,
-    limit: ctx.args.first ?? 100,
-    nextToken: ctx.args.after ?? void 0,
-    scanIndexForward: ctx.args.sort === "ASC",
-    index: "bySourceId"
+    payload: {
+      query: { sourceId: ctx.source?.id, _sk: { beginsWith: "LabelEdge" } },
+      filter: ctx.args.filter,
+      limit: ctx.args.first ?? 100,
+      nextToken: ctx.args.after ?? void 0,
+      scanIndexForward: ctx.args.sort === "ASC",
+      index: "bySourceId"
+    }
   };
-  const batchGetItemsCommand = { tables: {} };
-  return { commands: [queryItemsCommand, batchGetItemsCommand] };
+  const batchGetItemsCommand = {
+    payload: { operation: "BatchGetItem", tables: {} },
+    instructions: {
+      tableName: "",
+      fromPrevResults: true,
+      prevResultIndex: 0,
+      prevResultType: "queryItems",
+      keyPath: "targetId"
+    }
+  };
+  return { commands: [queryItemsCommand, batchGetItemsCommand], results: [] };
 }
 function response(ctx) {
   if (ctx.error) {
     util.error(ctx.error.message, ctx.error.type);
   }
-  return ctx.prev.result;
+  const [queryResult, batchGetResult] = ctx.prev.result.results;
+  const items = batchGetResult.data;
+  return {
+    edges: items.map((node) => {
+      return { cursor: node.id, node };
+    }),
+    pageInfo: {
+      hasPreviousPage: Boolean(ctx.args?.after),
+      hasNextPage: Boolean(queryResult.nextToken),
+      startCursor: ctx.args.after,
+      endCursor: queryResult.nextToken
+    }
+  };
 }
 export {
   request,
   response
 };
-//# sourceMappingURL=data:application/json;base64,ewogICJ2ZXJzaW9uIjogMywKICAic291cmNlcyI6IFsicmVzb2x2ZXJzL1Rhc2subGFiZWxzLnRzIl0sCiAgIm1hcHBpbmdzIjogIjtBQUNBLFNBQVMsWUFBcUI7QUFDdkIsU0FBUyxRQUNkLEtBQ0E7QUFDQSxRQUFNLG9CQUFvQjtBQUFBLElBQ3hCLE9BQU8sRUFBRSxVQUFVLElBQUksUUFBUSxJQUFJLEtBQUssRUFBRSxZQUFZLFlBQVksRUFBRTtBQUFBLElBQ3BFLFFBQVEsSUFBSSxLQUFLO0FBQUEsSUFDakIsT0FBTyxJQUFJLEtBQUssU0FBUztBQUFBLElBQ3pCLFdBQVcsSUFBSSxLQUFLLFNBQVM7QUFBQSxJQUM3QixrQkFBa0IsSUFBSSxLQUFLLFNBQVM7QUFBQSxJQUNwQyxPQUFPO0FBQUEsRUFDVDtBQUNBLFFBQU0sdUJBQXVCLEVBQUUsUUFBUSxDQUFDLEVBQUU7QUFDMUMsU0FBTyxFQUFFLFVBQVUsQ0FBQyxtQkFBbUIsb0JBQW9CLEVBQUU7QUFDL0Q7QUFFTyxTQUFTLFNBQ2QsS0FDQTtBQUNBLE1BQUksSUFBSSxPQUFPO0FBQ2IsU0FBSyxNQUFNLElBQUksTUFBTSxTQUFTLElBQUksTUFBTSxJQUFJO0FBQUEsRUFDOUM7QUFFQSxTQUFPLElBQUksS0FBSztBQUNsQjsiLAogICJuYW1lcyI6IFtdCn0K
+//# sourceMappingURL=data:application/json;base64,ewogICJ2ZXJzaW9uIjogMywKICAic291cmNlcyI6IFsicmVzb2x2ZXJzL1Rhc2subGFiZWxzLnRzIl0sCiAgIm1hcHBpbmdzIjogIjtBQVNBLFNBQXNDLFlBQXFCO0FBRXBELFNBQVMsUUFDZCxLQVNBO0FBQ0EsUUFBTSxvQkFBb0I7QUFBQSxJQUN4QixTQUFTO0FBQUEsTUFDUCxPQUFPLEVBQUUsVUFBVSxJQUFJLFFBQVEsSUFBSSxLQUFLLEVBQUUsWUFBWSxZQUFZLEVBQUU7QUFBQSxNQUNwRSxRQUFRLElBQUksS0FBSztBQUFBLE1BQ2pCLE9BQU8sSUFBSSxLQUFLLFNBQVM7QUFBQSxNQUN6QixXQUFXLElBQUksS0FBSyxTQUFTO0FBQUEsTUFDN0Isa0JBQWtCLElBQUksS0FBSyxTQUFTO0FBQUEsTUFDcEMsT0FBTztBQUFBLElBQ1Q7QUFBQSxFQUNGO0FBQ0EsUUFBTSx1QkFBdUI7QUFBQSxJQUMzQixTQUFTLEVBQUUsV0FBVyxnQkFBZ0IsUUFBUSxDQUFDLEVBQUU7QUFBQSxJQUNqRCxjQUFjO0FBQUEsTUFDWixXQUFXO0FBQUEsTUFDWCxpQkFBaUI7QUFBQSxNQUNqQixpQkFBaUI7QUFBQSxNQUNqQixnQkFBZ0I7QUFBQSxNQUNoQixTQUFTO0FBQUEsSUFDWDtBQUFBLEVBQ0Y7QUFDQSxTQUFPLEVBQUUsVUFBVSxDQUFDLG1CQUFtQixvQkFBb0IsR0FBRyxTQUFTLENBQUMsRUFBRTtBQUM1RTtBQUVPLFNBQVMsU0FDZCxLQVVBO0FBQ0EsTUFBSSxJQUFJLE9BQU87QUFDYixTQUFLLE1BQU0sSUFBSSxNQUFNLFNBQVMsSUFBSSxNQUFNLElBQUk7QUFBQSxFQUM5QztBQUVBLFFBQU0sQ0FBQyxhQUFhLGNBQWMsSUFBSSxJQUFJLEtBQUssT0FBTztBQUN0RCxRQUFNLFFBQVEsZUFBZTtBQUM3QixTQUFPO0FBQUEsSUFDTCxPQUFPLE1BQU0sSUFBSSxDQUFDLFNBQVM7QUFDekIsYUFBTyxFQUFFLFFBQVEsS0FBSyxJQUFJLEtBQVc7QUFBQSxJQUN2QyxDQUFDO0FBQUEsSUFDRCxVQUFVO0FBQUEsTUFDUixpQkFBaUIsUUFBUSxJQUFJLE1BQU0sS0FBSztBQUFBLE1BQ3hDLGFBQWEsUUFBUSxZQUFZLFNBQVM7QUFBQSxNQUMxQyxhQUFhLElBQUksS0FBSztBQUFBLE1BQ3RCLFdBQVcsWUFBWTtBQUFBLElBQ3pCO0FBQUEsRUFDRjtBQUNGOyIsCiAgIm5hbWVzIjogW10KfQo=
 ",
       "dataSource": "TestDataSource",
       "fieldName": "labels",
@@ -234,31 +257,34 @@ function request(ctx) {
   const id = \`\${input.sourceId}#\${input.targetId}\`;
   const timestamp = util.time.nowISO8601();
   const createItemCommand = {
-    key: { id },
-    item: {
-      ...input,
-      id,
-      createdAt: timestamp,
-      updatedAt: timestamp,
-      __typename: "LabelEdge",
-      _sk: \`LabelEdge#\${id}\`
-    },
-    condition: { id: { attributeExists: false } }
+    payload: {
+      key: { id },
+      item: {
+        ...input,
+        id,
+        createdAt: timestamp,
+        updatedAt: timestamp,
+        __typename: "LabelEdge",
+        _sk: \`LabelEdge#\${id}\`
+      },
+      condition: { id: { attributeExists: false } }
+    }
   };
-  const getItemCommand = { key: { id: input.targetId } };
-  return { commands: [createItemCommand, getItemCommand] };
+  const getItemCommand = { payload: { key: { id: input.targetId } } };
+  return { commands: [createItemCommand, getItemCommand], results: [] };
 }
 function response(ctx) {
   if (ctx.error) {
     util.error(ctx.error.message, ctx.error.type);
   }
-  return ctx.prev.result;
+  const [createResult, getItemResult] = ctx.prev.result.results;
+  return { cursor: getItemResult.id, node: getItemResult };
 }
 export {
   request,
   response
 };
-//# sourceMappingURL=data:application/json;base64,ewogICJ2ZXJzaW9uIjogMywKICAic291cmNlcyI6IFsicmVzb2x2ZXJzL011dGF0aW9uLmNyZWF0ZUxhYmVsRWRnZS50cyJdLAogICJtYXBwaW5ncyI6ICI7QUFDQSxTQUFTLFlBQXFCO0FBQ3ZCLFNBQVMsUUFDZCxLQU1BO0FBQ0EsUUFBTSxFQUFFLE1BQU0sSUFBSSxJQUFJO0FBQ3RCLFFBQU0sS0FBSyxHQUFHLE1BQU0sUUFBUSxJQUFJLE1BQU0sUUFBUTtBQUM5QyxRQUFNLFlBQVksS0FBSyxLQUFLLFdBQVc7QUFDdkMsUUFBTSxvQkFBb0I7QUFBQSxJQUN4QixLQUFLLEVBQUUsR0FBTztBQUFBLElBQ2QsTUFBTTtBQUFBLE1BQ0osR0FBRztBQUFBLE1BQ0g7QUFBQSxNQUNBLFdBQVc7QUFBQSxNQUNYLFdBQVc7QUFBQSxNQUNYLFlBQVk7QUFBQSxNQUNaLEtBQUssYUFBYSxFQUFFO0FBQUEsSUFDdEI7QUFBQSxJQUNBLFdBQVcsRUFBRSxJQUFJLEVBQUUsaUJBQWlCLE1BQU0sRUFBRTtBQUFBLEVBQzlDO0FBQ0EsUUFBTSxpQkFBaUIsRUFBRSxLQUFLLEVBQUUsSUFBSSxNQUFNLFNBQVMsRUFBRTtBQUNyRCxTQUFPLEVBQUUsVUFBVSxDQUFDLG1CQUFtQixjQUFjLEVBQUU7QUFDekQ7QUFFTyxTQUFTLFNBQ2QsS0FPQTtBQUNBLE1BQUksSUFBSSxPQUFPO0FBQ2IsU0FBSyxNQUFNLElBQUksTUFBTSxTQUFTLElBQUksTUFBTSxJQUFJO0FBQUEsRUFDOUM7QUFFQSxTQUFPLElBQUksS0FBSztBQUNsQjsiLAogICJuYW1lcyI6IFtdCn0K
+//# sourceMappingURL=data:application/json;base64,ewogICJ2ZXJzaW9uIjogMywKICAic291cmNlcyI6IFsicmVzb2x2ZXJzL011dGF0aW9uLmNyZWF0ZUxhYmVsRWRnZS50cyJdLAogICJtYXBwaW5ncyI6ICI7QUFPQSxTQUFTLFlBQXFCO0FBQ3ZCLFNBQVMsUUFDZCxLQU1BO0FBQ0EsUUFBTSxFQUFFLE1BQU0sSUFBSSxJQUFJO0FBQ3RCLFFBQU0sS0FBSyxHQUFHLE1BQU0sUUFBUSxJQUFJLE1BQU0sUUFBUTtBQUM5QyxRQUFNLFlBQVksS0FBSyxLQUFLLFdBQVc7QUFDdkMsUUFBTSxvQkFBb0I7QUFBQSxJQUN4QixTQUFTO0FBQUEsTUFDUCxLQUFLLEVBQUUsR0FBTztBQUFBLE1BQ2QsTUFBTTtBQUFBLFFBQ0osR0FBRztBQUFBLFFBQ0g7QUFBQSxRQUNBLFdBQVc7QUFBQSxRQUNYLFdBQVc7QUFBQSxRQUNYLFlBQVk7QUFBQSxRQUNaLEtBQUssYUFBYSxFQUFFO0FBQUEsTUFDdEI7QUFBQSxNQUNBLFdBQVcsRUFBRSxJQUFJLEVBQUUsaUJBQWlCLE1BQU0sRUFBRTtBQUFBLElBQzlDO0FBQUEsRUFDRjtBQUNBLFFBQU0saUJBQWlCLEVBQUUsU0FBUyxFQUFFLEtBQUssRUFBRSxJQUFJLE1BQU0sU0FBUyxFQUFFLEVBQUU7QUFDbEUsU0FBTyxFQUFFLFVBQVUsQ0FBQyxtQkFBbUIsY0FBYyxHQUFHLFNBQVMsQ0FBQyxFQUFFO0FBQ3RFO0FBRU8sU0FBUyxTQUNkLEtBT0E7QUFDQSxNQUFJLElBQUksT0FBTztBQUNiLFNBQUssTUFBTSxJQUFJLE1BQU0sU0FBUyxJQUFJLE1BQU0sSUFBSTtBQUFBLEVBQzlDO0FBRUEsUUFBTSxDQUFDLGNBQWMsYUFBYSxJQUFJLElBQUksS0FBSyxPQUFPO0FBQ3RELFNBQU8sRUFBRSxRQUFRLGNBQWMsSUFBSSxNQUFNLGNBQWM7QUFDekQ7IiwKICAibmFtZXMiOiBbXQp9Cg==
 ",
       "dataSource": "TestDataSource",
       "fieldName": "createLabelEdge",
@@ -275,23 +301,23 @@ function request(ctx) {
   const { input } = ctx.args;
   const id = \`\${input.sourceId}#\${input.targetId}\`;
   const deleteItemCommand = {
-    key: { id },
-    condition: { id: { attributeExists: true } }
+    payload: { key: { id }, condition: { id: { attributeExists: true } } }
   };
-  const getItemCommand = { key: { id: input.targetId } };
-  return { commands: [deleteItemCommand, getItemCommand] };
+  const getItemCommand = { payload: { key: { id: input.targetId } } };
+  return { commands: [deleteItemCommand, getItemCommand], results: [] };
 }
 function response(ctx) {
   if (ctx.error) {
     util.error(ctx.error.message, ctx.error.type);
   }
-  return ctx.prev.result;
+  const [createResult, getItemResult] = ctx.prev.result.results;
+  return { cursor: getItemResult.id, node: getItemResult };
 }
 export {
   request,
   response
 };
-//# sourceMappingURL=data:application/json;base64,ewogICJ2ZXJzaW9uIjogMywKICAic291cmNlcyI6IFsicmVzb2x2ZXJzL011dGF0aW9uLmRlbGV0ZUxhYmVsRWRnZS50cyJdLAogICJtYXBwaW5ncyI6ICI7QUFDQSxTQUFTLFlBQXFCO0FBQ3ZCLFNBQVMsUUFDZCxLQU1BO0FBQ0EsUUFBTSxFQUFFLE1BQU0sSUFBSSxJQUFJO0FBQ3RCLFFBQU0sS0FBSyxHQUFHLE1BQU0sUUFBUSxJQUFJLE1BQU0sUUFBUTtBQUM5QyxRQUFNLG9CQUFvQjtBQUFBLElBQ3hCLEtBQUssRUFBRSxHQUFPO0FBQUEsSUFDZCxXQUFXLEVBQUUsSUFBSSxFQUFFLGlCQUFpQixLQUFLLEVBQUU7QUFBQSxFQUM3QztBQUNBLFFBQU0saUJBQWlCLEVBQUUsS0FBSyxFQUFFLElBQUksTUFBTSxTQUFTLEVBQUU7QUFDckQsU0FBTyxFQUFFLFVBQVUsQ0FBQyxtQkFBbUIsY0FBYyxFQUFFO0FBQ3pEO0FBRU8sU0FBUyxTQUNkLEtBT0E7QUFDQSxNQUFJLElBQUksT0FBTztBQUNiLFNBQUssTUFBTSxJQUFJLE1BQU0sU0FBUyxJQUFJLE1BQU0sSUFBSTtBQUFBLEVBQzlDO0FBRUEsU0FBTyxJQUFJLEtBQUs7QUFDbEI7IiwKICAibmFtZXMiOiBbXQp9Cg==
+//# sourceMappingURL=data:application/json;base64,ewogICJ2ZXJzaW9uIjogMywKICAic291cmNlcyI6IFsicmVzb2x2ZXJzL011dGF0aW9uLmRlbGV0ZUxhYmVsRWRnZS50cyJdLAogICJtYXBwaW5ncyI6ICI7QUFPQSxTQUFTLFlBQXFCO0FBQ3ZCLFNBQVMsUUFDZCxLQU1BO0FBQ0EsUUFBTSxFQUFFLE1BQU0sSUFBSSxJQUFJO0FBQ3RCLFFBQU0sS0FBSyxHQUFHLE1BQU0sUUFBUSxJQUFJLE1BQU0sUUFBUTtBQUM5QyxRQUFNLG9CQUFvQjtBQUFBLElBQ3hCLFNBQVMsRUFBRSxLQUFLLEVBQUUsR0FBTyxHQUFHLFdBQVcsRUFBRSxJQUFJLEVBQUUsaUJBQWlCLEtBQUssRUFBRSxFQUFFO0FBQUEsRUFDM0U7QUFDQSxRQUFNLGlCQUFpQixFQUFFLFNBQVMsRUFBRSxLQUFLLEVBQUUsSUFBSSxNQUFNLFNBQVMsRUFBRSxFQUFFO0FBQ2xFLFNBQU8sRUFBRSxVQUFVLENBQUMsbUJBQW1CLGNBQWMsR0FBRyxTQUFTLENBQUMsRUFBRTtBQUN0RTtBQUVPLFNBQVMsU0FDZCxLQU9BO0FBQ0EsTUFBSSxJQUFJLE9BQU87QUFDYixTQUFLLE1BQU0sSUFBSSxNQUFNLFNBQVMsSUFBSSxNQUFNLElBQUk7QUFBQSxFQUM5QztBQUVBLFFBQU0sQ0FBQyxjQUFjLGFBQWEsSUFBSSxJQUFJLEtBQUssT0FBTztBQUN0RCxTQUFPLEVBQUUsUUFBUSxjQUFjLElBQUksTUFBTSxjQUFjO0FBQ3pEOyIsCiAgIm5hbWVzIjogW10KfQo=
 ",
       "dataSource": "TestDataSource",
       "fieldName": "deleteLabelEdge",

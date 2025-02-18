@@ -376,7 +376,7 @@ export class ConnectionPlugin extends TransformerPluginBase {
         type: "getItemCommand",
         key: { id: { ref: "args.input.targetId" } },
       },
-      returnType: "prev",
+      returnType: "command",
     });
 
     const mutationNode = this.context.document.getMutationNode();
@@ -394,14 +394,14 @@ export class ConnectionPlugin extends TransformerPluginBase {
           type: "putItemCommand",
           key: {},
         },
-        returnType: "prev",
+        returnType: "command",
       });
 
       this.context.loader.setFieldLoader("Mutation", createFieldName, {
         targetName: edgeName,
         pipeline: ["ddbPutItem", "ddbGetItem"],
         action: { type: "createEdge", key: {} },
-        returnType: "prev",
+        returnType: "createEdge",
       });
     }
 
@@ -419,14 +419,14 @@ export class ConnectionPlugin extends TransformerPluginBase {
           type: "deleteItemCommand",
           key: {},
         },
-        returnType: "prev",
+        returnType: "command",
       });
 
       this.context.loader.setFieldLoader("Mutation", deleteFieldName, {
         targetName: edgeName,
         pipeline: ["ddbGetItem", "ddbDeleteItem"],
         action: { type: "deleteEdge", key: {} },
-        returnType: "prev",
+        returnType: "deleteEdge",
       });
     }
   }
@@ -483,7 +483,7 @@ export class ConnectionPlugin extends TransformerPluginBase {
           type: "queryItemsCommand",
           key: {},
         },
-        returnType: "result",
+        returnType: "command",
       });
 
       this.context.loader.setFunctionLoader("ddbBatchGetItems", {
@@ -493,7 +493,7 @@ export class ConnectionPlugin extends TransformerPluginBase {
           type: "batchGetItemsCommand",
           key: {},
         },
-        returnType: "edges",
+        returnType: "command",
       });
 
       this.context.loader.setFieldLoader(parent.name, field.name, {
@@ -508,7 +508,7 @@ export class ConnectionPlugin extends TransformerPluginBase {
           },
           index: connection.index ?? undefined,
         },
-        returnType: "prev",
+        returnType: "queryEdges",
       });
 
       this._createEdgeMutations(connection);

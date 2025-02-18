@@ -86,9 +86,14 @@ export class TypesGenerator {
               tc.typeObj([
                 tc.typeProp(
                   "commands",
-                  tc.typeRef("Array", [tc.typeRef("PipelineCommand", [tc.typeRef("TCommand")])])
+                  tc.typeRef(
+                    "TCommand extends Array<any> ? {[K in keyof TCommand]: PipelineCommand<TCommand[K]>} : [PipelineCommand<TCommand>]"
+                  )
                 ),
-                tc.typeProp("results", tc.typeRef("Array", [tc.typeRef("TResult")]), true),
+                tc.typeProp(
+                  "results",
+                  tc.typeRef("TResult extends Array<any> ? TResult : [TResult]")
+                ),
               ])
             ),
           ])

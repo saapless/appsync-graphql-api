@@ -62,6 +62,16 @@ export type LoaderActionType =
   | "updateItemCommand"
   | "deleteItemCommand";
 
+export type LoaderReturnType =
+  | "edges"
+  | "node"
+  | "prev"
+  | "result"
+  | "command"
+  | "createEdge"
+  | "deleteEdge"
+  | "queryEdges";
+
 export type LoaderAction = {
   type: LoaderActionType;
   key: Key;
@@ -73,7 +83,7 @@ export type LoaderDescriptor = {
   targetName: string;
   action: LoaderAction;
   authRules?: AuthorizationRule[];
-  returnType?: string;
+  returnType?: LoaderReturnType;
 };
 
 export type FieldLoaderDescriptor = LoaderDescriptor & {

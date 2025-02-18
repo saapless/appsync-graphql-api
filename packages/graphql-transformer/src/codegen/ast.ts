@@ -41,6 +41,7 @@ export enum NodeKind {
   TYPE_CONDITIONAL_EXPRESSION = "ConditionalTypeExpression",
   TYPE_BINARY_EXPRESSION = "TypeBinaryExpression",
   TYPE_EXTENDS_EXPRESSION = "TypeExtendsExpression",
+  TYPE_TUPLE_EXPRESSION = "TypeTupleExpression",
 }
 
 export interface Node {
@@ -276,12 +277,25 @@ function _typeExtends(name: string | TypeIdentifier, right: TypeExpression): Typ
   };
 }
 
+export interface TypeTupleExpression extends Node {
+  _kind: NodeKind.TYPE_TUPLE_EXPRESSION;
+  elements: Array<TypeExpression>;
+}
+
+function _typeTuple(...elements: Array<TypeExpression>): TypeTupleExpression {
+  return {
+    _kind: NodeKind.TYPE_TUPLE_EXPRESSION,
+    elements,
+  };
+}
+
 export type TypeExpression =
   | TypeIdentifier
   | TypeBinaryExpression
   | Literal
   | TypeDefinition
-  | TypeExtendsExpression;
+  | TypeExtendsExpression
+  | TypeTupleExpression;
 
 const types = {
   typeRef: _typeRef,
@@ -292,6 +306,7 @@ const types = {
   typeInterface: _iface,
   typeObj: _typeObj,
   typeExtends: _typeExtends,
+  typeTuple: _typeTuple,
 };
 
 // #endregion Types
@@ -1140,7 +1155,8 @@ export type ASTNode =
   | TypeDeclaration
   | InterfaceDeclaration
   | TypeExtendsExpression
-  | TypeExpression;
+  | TypeExpression
+  | TypeTupleExpression;
 
 export function isNode(object: unknown): object is ASTNode {
   if (object == null) return false;
