@@ -3,6 +3,7 @@ import { fileURLToPath } from "node:url";
 import { TransformerContext } from "../src/context";
 import { DirectiveDefinitionNode, DocumentNode, ObjectNode } from "../src/parser";
 import { DataLoaderPlugin, FieldResolver } from "../src";
+import { TEST_DS_CONFIG } from "../__fixtures__/constants";
 
 const __dirname = path.dirname(fileURLToPath(import.meta.url));
 
@@ -25,18 +26,7 @@ const context = new TransformerContext({
       workspace: Workspace @resolver(name: "Query.getUser")
     }
   `),
-  defaultDataSourceName: "TestDataSource",
-  dataSourceConfig: {
-    TestDataSource: {
-      type: "DYNAMO_DB",
-    },
-    SecondDataSource: {
-      type: "DYNAMO_DB",
-    },
-    NoneDataSource: {
-      type: "NONE",
-    },
-  },
+  dataSourceConfig: TEST_DS_CONFIG,
   customResolversSource: path.resolve(__dirname, "../__fixtures__/customResolvers/"),
 });
 

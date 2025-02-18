@@ -3,6 +3,7 @@ import { fileURLToPath } from "node:url";
 import { FieldResolver, FunctionResolver, ResolverBase, TransformerContext } from "../src";
 import { DocumentNode } from "../src/parser";
 import { ResolverManager } from "../src/resolver/ResolverManager";
+import { TEST_DS_CONFIG } from "../__fixtures__/constants";
 
 const __dirname = path.dirname(fileURLToPath(import.meta.url));
 
@@ -26,15 +27,7 @@ describe("ResolverManager", () => {
             getUser(id: ID!): User!
           }
         `),
-        defaultDataSourceName: "TestDataSource",
-        dataSourceConfig: {
-          TestDataSource: {
-            type: "DYNAMO_DB",
-          },
-          NoneDataSource: {
-            type: "NONE",
-          },
-        },
+        dataSourceConfig: TEST_DS_CONFIG,
       }),
       { customResolversSource: path.resolve(__dirname, "../__fixtures__/customResolvers/") }
     ) as unknown as TestResolverManager;

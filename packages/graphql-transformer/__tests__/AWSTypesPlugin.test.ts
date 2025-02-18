@@ -1,3 +1,4 @@
+import { TEST_DS_CONFIG } from "../__fixtures__/constants";
 import { AWSTypesPlugin, TransformerContext } from "../src";
 import { DirectiveDefinitionNode, DocumentNode, ScalarNode } from "../src/parser";
 
@@ -10,15 +11,7 @@ const schema = /* GraphQL */ `
 
 const context = new TransformerContext({
   document: DocumentNode.fromSource(schema),
-  defaultDataSourceName: "TestDataSource",
-  dataSourceConfig: {
-    TestDataSource: {
-      type: "DYNAMO_DB",
-    },
-    NoneDataSource: {
-      type: "NONE",
-    },
-  },
+  dataSourceConfig: TEST_DS_CONFIG,
 });
 const plugin = AWSTypesPlugin.create(context);
 

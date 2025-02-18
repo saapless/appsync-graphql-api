@@ -3,6 +3,7 @@ import { fileURLToPath } from "node:url";
 import { createTransformer, GraphQLTransformer } from "../src/transformer";
 import { FieldNode, NamedTypeNode, ObjectNode } from "../src/parser";
 import { SchemaValidationError } from "../src/utils/errors";
+import { TEST_DS_CONFIG } from "../__fixtures__/constants";
 
 const schema = /* GraphQL */ `
   enum UserStatus {
@@ -103,15 +104,7 @@ describe("GraphQLTransformer", () => {
     definition: schema,
     mode: "development",
     outDir: resolve(dirname(fileURLToPath(import.meta.url)), "out"),
-    defaultDataSourceName: "TestDataSource",
-    dataSourceConfig: {
-      TestDataSource: {
-        type: "DYNAMO_DB",
-      },
-      NoneDataSource: {
-        type: "NONE",
-      },
-    },
+    dataSourceConfig: TEST_DS_CONFIG,
   });
 
   describe("createTransformer factory", () => {
@@ -133,15 +126,7 @@ describe("GraphQLTransformer", () => {
     it("throws SchemaValidationError", () => {
       const transformer = createTransformer({
         definition: schema.replace("type Viewer", "type Viewer2"),
-        defaultDataSourceName: "TestDataSource",
-        dataSourceConfig: {
-          TestDataSource: {
-            type: "DYNAMO_DB",
-          },
-          NoneDataSource: {
-            type: "NONE",
-          },
-        },
+        dataSourceConfig: TEST_DS_CONFIG,
       });
 
       expect(() => transformer.transform()).toThrow(SchemaValidationError);

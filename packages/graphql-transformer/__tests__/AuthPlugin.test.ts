@@ -1,3 +1,4 @@
+import { TEST_DS_CONFIG } from "../__fixtures__/constants";
 import { AuthPlugin, TransformerContext } from "../src";
 import {
   DirectiveDefinitionNode,
@@ -25,16 +26,9 @@ describe("AuthPlugin", () => {
   const context = new TransformerContext({
     document: DocumentNode.fromSource(schema),
     defaultAuthorizationRule: { allow: "public" },
-    defaultDataSourceName: "TestDataSource",
-    dataSourceConfig: {
-      TestDataSource: {
-        type: "DYNAMO_DB",
-      },
-      NoneDataSource: {
-        type: "NONE",
-      },
-    },
+    dataSourceConfig: TEST_DS_CONFIG,
   });
+
   const plugin = AuthPlugin.create(context);
 
   describe("on run `before` hook", () => {

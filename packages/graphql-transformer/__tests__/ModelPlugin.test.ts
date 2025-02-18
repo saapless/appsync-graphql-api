@@ -1,3 +1,4 @@
+import { TEST_DS_CONFIG } from "../__fixtures__/constants";
 import { ModelPlugin, TransformerContext } from "../src";
 import {
   DirectiveDefinitionNode,
@@ -15,15 +16,7 @@ describe("ModelPlugin", () => {
         name: String!
       }
     `),
-    defaultDataSourceName: "TestDataSource",
-    dataSourceConfig: {
-      TestDataSource: {
-        type: "DYNAMO_DB",
-      },
-      NoneDataSource: {
-        type: "NONE",
-      },
-    },
+    dataSourceConfig: TEST_DS_CONFIG,
   });
 
   const plugin = ModelPlugin.create(context);

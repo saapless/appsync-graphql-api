@@ -1,27 +1,12 @@
 import { DocumentNode } from "../parser";
 import { ResolverManager, ResolverManagerConfig } from "../resolver/ResolverManager";
-import { TransformExecutionError } from "../utils/errors";
 import { AuthorizationRule, Operation, ReadOperation, WriteOperation } from "../utils/types";
+import { DataSourceManager, DataSourceManagerConfig } from "./DataSourceManager";
 import { ResolverLoader } from "./ResolverLoader";
-
-export type DataSourceType =
-  | "DYNAMO_DB"
-  | "HTTP"
-  | "RDS"
-  | "AWS_LAMBDA"
-  | "EVENT_BRIDGE"
-  | "AWS_BEDROCK"
-  | "NONE"
-  | "OPEN_SEARCH";
-
-export type DataSourceConfig = {
-  readonly type: DataSourceType;
-};
 
 export interface TransformerContextConfig extends ResolverManagerConfig {
   document: DocumentNode;
-  dataSourceConfig: Record<string, DataSourceConfig>;
-  defaultDataSourceName: string;
+  dataSourceConfig: DataSourceManagerConfig;
   defaultAuthorizationRule?: AuthorizationRule;
   readOperations?: ReadOperation[];
   writeOperations?: WriteOperation[];
@@ -39,38 +24,19 @@ export class TransformerContext {
   public readonly readOperations: ReadOperation[];
   public readonly writeOperations: WriteOperation[];
   public readonly defaultModelOperations: (ReadOperation | WriteOperation)[];
-  public readonly dataSourceConfig: Record<string, DataSourceConfig>;
-  public readonly defaultDataSourceName: string;
+  public readonly dataSources: DataSourceManager;
 
   constructor(config: TransformerContextConfig) {
     this.document = config.document;
     this.resolvers = new ResolverManager(this, config);
     this.loader = new ResolverLoader();
-    this.defaultDataSourceName = config.defaultDataSourceName;
-    this.dataSourceConfig = config.dataSourceConfig;
+    this.dataSources = new DataSourceManager(this, config.dataSourceConfig);
     this.defaultAuthorizationRule = config.defaultAuthorizationRule ?? { allow: "owner" };
     this.readOperations = config.readOperations ?? DEFAULT_READ_OPERATIONS;
     this.writeOperations = config.writeOperations ?? DEFAULT_WRITE_OPERATIONS;
     this.defaultModelOperations = config.defaultModelOperations?.length
       ? this.expandOperations(config.defaultModelOperations)
       : [...DEFAULT_READ_OPERATIONS, ...DEFAULT_WRITE_OPERATIONS];
-
-    this._validateDataSourceConfig();
-  }
-
-  private _validateDataSourceConfig() {
-    const primaryDataSource = this.dataSourceConfig[this.defaultDataSourceName];
-    const noneDataSource = Object.values(this.dataSourceConfig).find((ds) => ds.type === "NONE");
-
-    if (!primaryDataSource || primaryDataSource.type !== "DYNAMO_DB") {
-      throw new TransformExecutionError(
-        "`defaultDataSourceName` needs to be configured as a `DYNAMO_DB` dataSource"
-      );
-    }
-
-    if (!noneDataSource) {
-      throw new TransformExecutionError("Missing `NONE` type dataSource config.");
-    }
   }
 
   public expandOperations(operations: Operation[]): (ReadOperation | WriteOperation)[] {

@@ -1,3 +1,4 @@
+import { TEST_DS_CONFIG } from "../__fixtures__/constants";
 import { TransformerContext } from "../src";
 import {
   DirectiveDefinitionNode,
@@ -45,15 +46,7 @@ const schema = /* GraphQL */ `
 describe("ConnectionPlugin", () => {
   const context = new TransformerContext({
     document: DocumentNode.fromSource(schema),
-    defaultDataSourceName: "TestDataSource",
-    dataSourceConfig: {
-      TestDataSource: {
-        type: "DYNAMO_DB",
-      },
-      NoneDataSource: {
-        type: "NONE",
-      },
-    },
+    dataSourceConfig: TEST_DS_CONFIG,
   });
 
   const plugin = ConnectionPlugin.create(context);

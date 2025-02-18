@@ -1,17 +1,8 @@
+import { TEST_DS_CONFIG } from "../__fixtures__/constants";
 import { TransformerContext } from "../src/context";
-import { DataSourceConfig } from "../src/context/TransformerContext";
 import { DocumentNode, InterfaceNode, ObjectNode } from "../src/parser";
 import { NodeInterfacePlugin } from "../src/plugins/NodeInterfacePlugin";
 import { InvalidDefinitionError } from "../src/utils/errors";
-
-const DS_CONFIG = {
-  TestDataSource: {
-    type: "DYNAMO_DB",
-  },
-  NodeDataSource: {
-    type: "NONE",
-  },
-} satisfies Record<string, DataSourceConfig>;
 
 describe("NodeInterfacePlugin", () => {
   describe("the `before` hook", () => {
@@ -23,8 +14,7 @@ describe("NodeInterfacePlugin", () => {
       `;
       const context = new TransformerContext({
         document: DocumentNode.fromSource(schema),
-        defaultDataSourceName: "TestDataSource",
-        dataSourceConfig: DS_CONFIG,
+        dataSourceConfig: TEST_DS_CONFIG,
       });
       const plugin = new NodeInterfacePlugin(context);
       it("it throws InvalidDefinitionError", () => {
@@ -40,8 +30,7 @@ describe("NodeInterfacePlugin", () => {
 
     const context = new TransformerContext({
       document: DocumentNode.fromSource(schema),
-      defaultDataSourceName: "TestDataSource",
-      dataSourceConfig: DS_CONFIG,
+      dataSourceConfig: TEST_DS_CONFIG,
     });
     const plugin = new NodeInterfacePlugin(context);
     plugin.before();

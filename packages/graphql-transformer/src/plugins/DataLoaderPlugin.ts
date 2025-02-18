@@ -86,7 +86,7 @@ export class DataLoaderPlugin extends TransformerPluginBase {
         node.name,
         field.name,
         currentResolver.source!,
-        dataSource ?? this.context.defaultDataSourceName,
+        dataSource ?? this.context.dataSources.primaryDataSourceName,
         args.pipeline
       )
     );

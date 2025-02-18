@@ -2,10 +2,7 @@ import path from "node:path";
 import fs from "node:fs";
 import { TransformerContext } from "../context";
 import { InterfaceNode, ObjectNode } from "../parser";
-import { CodeDocument } from "../codegen";
-
-import { DataSourceType } from "../context/TransformerContext";
-import { DynamoDbGenerator } from "../generators";
+import { LoaderDescriptor } from "../utils/types";
 import { FieldResolver } from "./FieldResolver";
 import { FunctionResolver } from "./FunctionResolver";
 import { ResolverBase } from "./ResolverBase";
@@ -94,15 +91,6 @@ export class ResolverManager {
     return resolver;
   }
 
-  private _getResolverGenerator(dataSourceType: DataSourceType, code: CodeDocument) {
-    switch (dataSourceType) {
-      case "DYNAMO_DB":
-        return new DynamoDbGenerator(this._context, code);
-      default:
-        throw new Error(`Unsupported data source type: ${dataSourceType}`);
-    }
-  }
-
   public hasFieldResolver(type: string, field: string) {
     return this._fieldResolvers.has(`${type}.${field}`);
   }
@@ -145,9 +133,20 @@ export class ResolverManager {
     return this._customResolvers.get(name);
   }
 
+  private _generateResolver(resolver: ResolverBase, loader: LoaderDescriptor) {
+    if (!resolver.isReadonly) {
+      const generator = this._context.dataSources.getDataSourceGenerator(
+        resolver.dataSource!,
+        resolver.code
+      );
+
+      generator.generateTemplate(loader);
+    }
+  }
+
   private _generateFieldResolvers() {
     for (const loader of this._context.loader.getAllFieldLoaders()) {
-      const dataSourceName = loader.dataSource ?? this._context.defaultDataSourceName;
+      const dataSourceName = loader.dataSource ?? this._context.dataSources.primaryDataSourceName;
 
       const resolver = this._getOrCreateFieldResolver(
         loader.typeName,
@@ -156,39 +155,17 @@ export class ResolverManager {
         loader.pipeline
       );
 
-      if (resolver.isReadonly) {
-        continue;
-      }
-
-      const dataSource = this._context.dataSourceConfig[`${dataSourceName}`];
-
-      if (!dataSource) {
-        throw new Error(`Data source ${dataSourceName} not found`);
-      }
-
-      const generator = this._getResolverGenerator(dataSource.type, resolver.code);
-      generator.generateTemplate(loader);
+      this._generateResolver(resolver, loader);
     }
   }
 
   private _generatePipelineFunctions() {
     for (const loader of this._context.loader.getAllFunctionLoaders()) {
-      const dataSourceName = loader.dataSource ?? this._context.defaultDataSourceName;
+      const dataSourceName = loader.dataSource ?? this._context.dataSources.primaryDataSourceName;
 
       const resolver = this._getOrCreateFunctionResolver(loader.name, dataSourceName);
 
-      if (resolver.isReadonly) {
-        continue;
-      }
-
-      const dataSource = this._context.dataSourceConfig[`${dataSourceName}`];
-
-      if (!dataSource) {
-        throw new Error(`Data source ${dataSourceName} not found`);
-      }
-
-      const generator = this._getResolverGenerator(dataSource.type, resolver.code);
-      generator.generateTemplate(loader);
+      this._generateResolver(resolver, loader);
     }
   }
 

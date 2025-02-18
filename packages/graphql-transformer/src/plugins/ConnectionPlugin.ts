@@ -371,7 +371,7 @@ export class ConnectionPlugin extends TransformerPluginBase {
 
     this.context.loader.setFunctionLoader("ddbGetItem", {
       targetName: "Node",
-      dataSource: this.context.defaultDataSourceName,
+      dataSource: this.context.dataSources.primaryDataSourceName,
       action: {
         type: "getItemCommand",
         key: { id: { ref: "args.input.targetId" } },
@@ -389,7 +389,7 @@ export class ConnectionPlugin extends TransformerPluginBase {
       );
       this.context.loader.setFunctionLoader("ddbPutItem", {
         targetName: edgeName,
-        dataSource: this.context.defaultDataSourceName,
+        dataSource: this.context.dataSources.primaryDataSourceName,
         action: {
           type: "putItemCommand",
           key: {},
@@ -414,7 +414,7 @@ export class ConnectionPlugin extends TransformerPluginBase {
 
       this.context.loader.setFunctionLoader("ddbDeleteItem", {
         targetName: edgeName,
-        dataSource: this.context.defaultDataSourceName,
+        dataSource: this.context.dataSources.primaryDataSourceName,
         action: {
           type: "deleteItemCommand",
           key: {},
@@ -473,12 +473,12 @@ export class ConnectionPlugin extends TransformerPluginBase {
           index: connection.index ?? undefined,
         },
         returnType: "edges",
-        dataSource: this.context.defaultDataSourceName,
+        dataSource: this.context.dataSources.primaryDataSourceName,
       });
     } else {
       this.context.loader.setFunctionLoader("ddbQueryItems", {
         targetName: connection.target.name,
-        dataSource: this.context.defaultDataSourceName,
+        dataSource: this.context.dataSources.primaryDataSourceName,
         action: {
           type: "queryItemsCommand",
           key: {},
@@ -488,7 +488,7 @@ export class ConnectionPlugin extends TransformerPluginBase {
 
       this.context.loader.setFunctionLoader("ddbBatchGetItems", {
         targetName: connection.target.name,
-        dataSource: this.context.defaultDataSourceName,
+        dataSource: this.context.dataSources.primaryDataSourceName,
         action: {
           type: "batchGetItemsCommand",
           key: {},
@@ -499,7 +499,7 @@ export class ConnectionPlugin extends TransformerPluginBase {
       this.context.loader.setFieldLoader(parent.name, field.name, {
         targetName: target.name,
         pipeline: ["ddbQueryItems", "ddbBatchGet"],
-        dataSource: this.context.defaultDataSourceName,
+        dataSource: this.context.dataSources.primaryDataSourceName,
         action: {
           type: "queryEdges",
           key: {

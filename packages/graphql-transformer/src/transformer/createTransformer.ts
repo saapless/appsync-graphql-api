@@ -9,13 +9,13 @@ import {
 import { GraphQLTransformer, GraphQLTransformerOptions } from "./GraphQLTransformer";
 
 export function createTransformer(options: Partial<GraphQLTransformerOptions>) {
-  const { definition, dataSourceConfig, defaultDataSourceName, ...rest } = options;
+  const { definition, dataSourceConfig, ...rest } = options;
 
   if (!definition) {
     throw new Error("Definition is required");
   }
 
-  if (!dataSourceConfig || !defaultDataSourceName) {
+  if (!dataSourceConfig) {
     throw new Error("`dataSourceConfig` and `defaultDataSourceName` are required");
   }
 
@@ -30,7 +30,6 @@ export function createTransformer(options: Partial<GraphQLTransformerOptions>) {
   return new GraphQLTransformer({
     definition: definition,
     dataSourceConfig: dataSourceConfig,
-    defaultDataSourceName: defaultDataSourceName,
     plugins: plugins,
     mode: options.mode ?? "production",
     outDir: options.outDir ?? "out",
