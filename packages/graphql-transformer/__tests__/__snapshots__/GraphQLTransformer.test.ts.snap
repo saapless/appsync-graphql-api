@@ -203,15 +203,19 @@ function request(ctx) {
     scanIndexForward: ctx.args.sort === "ASC",
     index: "bySourceId"
   };
+  const mapItemsCommand = { tableName: "TestTable", keyPath: "targetId" };
   const batchGetItemsCommand = { operation: "BatchGetItem", tables: {} };
-  return { commands: [queryItemsCommand, batchGetItemsCommand], results: [] };
+  return {
+    commands: [queryItemsCommand, mapItemsCommand, batchGetItemsCommand],
+    results: []
+  };
 }
 function response(ctx) {
   if (ctx.error) {
     util.error(ctx.error.message, ctx.error.type);
   }
   const [queryResult, batchGetResult] = ctx.prev.result.results;
-  const items = batchGetResult.data;
+  const items = batchGetResult.data["TestTable"];
   return {
     edges: items.map((node) => {
       return { cursor: node.id, node };
@@ -228,12 +232,13 @@ export {
   request,
   response
 };
-//# sourceMappingURL=data:application/json;base64,ewogICJ2ZXJzaW9uIjogMywKICAic291cmNlcyI6IFsicmVzb2x2ZXJzL1Rhc2subGFiZWxzLnRzIl0sCiAgIm1hcHBpbmdzIjogIjtBQVNBLFNBQXNDLFlBQXFCO0FBRXBELFNBQVMsUUFDZCxLQVNBO0FBQ0EsUUFBTSxvQkFBb0I7QUFBQSxJQUN4QixPQUFPLEVBQUUsVUFBVSxJQUFJLFFBQVEsSUFBSSxLQUFLLEVBQUUsWUFBWSxZQUFZLEVBQUU7QUFBQSxJQUNwRSxRQUFRLElBQUksS0FBSztBQUFBLElBQ2pCLE9BQU8sSUFBSSxLQUFLLFNBQVM7QUFBQSxJQUN6QixXQUFXLElBQUksS0FBSyxTQUFTO0FBQUEsSUFDN0Isa0JBQWtCLElBQUksS0FBSyxTQUFTO0FBQUEsSUFDcEMsT0FBTztBQUFBLEVBQ1Q7QUFDQSxRQUFNLHVCQUF1QixFQUFFLFdBQVcsZ0JBQWdCLFFBQVEsQ0FBQyxFQUFFO0FBQ3JFLFNBQU8sRUFBRSxVQUFVLENBQUMsbUJBQW1CLG9CQUFvQixHQUFHLFNBQVMsQ0FBQyxFQUFFO0FBQzVFO0FBRU8sU0FBUyxTQUNkLEtBVUE7QUFDQSxNQUFJLElBQUksT0FBTztBQUNiLFNBQUssTUFBTSxJQUFJLE1BQU0sU0FBUyxJQUFJLE1BQU0sSUFBSTtBQUFBLEVBQzlDO0FBRUEsUUFBTSxDQUFDLGFBQWEsY0FBYyxJQUFJLElBQUksS0FBSyxPQUFPO0FBQ3RELFFBQU0sUUFBUSxlQUFlO0FBQzdCLFNBQU87QUFBQSxJQUNMLE9BQU8sTUFBTSxJQUFJLENBQUMsU0FBUztBQUN6QixhQUFPLEVBQUUsUUFBUSxLQUFLLElBQUksS0FBVztBQUFBLElBQ3ZDLENBQUM7QUFBQSxJQUNELFVBQVU7QUFBQSxNQUNSLGlCQUFpQixRQUFRLElBQUksTUFBTSxLQUFLO0FBQUEsTUFDeEMsYUFBYSxRQUFRLFlBQVksU0FBUztBQUFBLE1BQzFDLGFBQWEsSUFBSSxLQUFLO0FBQUEsTUFDdEIsV0FBVyxZQUFZO0FBQUEsSUFDekI7QUFBQSxFQUNGO0FBQ0Y7IiwKICAibmFtZXMiOiBbXQp9Cg==
+//# sourceMappingURL=data:application/json;base64,ewogICJ2ZXJzaW9uIjogMywKICAic291cmNlcyI6IFsicmVzb2x2ZXJzL1Rhc2subGFiZWxzLnRzIl0sCiAgIm1hcHBpbmdzIjogIjtBQVNBLFNBQXNDLFlBQXFCO0FBRXBELFNBQVMsUUFDZCxLQVNBO0FBQ0EsUUFBTSxvQkFBb0I7QUFBQSxJQUN4QixPQUFPLEVBQUUsVUFBVSxJQUFJLFFBQVEsSUFBSSxLQUFLLEVBQUUsWUFBWSxZQUFZLEVBQUU7QUFBQSxJQUNwRSxRQUFRLElBQUksS0FBSztBQUFBLElBQ2pCLE9BQU8sSUFBSSxLQUFLLFNBQVM7QUFBQSxJQUN6QixXQUFXLElBQUksS0FBSyxTQUFTO0FBQUEsSUFDN0Isa0JBQWtCLElBQUksS0FBSyxTQUFTO0FBQUEsSUFDcEMsT0FBTztBQUFBLEVBQ1Q7QUFDQSxRQUFNLGtCQUFrQixFQUFFLFdBQVcsYUFBYSxTQUFTLFdBQVc7QUFDdEUsUUFBTSx1QkFBdUIsRUFBRSxXQUFXLGdCQUFnQixRQUFRLENBQUMsRUFBRTtBQUNyRSxTQUFPO0FBQUEsSUFDTCxVQUFVLENBQUMsbUJBQW1CLGlCQUFpQixvQkFBb0I7QUFBQSxJQUNuRSxTQUFTLENBQUM7QUFBQSxFQUNaO0FBQ0Y7QUFFTyxTQUFTLFNBQ2QsS0FVQTtBQUNBLE1BQUksSUFBSSxPQUFPO0FBQ2IsU0FBSyxNQUFNLElBQUksTUFBTSxTQUFTLElBQUksTUFBTSxJQUFJO0FBQUEsRUFDOUM7QUFFQSxRQUFNLENBQUMsYUFBYSxjQUFjLElBQUksSUFBSSxLQUFLLE9BQU87QUFDdEQsUUFBTSxRQUFRLGVBQWUsS0FBSyxXQUFXO0FBQzdDLFNBQU87QUFBQSxJQUNMLE9BQU8sTUFBTSxJQUFJLENBQUMsU0FBUztBQUN6QixhQUFPLEVBQUUsUUFBUSxLQUFLLElBQUksS0FBVztBQUFBLElBQ3ZDLENBQUM7QUFBQSxJQUNELFVBQVU7QUFBQSxNQUNSLGlCQUFpQixRQUFRLElBQUksTUFBTSxLQUFLO0FBQUEsTUFDeEMsYUFBYSxRQUFRLFlBQVksU0FBUztBQUFBLE1BQzFDLGFBQWEsSUFBSSxLQUFLO0FBQUEsTUFDdEIsV0FBVyxZQUFZO0FBQUEsSUFDekI7QUFBQSxFQUNGO0FBQ0Y7IiwKICAibmFtZXMiOiBbXQp9Cg==
 ",
       "dataSource": "TestDataSource",
       "fieldName": "labels",
       "pipelineFunctions": [
         "ddbQueryItems",
+        "mapQueryToBatchGet",
         "ddbBatchGet",
       ],
       "typeName": "Task",
@@ -864,6 +869,41 @@ export {
 ",
       "dataSource": "TestDataSource",
       "name": "ddbQueryItems",
+    },
+    {
+      "code": "// __tests__/out/resolvers/mapQueryToBatchGet.ts
+import { util } from "@aws-appsync/utils";
+function request(ctx) {
+  const command = ctx.prev.result.commands.shift();
+  if (!command) {
+    return util.error("Undefined pipeline command", "PipelineCommandException");
+  }
+  const queryResult = ctx.prev.result.results[0];
+  const batchGetCommand = ctx.prev.result.commands[0];
+  if (!queryResult || !batchGetCommand) {
+    return util.error(
+      "Missing required pipeline commands",
+      "PipelineCommandException"
+    );
+  }
+  const keys = queryResult.items.map((item) => ({ id: item[command.keyPath] }));
+  batchGetCommand.tables[command.tableName] = { keys: keys.filter(Boolean) };
+  return { payload: ctx.prev.result };
+}
+function response(ctx) {
+  if (ctx.error) {
+    util.error(ctx.error.message, ctx.error.type);
+  }
+  return ctx.result;
+}
+export {
+  request,
+  response
+};
+//# sourceMappingURL=data:application/json;base64,ewogICJ2ZXJzaW9uIjogMywKICAic291cmNlcyI6IFsicmVzb2x2ZXJzL21hcFF1ZXJ5VG9CYXRjaEdldC50cyJdLAogICJtYXBwaW5ncyI6ICI7QUFBQSxTQUFzQyxZQUFxQjtBQUdwRCxTQUFTLFFBQ2QsS0FNQTtBQUNBLFFBQU0sVUFBVSxJQUFJLEtBQUssT0FBTyxTQUFTLE1BQU07QUFDL0MsTUFBSSxDQUFDLFNBQVM7QUFDWixXQUFPLEtBQUssTUFBTSw4QkFBOEIsMEJBQTBCO0FBQUEsRUFDNUU7QUFFQSxRQUFNLGNBQWMsSUFBSSxLQUFLLE9BQU8sUUFBUSxDQUFDO0FBQzdDLFFBQU0sa0JBQWtCLElBQUksS0FBSyxPQUM5QixTQUFTLENBQUM7QUFDYixNQUFJLENBQUMsZUFBZSxDQUFDLGlCQUFpQjtBQUNwQyxXQUFPLEtBQUs7QUFBQSxNQUNWO0FBQUEsTUFDQTtBQUFBLElBQ0Y7QUFBQSxFQUNGO0FBRUEsUUFBTSxPQUFPLFlBQVksTUFBTSxJQUFJLENBQUMsVUFBVSxFQUFFLElBQUksS0FBSyxRQUFRLE9BQU8sRUFBRSxFQUFFO0FBQzVFLGtCQUFnQixPQUFPLFFBQVEsU0FBUyxJQUFJLEVBQUUsTUFBTSxLQUFLLE9BQU8sT0FBTyxFQUFFO0FBQ3pFLFNBQU8sRUFBRSxTQUFTLElBQUksS0FBSyxPQUFPO0FBQ3BDO0FBRU8sU0FBUyxTQUNkLEtBT0E7QUFDQSxNQUFJLElBQUksT0FBTztBQUNiLFNBQUssTUFBTSxJQUFJLE1BQU0sU0FBUyxJQUFJLE1BQU0sSUFBSTtBQUFBLEVBQzlDO0FBRUEsU0FBTyxJQUFJO0FBQ2I7IiwKICAibmFtZXMiOiBbXQp9Cg==
+",
+      "dataSource": "NoneDataSource",
+      "name": "mapQueryToBatchGet",
     },
     {
       "code": "// __tests__/out/resolvers/ddbBatchGetItems.ts

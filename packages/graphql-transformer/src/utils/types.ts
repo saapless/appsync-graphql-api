@@ -60,7 +60,8 @@ export type LoaderActionType =
   | "queryItemsCommand"
   | "putItemCommand"
   | "updateItemCommand"
-  | "deleteItemCommand";
+  | "deleteItemCommand"
+  | "mapQueryToBatchGet";
 
 export type LoaderReturnType =
   | "edges"

@@ -3,9 +3,9 @@ import { TransformerContext } from "../context";
 import { CodeDocument, tc } from "../codegen";
 import { TransformExecutionError } from "../utils/errors";
 import { formatValue, isFieldLoader, parseKey } from "./utils";
-import { ContextTypesGenerator } from "./ContextTypesGenerator";
+import { ResolverGeneratorBase } from "./ResolverGeneratorBase";
 
-export class DynamoDbGenerator extends ContextTypesGenerator {
+export class DynamoDbGenerator extends ResolverGeneratorBase {
   constructor(context: TransformerContext, code: CodeDocument) {
     super(context, code);
   }
@@ -109,7 +109,7 @@ export class DynamoDbGenerator extends ContextTypesGenerator {
         "../schema-types",
         tc.named("PipelinePrevResult"),
         tc.named("DynamoDBQueryResult"),
-        tc.named("DynamoDbBatchGetResult"),
+        tc.named("DynamoDBBatchGetResult"),
         tc.named(descriptor.targetName),
         tc.named("Node")
       )
@@ -121,7 +121,7 @@ export class DynamoDbGenerator extends ContextTypesGenerator {
           ),
           tc.typeTuple(
             tc.typeRef("DynamoDBQueryResult", [tc.typeRef(descriptor.targetName)]),
-            tc.typeRef("DynamoDbBatchGetResult", [tc.typeRef("Node")])
+            tc.typeRef("DynamoDBBatchGetResult", [tc.typeRef("Node")])
           ),
         ]),
       });
@@ -401,6 +401,13 @@ export class DynamoDbGenerator extends ContextTypesGenerator {
         })
       ),
       tc.const(
+        "mapItemsCommand",
+        tc.obj({
+          tableName: tc.str(dataSource.config.tableName),
+          keyPath: tc.str("targetId"),
+        })
+      ),
+      tc.const(
         "batchGetItemsCommand",
         tc.obj({
           operation: tc.str("BatchGetItem"),
@@ -416,7 +423,11 @@ export class DynamoDbGenerator extends ContextTypesGenerator {
       ),
       tc.return(
         tc.obj({
-          commands: tc.arr(tc.ref("queryItemsCommand"), tc.ref("batchGetItemsCommand")),
+          commands: tc.arr(
+            tc.ref("queryItemsCommand"),
+            tc.ref("mapItemsCommand"),
+            tc.ref("batchGetItemsCommand")
+          ),
           results: tc.arr(),
         })
       )
@@ -426,21 +437,6 @@ export class DynamoDbGenerator extends ContextTypesGenerator {
   // #endregion Edges Operations
 
   // #region Pipeline Function Commands
-
-  private _getCommand() {
-    return [
-      tc.const("command", tc.call(tc.ref("ctx.prev.result.commands.shift"), [])),
-      tc.if(
-        tc.not(tc.ref("command")),
-        tc.return(
-          tc.call(tc.ref("util.error"), [
-            tc.str("Undefined pipeline command"),
-            tc.str("PipelineCommandException"),
-          ])
-        )
-      ),
-    ];
-  }
 
   private _getItemCommand(action: string) {
     this.code
@@ -569,14 +565,21 @@ export class DynamoDbGenerator extends ContextTypesGenerator {
     );
   }
 
-  private _returnQueryEdges() {
+  private _returnQueryEdges(descriptor: LoaderDescriptor) {
+    const dataSource = this.context.dataSources.getDataSource(descriptor.dataSource);
+
+    if (dataSource.type !== "DYNAMO_DB") {
+      throw new TransformExecutionError(
+        `Invalid dataSource ${descriptor.dataSource} provided to DynamoDB generator`
+      );
+    }
+
     this.code.setResponse(
       tc.const(
         tc.arr(tc.ref("queryResult"), tc.ref("batchGetResult")),
         tc.ref("ctx.prev.result.results")
       ),
-      // TODO Add tableName here
-      tc.const("items", tc.ref("batchGetResult.data")),
+      tc.const("items", tc.ref(`batchGetResult.data["${dataSource.config.tableName}"]`)),
       tc.return(
         tc.obj({
           edges: tc.call(tc.ref("items.map"), [
@@ -652,7 +655,7 @@ export class DynamoDbGenerator extends ContextTypesGenerator {
         this._returnCreateEdge();
         break;
       case "queryEdges":
-        this._returnQueryEdges();
+        this._returnQueryEdges(loader);
         break;
       case "command":
         this._returnCommandResult();

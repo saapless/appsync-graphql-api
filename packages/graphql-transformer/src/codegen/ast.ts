@@ -1003,7 +1003,11 @@ function _func(
   };
 }
 
-export type Declaration = VariableDeclaration | FunctionDeclaration;
+export type Declaration =
+  | VariableDeclaration
+  | FunctionDeclaration
+  | TypeDeclaration
+  | InterfaceDeclaration;
 
 export const declaration = {
   var: _var,

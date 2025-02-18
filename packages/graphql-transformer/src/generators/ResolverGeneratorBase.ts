@@ -1,10 +1,10 @@
+import { CodeDocument, tc } from "../codegen";
 import { TransformerContext } from "../context";
 import { ObjectNode } from "../parser";
 import { pascalCase } from "../utils/strings";
-import { FieldLoaderDescriptor } from "../utils/types";
-import { CodeDocument, tc } from "../codegen";
+import { FieldLoaderDescriptor, LoaderDescriptor } from "../utils/types";
 
-export class ContextTypesGenerator {
+export abstract class ResolverGeneratorBase {
   protected readonly code: CodeDocument;
   protected readonly context: TransformerContext;
 
@@ -32,4 +32,21 @@ export class ContextTypesGenerator {
         .setContextArgs({ source: tc.typeRef(loader.typeName) });
     }
   }
+
+  protected _getCommand() {
+    return [
+      tc.const("command", tc.call(tc.ref(`ctx.prev.result.commands.shift`), [])),
+      tc.if(
+        tc.not(tc.ref("command")),
+        tc.return(
+          tc.call(tc.ref("util.error"), [
+            tc.str("Undefined pipeline command"),
+            tc.str("PipelineCommandException"),
+          ])
+        )
+      ),
+    ];
+  }
+
+  public abstract generateTemplate(loader: LoaderDescriptor): void;
 }

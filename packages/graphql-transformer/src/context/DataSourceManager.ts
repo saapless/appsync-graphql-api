@@ -1,5 +1,5 @@
 import { CodeDocument } from "../codegen";
-import { DynamoDbGenerator } from "../generators";
+import { DynamoDbGenerator, NoneGenerator, ResolverGeneratorBase } from "../generators";
 import { TransformExecutionError } from "../utils/errors";
 import { TransformerContext } from "./TransformerContext";
 
@@ -58,6 +58,18 @@ export class DataSourceManager {
     return this._primaryDataSourceName;
   }
 
+  public get noneDataSourceName(): string {
+    const noneDataSource = Array.from(this._dataSources.entries()).find(
+      (ds) => ds[1].type === "NONE"
+    );
+
+    if (!noneDataSource) {
+      throw new TransformExecutionError("No `NONE` dataSource configured");
+    }
+
+    return noneDataSource[0];
+  }
+
   public getDataSource(name: string) {
     const dataSource = this._dataSources.get(name);
 
@@ -68,15 +80,17 @@ export class DataSourceManager {
     return dataSource;
   }
 
-  public getDataSourceGenerator(dataSourceName: string, code: CodeDocument) {
+  public getDataSourceGenerator(dataSourceName: string, code: CodeDocument): ResolverGeneratorBase {
     const dataSource = this.getDataSource(dataSourceName);
 
     switch (dataSource.type) {
       case "DYNAMO_DB":
         return new DynamoDbGenerator(this._context, code);
+      case "NONE":
+        return new NoneGenerator(this._context, code);
       default:
         throw new TransformExecutionError(
-          `Generator not implemented for data source type: ${dataSource.type}`
+          `Generator not implemented for data source type: ${dataSource}`
         );
     }
   }

@@ -490,6 +490,16 @@ export class ConnectionPlugin extends TransformerPluginBase {
         returnType: "command",
       });
 
+      this.context.loader.setFunctionLoader("mapQueryToBatchGet", {
+        targetName: connection.target.name,
+        dataSource: this.context.dataSources.noneDataSourceName,
+        action: {
+          type: "mapQueryToBatchGet",
+          key: {},
+        },
+        returnType: "result",
+      });
+
       this.context.loader.setFunctionLoader("ddbBatchGetItems", {
         targetName: connection.target.name,
         dataSource: this.context.dataSources.primaryDataSourceName,
@@ -502,7 +512,7 @@ export class ConnectionPlugin extends TransformerPluginBase {
 
       this.context.loader.setFieldLoader(parent.name, field.name, {
         targetName: target.name,
-        pipeline: ["ddbQueryItems", "ddbBatchGet"],
+        pipeline: ["ddbQueryItems", "mapQueryToBatchGet", "ddbBatchGet"],
         dataSource: this.context.dataSources.primaryDataSourceName,
         action: {
           type: "queryEdges",
