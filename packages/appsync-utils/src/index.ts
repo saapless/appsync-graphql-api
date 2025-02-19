@@ -1,1 +1,1 @@
-export { isAuthorized } from "./isAuthorized";
+export { authorize } from "./authorize";

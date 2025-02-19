@@ -7,8 +7,21 @@
   "main": "dist/index.js",
   "types": "dist/index.d.ts",
   "scripts": {
-    "build": "tsc",
-    "test-test": "jest",
+    "build": "tsc --clean",
+    "dev": "tsc --watch",
+    "test": "NODE_OPTIONS=\"--experimental-vm-modules\" jest",
+    "test:watch": "NODE_OPTIONS=\"--experimental-vm-modules\" jest --watch",
     "lint": "eslint"
+  },
+  "devDependencies": {
+    "@aws-appsync/eslint-plugin": "^2.0.1"
+  },
+  "peerDependencies": {
+    "@aws-appsync/utils": ">=1.11.0"
+  },
+  "peerDependenciesMeta": {
+    "@aws-appsync/utils": {
+      "optional": true
+    }
   }
 }

@@ -125,7 +125,12 @@ export class AuthPlugin extends TransformerPluginBase {
       .addNode(
         DirectiveDefinitionNode.create(
           "auth",
-          ["OBJECT", "FIELD_DEFINITION", "INTERFACE"],
+          [
+            "OBJECT",
+            "FIELD_DEFINITION",
+            // TODO: Enable this when rules merge is solved
+            // "INTERFACE"
+          ],
           [InputValueNode.create("rules", ListTypeNode.create(NonNullTypeNode.create("AuthRule")))]
         )
       );
@@ -157,15 +162,7 @@ export class AuthPlugin extends TransformerPluginBase {
           throw new Error(`Interface ${iface.name} not found`);
         }
 
-        const authDirective = ifaceNode.directives?.filter(
-          (directive) => directive.name === "auth"
-        );
-
-        if (authDirective?.length) {
-          authDirective.forEach((directive) => {
-            definition.addDirective(DirectiveNode.fromDefinition(directive.serialize()));
-          });
-        }
+        // TODO allow users to set directive on interfaces that can be inherited by the models.
       }
     } else if (!definition.hasDirective("auth") && definition.hasDirective("model")) {
       this._setDefaultDirective(definition);
