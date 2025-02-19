@@ -217,8 +217,8 @@ export class DynamoDbGenerator extends ResolverGeneratorBase {
           createdAt: tc.ref("createdAt"),
           updatedAt: tc.coalesce(tc.ref("input.updatedAt"), tc.ref("createdAt")),
           __typename: tc.str(typename),
-          _version: tc.coalesce(tc.ref("input._version"), tc.num(1)),
           _sk: tc.tick(`${typename}#\${id}`),
+          _version: tc.coalesce(tc.ref("input._version"), tc.num(1)),
         })
       ),
       tc.return(
@@ -275,6 +275,50 @@ export class DynamoDbGenerator extends ResolverGeneratorBase {
                 }),
                 _version: tc.obj({ eq: tc.ref("input._version") }),
               }),
+            })
+          )
+        )
+      );
+  }
+
+  private _upsertItem(descriptor: LoaderDescriptor) {
+    const typename: string = descriptor.targetName;
+
+    this.code
+      .addImport("@aws-appsync/utils/dynamodb", tc.named("update"), tc.named("operations"))
+      .setRequest(
+        tc.const(tc.obj(tc.ref("input")), tc.ref("ctx.args")),
+        tc.const("id", tc.coalesce(tc.ref("input.id"), tc.call(tc.ref("util.autoId"), []))),
+        tc.const("timestamp", tc.call(tc.ref("util.time.nowISO8601"), [])),
+        tc.const(
+          "createdAt",
+          tc.ternary(tc.not(tc.ref("input.id")), tc.ref("timestamp"), tc.undef())
+        ),
+        tc.const("updatedAt", tc.coalesce(tc.ref("input.updatedAt"), tc.ref("timestamp"))),
+        tc.const(
+          "attributes",
+          tc.obj(tc.spread("input"), {
+            createdAt: tc.coalesce(tc.ref("input.createdAt"), tc.ref("createdAt")),
+            updatedAt: tc.ref("updatedAt"),
+            __typename: tc.str(typename),
+            _sk: tc.tick(`${typename}#\${id}`),
+          })
+        ),
+        tc.const(
+          tc.ref("item", tc.typeRef("Record", [tc.typeRef("string"), tc.typeRef("unknown")])),
+          tc.obj({ _version: tc.call(tc.ref("operations.increment"), [tc.num(1)]) })
+        ),
+        tc.forOf(
+          tc.const(tc.arr(tc.ref("key"), tc.ref("value"))),
+          tc.call(tc.ref("Object.entries"), [tc.ref("attributes")]),
+          tc.assign(tc.ref("item[key]"), tc.call(tc.ref("operations.replace"), [tc.ref("value")]))
+        ),
+        tc.return(
+          tc.call(
+            tc.ref("update"),
+            tc.obj({
+              key: tc.obj(tc.ref("id")),
+              update: tc.ref("item"),
             })
           )
         )
@@ -488,6 +532,9 @@ export class DynamoDbGenerator extends ResolverGeneratorBase {
         break;
       case "updateItem":
         this._updateItem();
+        break;
+      case "upsertItem":
+        this._upsertItem(descriptor);
         break;
       case "removeItem":
         this._deleteItem(descriptor);

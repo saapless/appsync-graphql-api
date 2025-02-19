@@ -301,7 +301,7 @@ export class ModelPlugin extends TransformerPluginBase {
       case "delete":
         return "removeItem";
       case "upsert":
-        return "updateItem";
+        return "upsertItem";
     }
   }
 

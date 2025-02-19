@@ -51,6 +51,7 @@ export type LoaderActionType =
   | "queryItems"
   | "putItem"
   | "updateItem"
+  | "upsertItem"
   | "removeItem"
   | "createEdge"
   | "deleteEdge"
