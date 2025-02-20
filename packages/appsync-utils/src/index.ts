@@ -1,1 +1,3 @@
-export { authorize } from "./authorize";
+export * from "./authorize";
+export * from "./identity";
+export * from "./valueAtPath";

@@ -1,13 +1,14 @@
 import { DocumentNode } from "../parser";
 import { ResolverManager, ResolverManagerConfig } from "../resolver/ResolverManager";
-import { AuthorizationRule, Operation, ReadOperation, WriteOperation } from "../utils/types";
+import { Operation, ReadOperation, WriteOperation } from "../utils/types";
+import { AuthorizationConfig, AuthorizationManager } from "./AuthorizationManager";
 import { DataSourceManager, DataSourceManagerConfig } from "./DataSourceManager";
 import { ResolverLoader } from "./ResolverLoader";
 
 export interface TransformerContextConfig extends ResolverManagerConfig {
   document: DocumentNode;
   dataSourceConfig: DataSourceManagerConfig;
-  defaultAuthorizationRule?: AuthorizationRule;
+  authorizationConfig?: AuthorizationConfig;
   readOperations?: ReadOperation[];
   writeOperations?: WriteOperation[];
   defaultModelOperations?: Operation[];
@@ -20,7 +21,7 @@ export class TransformerContext {
   public readonly document: DocumentNode;
   public readonly resolvers: ResolverManager;
   public readonly loader: ResolverLoader;
-  public readonly defaultAuthorizationRule: AuthorizationRule;
+  public readonly auth: AuthorizationManager;
   public readonly readOperations: ReadOperation[];
   public readonly writeOperations: WriteOperation[];
   public readonly defaultModelOperations: (ReadOperation | WriteOperation)[];
@@ -29,9 +30,9 @@ export class TransformerContext {
   constructor(config: TransformerContextConfig) {
     this.document = config.document;
     this.resolvers = new ResolverManager(this, config);
-    this.loader = new ResolverLoader();
     this.dataSources = new DataSourceManager(this, config.dataSourceConfig);
-    this.defaultAuthorizationRule = config.defaultAuthorizationRule ?? { allow: "owner" };
+    this.auth = new AuthorizationManager(this, config.authorizationConfig ?? {});
+    this.loader = new ResolverLoader();
     this.readOperations = config.readOperations ?? DEFAULT_READ_OPERATIONS;
     this.writeOperations = config.writeOperations ?? DEFAULT_WRITE_OPERATIONS;
     this.defaultModelOperations = config.defaultModelOperations?.length

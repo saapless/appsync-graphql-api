@@ -34,13 +34,13 @@ export class AuthPlugin extends TransformerPluginBase {
   }
 
   private _setDefaultDirective(node: ObjectNode) {
-    const defaultAuthRule = this.context.defaultAuthorizationRule;
+    const defaultAuthRule = this.context.auth.defaultAuthRules;
 
     if (!defaultAuthRule) return node;
 
     return node.addDirective(
       DirectiveNode.create("auth", [
-        ArgumentNode.create("rules", ValueNode.fromValue([defaultAuthRule])),
+        ArgumentNode.create("rules", ValueNode.fromValue(defaultAuthRule)),
       ])
     );
   }

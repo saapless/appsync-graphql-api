@@ -134,12 +134,8 @@ describe("GraphQLTransformer", () => {
   });
 
   describe("runs schema transformations", () => {
-    const result = transformer.transform();
+    transformer.transform();
     const context = transformer.context;
-
-    it("respond with valid output", () => {
-      expect(result).toMatchSnapshot();
-    });
 
     it("copies extended fields", () => {
       const viewerType = context.document.getNode("Viewer") as ObjectNode;

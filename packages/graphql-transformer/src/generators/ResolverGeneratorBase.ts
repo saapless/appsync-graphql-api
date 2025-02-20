@@ -2,7 +2,8 @@ import { CodeDocument, tc } from "../codegen";
 import { TransformerContext } from "../context";
 import { ObjectNode } from "../parser";
 import { pascalCase } from "../utils/strings";
-import { FieldLoaderDescriptor, LoaderDescriptor } from "../utils/types";
+import { FieldLoaderDescriptor, Key, LoaderDescriptor } from "../utils/types";
+import { parseKey } from "./utils";
 
 export abstract class ResolverGeneratorBase {
   protected readonly code: CodeDocument;
@@ -46,6 +47,11 @@ export abstract class ResolverGeneratorBase {
         )
       ),
     ];
+  }
+
+  protected _getKey(key: Key) {
+    this.code.addImport("@saapless/appsync-utils", tc.named("getValueAtPath"));
+    return parseKey(key);
   }
 
   public abstract generateTemplate(loader: LoaderDescriptor): void;

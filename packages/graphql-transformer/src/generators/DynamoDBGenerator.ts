@@ -2,7 +2,7 @@ import type { AuthorizationRule, LoaderDescriptor } from "../utils/types";
 import { TransformerContext } from "../context";
 import { CodeDocument, tc } from "../codegen";
 import { TransformExecutionError } from "../utils/errors";
-import { formatValue, isFieldLoader, parseKey } from "./utils";
+import { formatValue, isFieldLoader } from "./utils";
 import { ResolverGeneratorBase } from "./ResolverGeneratorBase";
 
 export class DynamoDbGenerator extends ResolverGeneratorBase {
@@ -177,7 +177,7 @@ export class DynamoDbGenerator extends ResolverGeneratorBase {
   private _getItem(descriptor: LoaderDescriptor) {
     this.code.addImport("@aws-appsync/utils/dynamodb", tc.named("get"));
     this.code.setRequest(
-      tc.return(tc.call(tc.ref("get"), tc.obj({ key: parseKey(descriptor.action.key) })))
+      tc.return(tc.call(tc.ref("get"), tc.obj({ key: this._getKey(descriptor.action.key) })))
     );
   }
 
@@ -188,7 +188,7 @@ export class DynamoDbGenerator extends ResolverGeneratorBase {
         tc.call(
           tc.ref("query"),
           tc.obj({
-            query: parseKey(descriptor.action.key),
+            query: this._getKey(descriptor.action.key),
             filter: tc.ref("ctx.args.filter"),
             limit: tc.coalesce(tc.ref("ctx.args.first"), tc.num(100)),
             nextToken: tc.coalesce(tc.ref("ctx.args.after"), tc.undef()),
@@ -334,7 +334,7 @@ export class DynamoDbGenerator extends ResolverGeneratorBase {
           tc.call(
             tc.ref("update"),
             tc.obj({
-              key: parseKey(descriptor.action.key),
+              key: this._getKey(descriptor.action.key),
               update: tc.obj({
                 updatedAt: tc.call(tc.ref("operations.replace"), [
                   tc.call(tc.ref("util.time.nowISO8601"), []),
@@ -436,7 +436,7 @@ export class DynamoDbGenerator extends ResolverGeneratorBase {
       tc.const(
         "queryItemsCommand",
         tc.obj({
-          query: parseKey(descriptor.action.key),
+          query: this._getKey(descriptor.action.key),
           filter: tc.ref("ctx.args.filter"),
           limit: tc.coalesce(tc.ref("ctx.args.first"), tc.num(100)),
           nextToken: tc.coalesce(tc.ref("ctx.args.after"), tc.undef()),
