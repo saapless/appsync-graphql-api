@@ -1,6 +1,6 @@
 import { TEST_DS_CONFIG } from "../__fixtures__/constants";
 import { AWSTypesPlugin, TransformerContext } from "../src";
-import { DirectiveDefinitionNode, DocumentNode, ScalarNode } from "../src/parser";
+import { DirectiveDefinitionNode, DocumentNode, ScalarNode } from "../src/definition";
 
 const schema = /* GraphQL */ `
   type User {

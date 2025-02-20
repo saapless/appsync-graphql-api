@@ -27,7 +27,6 @@ export type DefinitionNode =
 
 export class DocumentNode {
   kind: Kind.DOCUMENT = Kind.DOCUMENT;
-  // TODO move this to a map.
   definitions: Map<string, DefinitionNode>;
 
   constructor() {
@@ -146,7 +145,7 @@ export class DocumentNode {
     }
 
     // Since we don't know in which order documents may be loaded,
-    // we need to make sure we lod extensions ad the end.
+    // we need to make sure we load extensions at the end.
 
     for (const extension of extensions) {
       const node = document.getNode(extension.name.value);

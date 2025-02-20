@@ -13,7 +13,7 @@ import {
   NamedTypeNode,
   DirectiveNode,
   InputObjectNode,
-} from "../parser";
+} from "../definition";
 import { InvalidDefinitionError, TransformPluginExecutionError } from "../utils/errors";
 import { camelCase, pascalCase } from "../utils/strings";
 import { KeyOperator, KeyValue, RelationType } from "../utils/types";

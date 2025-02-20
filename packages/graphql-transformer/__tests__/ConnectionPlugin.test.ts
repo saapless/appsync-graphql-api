@@ -7,7 +7,7 @@ import {
   FieldNode,
   InputObjectNode,
   ObjectNode,
-} from "../src/parser";
+} from "../src/definition";
 import { ConnectionPlugin } from "../src/plugins";
 
 const schema = /* GraphQL */ `

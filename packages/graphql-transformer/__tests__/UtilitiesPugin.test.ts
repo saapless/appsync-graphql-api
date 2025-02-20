@@ -1,6 +1,6 @@
 import { TEST_DS_CONFIG } from "../__fixtures__/constants";
 import { TransformerContext } from "../src";
-import { DirectiveDefinitionNode, DocumentNode, ObjectNode } from "../src/parser";
+import { DirectiveDefinitionNode, DocumentNode, ObjectNode } from "../src/definition";
 import { UtilitiesPlugin } from "../src/plugins/UtilitiesPlugin";
 
 describe("UtilitiesPlugin", () => {

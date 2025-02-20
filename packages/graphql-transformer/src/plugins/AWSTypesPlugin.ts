@@ -5,7 +5,7 @@ import {
   ListTypeNode,
   NonNullTypeNode,
   ScalarNode,
-} from "../parser";
+} from "../definition";
 import { TransformerPluginBase } from "./TransformerPluginBase";
 
 /**

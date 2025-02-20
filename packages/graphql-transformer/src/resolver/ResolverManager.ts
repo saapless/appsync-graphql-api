@@ -1,7 +1,7 @@
 import path from "node:path";
 import fs from "node:fs";
 import { TransformerContext } from "../context";
-import { InterfaceNode, ObjectNode } from "../parser";
+import { InterfaceNode, ObjectNode } from "../definition";
 import { LoaderDescriptor } from "../utils/types";
 import { FieldResolver } from "./FieldResolver";
 import { FunctionResolver } from "./FunctionResolver";

@@ -8,7 +8,7 @@ import {
   NamedTypeNode,
   NonNullTypeNode,
   ObjectNode,
-} from "../parser";
+} from "../definition";
 import { InvalidDefinitionError, TransformPluginExecutionError } from "../utils/errors";
 import { TransformerPluginBase } from "./TransformerPluginBase";
 

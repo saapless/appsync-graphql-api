@@ -1,2 +1,2 @@
-export { GraphQLTransformer, type GraphQLTransformerOptions } from "./GraphQLTransformer";
-export { createTransformer } from "./createTransformer";
+export * from "./GraphQLTransformer";
+export * from "./createTransformer";

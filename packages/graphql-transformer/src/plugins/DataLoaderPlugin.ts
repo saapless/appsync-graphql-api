@@ -9,7 +9,7 @@ import {
   NamedTypeNode,
   NonNullTypeNode,
   ObjectNode,
-} from "../parser";
+} from "../definition";
 import { FieldResolver } from "../resolver";
 import { TransformPluginExecutionError } from "../utils/errors";
 import { TransformerPluginBase } from "./TransformerPluginBase";

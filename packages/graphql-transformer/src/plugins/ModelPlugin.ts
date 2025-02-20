@@ -14,7 +14,7 @@ import {
   ObjectNode,
   ScalarNode,
   ValueNode,
-} from "../parser";
+} from "../definition";
 import { InvalidDefinitionError, TransformExecutionError } from "../utils/errors";
 import { camelCase, pascalCase, pluralize } from "../utils/strings";
 import { AuthorizationRule, LoaderActionType, WriteOperation } from "../utils/types";

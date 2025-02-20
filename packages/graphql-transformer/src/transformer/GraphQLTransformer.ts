@@ -4,7 +4,7 @@ import prettier from "@prettier/sync";
 import { buildSync } from "esbuild";
 import { TransformerContext } from "../context";
 import { IPluginFactory, TransformerPluginBase } from "../plugins";
-import { DocumentNode } from "../parser";
+import { DocumentNode } from "../definition";
 import { SchemaValidationError } from "../utils/errors";
 import { ensureOutputDirectory } from "../utils/output";
 import { TypesGenerator } from "../generators";

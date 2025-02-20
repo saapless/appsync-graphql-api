@@ -1,7 +1,7 @@
 import { dirname, resolve } from "node:path";
 import { fileURLToPath } from "node:url";
 import { createTransformer, GraphQLTransformer } from "../src/transformer";
-import { FieldNode, NamedTypeNode, ObjectNode } from "../src/parser";
+import { FieldNode, NamedTypeNode, ObjectNode } from "../src/definition";
 import { SchemaValidationError } from "../src/utils/errors";
 import { TEST_DS_CONFIG } from "../__fixtures__/constants";
 

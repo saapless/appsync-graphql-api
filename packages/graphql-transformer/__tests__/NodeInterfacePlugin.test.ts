@@ -1,6 +1,6 @@
 import { TEST_DS_CONFIG } from "../__fixtures__/constants";
 import { TransformerContext } from "../src/context";
-import { DocumentNode, InterfaceNode, ObjectNode } from "../src/parser";
+import { DocumentNode, InterfaceNode, ObjectNode } from "../src/definition";
 import { NodeInterfacePlugin } from "../src/plugins/NodeInterfacePlugin";
 import { InvalidDefinitionError } from "../src/utils/errors";
 

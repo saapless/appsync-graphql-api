@@ -13,7 +13,7 @@ import {
   NonNullTypeNode,
   ObjectNode,
   ValueNode,
-} from "../parser";
+} from "../definition";
 import { AuthorizationRule } from "../utils/types";
 import { TransformerPluginBase } from "./TransformerPluginBase";
 

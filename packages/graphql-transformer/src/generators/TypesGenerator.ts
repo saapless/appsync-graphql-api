@@ -7,7 +7,7 @@ import {
   NonNullTypeNode,
   ObjectNode,
   UnionNode,
-} from "../parser";
+} from "../definition";
 import { pascalCase } from "../utils/strings";
 import { CodeDeclaration, printAST, tc, TypeProperty } from "../codegen";
 

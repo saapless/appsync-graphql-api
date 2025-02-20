@@ -1,5 +1,5 @@
 import { TransformerContext } from "../context";
-import { DefinitionNode } from "../parser";
+import { DefinitionNode } from "../definition";
 
 export interface IPluginFactory {
   create(context: TransformerContext): TransformerPluginBase;

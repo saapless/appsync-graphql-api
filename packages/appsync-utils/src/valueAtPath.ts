@@ -12,14 +12,13 @@ export function getValueAtPath<T = unknown>(obj: object, path: string): T | unde
 
 export function setValueAtPath<T extends object, V = unknown>(obj: T, path: string, value: V): T {
   const keys = path.split(".");
-  const newObj = Array.isArray(obj) ? [...obj] : { ...obj };
   const update = keys.slice(0, -1).reduce((acc, key, index) => {
     if (!Object.hasOwn(acc, key) || typeof acc[key] !== "object") {
       acc[key] = isNaN(Number(keys[index + 1])) ? {} : [];
     }
 
     return acc[key];
-  }, newObj as any);
+  }, obj as any);
 
   update[keys[keys.length - 1]] = value;
 

@@ -1,5 +1,5 @@
 import { TransformerContext } from "../context";
-import { DefinitionNode, DirectiveDefinitionNode, InterfaceNode, ObjectNode } from "../parser";
+import { DefinitionNode, DirectiveDefinitionNode, InterfaceNode, ObjectNode } from "../definition";
 import { TransformerPluginBase } from "./TransformerPluginBase";
 
 export class UtilitiesPlugin extends TransformerPluginBase {

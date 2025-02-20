@@ -6,7 +6,7 @@ import {
   EnumNode,
   InputObjectNode,
   ObjectNode,
-} from "../src/parser";
+} from "../src/definition";
 
 const schema = /* GraphQL */ `
   type User @model {

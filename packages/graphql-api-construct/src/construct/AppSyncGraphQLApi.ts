@@ -1,4 +1,11 @@
 import path from "node:path";
+import { App } from "aws-cdk-lib/core";
+import { Construct } from "constructs";
+import {
+  createTransformer,
+  FieldResolverOutput,
+  PipelineFunctionOutput,
+} from "@saapless/graphql-transformer";
 import {
   AttributeType,
   Billing,
@@ -6,7 +13,6 @@ import {
   TableV2,
   type ITable,
 } from "aws-cdk-lib/aws-dynamodb";
-import { Construct } from "constructs";
 import {
   AuthorizationConfig,
   BaseDataSource,
@@ -22,12 +28,6 @@ import {
   LogConfig,
   Visibility,
 } from "aws-cdk-lib/aws-appsync";
-import { App } from "aws-cdk-lib";
-import { createTransformer } from "@saapless/graphql-transformer";
-import {
-  FieldResolverOutput,
-  PipelineFunctionOutput,
-} from "@saapless/graphql-transformer/dist/transformer/GraphQLTransformer";
 import {
   DataSourceConfig,
   DEFAULT_DATA_SOURCE_NAME,
@@ -98,7 +98,7 @@ export class AppSyncGraphQLApi extends Construct {
 
     const transformer = createTransformer({
       definition: definition.toString(),
-      outputDirectory: outputDirectory,
+      outDir: outputDirectory,
       // fieldResolvers: resolvers?.map((resolver) => resolver.getConfig()),
       // pipelineFunctions: pipelineFunctions?.map((resolver) => resolver.getConfig()),
     });
@@ -261,7 +261,7 @@ export class AppSyncGraphQLApi extends Construct {
       }
 
       const resolver = this.api.createResolver(`${config.typeName}${config.fieldName}Resolver`, {
-        dataSource: dataSource,
+        dataSource: pipelineConfig?.length ? undefined : dataSource,
         typeName: config.typeName,
         fieldName: config.fieldName,
         pipelineConfig: pipelineConfig,

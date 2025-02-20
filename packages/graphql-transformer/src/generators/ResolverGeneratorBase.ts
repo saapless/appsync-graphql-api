@@ -1,6 +1,6 @@
 import { CodeDocument, tc } from "../codegen";
 import { TransformerContext } from "../context";
-import { ObjectNode } from "../parser";
+import { ObjectNode } from "../definition";
 import { pascalCase } from "../utils/strings";
 import { FieldLoaderDescriptor, Key, LoaderDescriptor } from "../utils/types";
 import { parseKey } from "./utils";

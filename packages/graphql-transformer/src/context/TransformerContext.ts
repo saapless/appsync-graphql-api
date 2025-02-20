@@ -1,4 +1,4 @@
-import { DocumentNode } from "../parser";
+import { DocumentNode } from "../definition";
 import { ResolverManager, ResolverManagerConfig } from "../resolver/ResolverManager";
 import { Operation, ReadOperation, WriteOperation } from "../utils/types";
 import { AuthorizationConfig, AuthorizationManager } from "./AuthorizationManager";
