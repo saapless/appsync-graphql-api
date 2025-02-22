@@ -85,9 +85,9 @@ export class NoneGenerator extends ResolverGeneratorBase {
     }
 
     switch (loader.action.type) {
-      case "mapQueryToBatchGet":
-        this._mapQueryToBatchGet();
-        break;
+      // case "mapQueryToBatchGet":
+      //   this._mapQueryToBatchGet();
+      //   break;
       default:
         throw new TransformExecutionError(`Unknown operation ${loader.action.type}`);
     }

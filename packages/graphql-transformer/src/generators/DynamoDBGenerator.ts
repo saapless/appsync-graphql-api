@@ -136,33 +136,33 @@ export class DynamoDbGenerator extends ResolverGeneratorBase {
       case "queryItems":
         this._setQueryItemsCtx(loader);
         break;
-      case "createEdge":
-        this._setCreateEdgeCtx(loader);
-        break;
-      case "deleteEdge":
-        this._setDeleteEdgeCtx(loader);
-        break;
-      case "queryEdges":
-        this._setQueryEdgesCtx(loader);
-        break;
-      case "batchGetItemsCommand":
-        this._setbatchGetCommandCtx();
-        break;
-      case "getItemCommand":
-        this._setItemCommandCtx("GetInput");
-        break;
-      case "putItemCommand":
-        this._setItemCommandCtx("PutInput");
-        break;
-      case "updateItemCommand":
-        this._setItemCommandCtx("UpdateInput");
-        break;
-      case "deleteItemCommand":
-        this._setItemCommandCtx("RemoveInput");
-        break;
-      case "queryItemsCommand":
-        this._setQueryItemsCommandCtx();
-        break;
+      // case "createEdge":
+      //   this._setCreateEdgeCtx(loader);
+      //   break;
+      // case "deleteEdge":
+      //   this._setDeleteEdgeCtx(loader);
+      //   break;
+      // case "queryEdges":
+      //   this._setQueryEdgesCtx(loader);
+      //   break;
+      // case "batchGetItemsCommand":
+      //   this._setbatchGetCommandCtx();
+      //   break;
+      // case "getItemCommand":
+      //   this._setItemCommandCtx("GetInput");
+      //   break;
+      // case "putItemCommand":
+      //   this._setItemCommandCtx("PutInput");
+      //   break;
+      // case "updateItemCommand":
+      //   this._setItemCommandCtx("UpdateInput");
+      //   break;
+      // case "deleteItemCommand":
+      //   this._setItemCommandCtx("RemoveInput");
+      //   break;
+      // case "queryItemsCommand":
+      //   this._setQueryItemsCommandCtx();
+      //   break;
       default:
         this.code.addImport("../schema-types", tc.named(loader.targetName)).setContextArgs({
           result: tc.typeRef(loader.targetName),
@@ -540,33 +540,33 @@ export class DynamoDbGenerator extends ResolverGeneratorBase {
         this._deleteItem(descriptor);
         break;
 
-      case "createEdge":
-        this._createEdge(descriptor);
-        break;
-      case "deleteEdge":
-        this._deleteEdge();
-        break;
-      case "queryEdges":
-        this._queryEdges(descriptor);
-        break;
-      case "getItemCommand":
-        this._getItemCommand("get");
-        break;
-      case "putItemCommand":
-        this._getItemCommand("put");
-        break;
-      case "updateItemCommand":
-        this._getItemCommand("update");
-        break;
-      case "deleteItemCommand":
-        this._getItemCommand("remove");
-        break;
-      case "queryItemsCommand":
-        this._getItemCommand("query");
-        break;
-      case "batchGetItemsCommand":
-        this._batchGetItemsCommand();
-        break;
+      // case "createEdge":
+      //   this._createEdge(descriptor);
+      //   break;
+      // case "deleteEdge":
+      //   this._deleteEdge();
+      //   break;
+      // case "queryEdges":
+      //   this._queryEdges(descriptor);
+      //   break;
+      // case "getItemCommand":
+      //   this._getItemCommand("get");
+      //   break;
+      // case "putItemCommand":
+      //   this._getItemCommand("put");
+      //   break;
+      // case "updateItemCommand":
+      //   this._getItemCommand("update");
+      //   break;
+      // case "deleteItemCommand":
+      //   this._getItemCommand("remove");
+      //   break;
+      // case "queryItemsCommand":
+      //   this._getItemCommand("query");
+      //   break;
+      // case "batchGetItemsCommand":
+      //   this._batchGetItemsCommand();
+      //   break;
       default:
         throw new TransformExecutionError(`Unknown operation ${descriptor.action.type}`);
     }
@@ -697,16 +697,16 @@ export class DynamoDbGenerator extends ResolverGeneratorBase {
       case "result":
         this.code.setResponse(tc.return(tc.ref("ctx.result")));
         break;
-      case "createEdge":
-      case "deleteEdge":
-        this._returnCreateEdge();
-        break;
-      case "queryEdges":
-        this._returnQueryEdges(loader);
-        break;
-      case "command":
-        this._returnCommandResult();
-        break;
+      // case "createEdge":
+      // case "deleteEdge":
+      //   this._returnCreateEdge();
+      //   break;
+      // case "queryEdges":
+      //   this._returnQueryEdges(loader);
+      //   break;
+      // case "command":
+      //   this._returnCommandResult();
+      //   break;
       default:
         this.code.setResponse(tc.return(tc.ref("ctx.result")));
         break;

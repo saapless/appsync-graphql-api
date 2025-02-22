@@ -7,7 +7,7 @@ import { IPluginFactory, TransformerPluginBase } from "../plugins";
 import { DocumentNode } from "../definition";
 import { SchemaValidationError } from "../utils/errors";
 import { ensureOutputDirectory } from "../utils/output";
-import { TypesGenerator } from "../generators";
+import { SchemaTypesGenerator } from "../generators";
 import { FieldResolver, FunctionResolver, ResolverBase } from "../resolver";
 import { TransformerContextConfig } from "../context/TransformerContext";
 
@@ -63,14 +63,12 @@ export class GraphQLTransformer {
 
   private _printSchemaTypes() {
     const outputPath = ensureOutputDirectory(this._outDir);
-    const typesGen = new TypesGenerator(this.context.document);
+    const typesGen = new SchemaTypesGenerator(this.context);
 
     writeFileSync(
       path.resolve(outputPath, "schema-types.ts"),
-      prettier.format(typesGen.generate(), { parser: "typescript" }),
-      {
-        encoding: "utf-8",
-      }
+      prettier.format(typesGen.generate("schema-types.ts"), { parser: "typescript" }),
+      { encoding: "utf-8" }
     );
   }
 

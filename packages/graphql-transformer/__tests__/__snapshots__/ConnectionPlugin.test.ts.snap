@@ -43,8 +43,8 @@ type TodoConnection {
 }
 
 type TodoEdge {
-  cursor: String
-  node: Todo
+  cursor: String @clientOnly
+  node: Todo @clientOnly
 }
 
 input TodoFilterInput {
@@ -61,8 +61,8 @@ type ResourceConnection {
 }
 
 type ResourceEdge {
-  cursor: String
-  node: Resource
+  cursor: String @clientOnly
+  node: Resource @clientOnly
 }
 
 input ResourceFilterInput {

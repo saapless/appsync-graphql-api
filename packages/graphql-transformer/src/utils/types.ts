@@ -41,10 +41,7 @@ export type KeyOperator<T extends string | number> = {
   beginsWith?: KeyValue<T>;
 };
 
-export type Key<T extends string | number = string | number> = Record<
-  string,
-  KeyValue<T> & KeyOperator<T>
->;
+export type Key<T extends string | number = string> = Record<string, KeyValue<T> & KeyOperator<T>>;
 
 export type LoaderActionType =
   | "getItem"
@@ -53,26 +50,9 @@ export type LoaderActionType =
   | "updateItem"
   | "upsertItem"
   | "removeItem"
-  | "createEdge"
-  | "deleteEdge"
-  | "queryEdges"
-  | "getItemCommand"
-  | "batchGetItemsCommand"
-  | "queryItemsCommand"
-  | "putItemCommand"
-  | "updateItemCommand"
-  | "deleteItemCommand"
-  | "mapQueryToBatchGet";
+  | "batchGetItems";
 
-export type LoaderReturnType =
-  | "edges"
-  | "node"
-  | "prev"
-  | "result"
-  | "command"
-  | "createEdge"
-  | "deleteEdge"
-  | "queryEdges";
+export type LoaderReturnType = "connection" | "edges" | "node" | "prev" | "result";
 
 export type LoaderAction = {
   type: LoaderActionType;

@@ -1,5 +1,6 @@
 import { TransformerContext } from "../context";
 import {
+  ArgumentNode,
   DefinitionNode,
   DirectiveNode,
   FieldNode,
@@ -8,6 +9,7 @@ import {
   NamedTypeNode,
   NonNullTypeNode,
   ObjectNode,
+  ValueNode,
 } from "../definition";
 import { InvalidDefinitionError, TransformPluginExecutionError } from "../utils/errors";
 import { TransformerPluginBase } from "./TransformerPluginBase";
@@ -54,17 +56,18 @@ export class NodeInterfacePlugin extends TransformerPluginBase {
       node.addField(FieldNode.create("updatedAt", NamedTypeNode.create("AWSDateTime")));
     }
 
-    if (!node.hasField("_version")) {
-      node.addField(FieldNode.create("_version", NamedTypeNode.create("Int")));
-    }
+    // TODO: Enable with versioning;
+    // if (!node.hasField("_version")) {
+    //   node.addField(FieldNode.create("_version", NamedTypeNode.create("Int")));
+    // }
 
-    if (!node.hasField("_deleted")) {
-      node.addField(
-        FieldNode.create("_deleted", NamedTypeNode.create("Boolean"), null, [
-          DirectiveNode.create("readOnly"),
-        ])
-      );
-    }
+    // if (!node.hasField("_deleted")) {
+    //   node.addField(
+    //     FieldNode.create("_deleted", NamedTypeNode.create("Boolean"), null, [
+    //       DirectiveNode.create("readOnly"),
+    //     ])
+    //   );
+    // }
 
     if (!node.hasField("__typename")) {
       node.addField(
@@ -87,9 +90,16 @@ export class NodeInterfacePlugin extends TransformerPluginBase {
 
     if (!queryNode.hasField("node")) {
       queryNode.addField(
-        FieldNode.create("node", NamedTypeNode.create("Node"), [
-          InputValueNode.create("id", NonNullTypeNode.create(NamedTypeNode.create("ID"))),
-        ])
+        FieldNode.create(
+          "node",
+          NamedTypeNode.create("Node"),
+          [InputValueNode.create("id", NonNullTypeNode.create(NamedTypeNode.create("ID")))],
+          [
+            DirectiveNode.create("hasOne", [
+              ArgumentNode.create("key", ValueNode.fromValue({ ref: "args.id" })),
+            ]),
+          ]
+        )
       );
     }
   }

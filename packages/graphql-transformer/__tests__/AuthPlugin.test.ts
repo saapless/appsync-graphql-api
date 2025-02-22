@@ -1,5 +1,6 @@
 import { TEST_DS_CONFIG } from "../__fixtures__/constants";
-import { AuthPlugin, TransformerContext } from "../src";
+import { TransformerContext } from "../src/context";
+import { AuthPlugin } from "../src/plugins/AuthPlugin";
 import {
   DirectiveDefinitionNode,
   DocumentNode,
@@ -25,7 +26,9 @@ const schema = /* GraphQL */ `
 describe("AuthPlugin", () => {
   const context = new TransformerContext({
     document: DocumentNode.fromSource(schema),
-    defaultAuthorizationRule: { allow: "public" },
+    authorizationConfig: {
+      defaultAuthorizationRules: [{ allow: "public" }],
+    },
     dataSourceConfig: TEST_DS_CONFIG,
   });
 

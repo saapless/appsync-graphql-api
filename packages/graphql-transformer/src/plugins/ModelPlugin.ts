@@ -15,7 +15,7 @@ import {
   ScalarNode,
   ValueNode,
 } from "../definition";
-import { InvalidDefinitionError, TransformExecutionError } from "../utils/errors";
+import { TransformPluginExecutionError } from "../utils/errors";
 import { camelCase, pascalCase, pluralize } from "../utils/strings";
 import { AuthorizationRule, LoaderActionType, WriteOperation } from "../utils/types";
 import { TransformerPluginBase } from "./TransformerPluginBase";
@@ -38,132 +38,35 @@ export class ModelPlugin extends TransformerPluginBase {
     super(context);
   }
 
-  // #region Model Resources
-
-  private _createModelSizeInput() {
-    const input = InputObjectNode.create("ModelSizeInput", [
-      InputValueNode.create("ne", NamedTypeNode.create("Int")),
-      InputValueNode.create("eq", NamedTypeNode.create("Int")),
-      InputValueNode.create("le", NamedTypeNode.create("Int")),
-      InputValueNode.create("lt", NamedTypeNode.create("Int")),
-      InputValueNode.create("ge", NamedTypeNode.create("Int")),
-      InputValueNode.create("gt", NamedTypeNode.create("Int")),
-      InputValueNode.create("between", ListTypeNode.create(NonNullTypeNode.create("Int"))),
-    ]);
-
-    this.context.document.addNode(input);
-  }
-
-  private _createModelStringInput() {
-    const input = InputObjectNode.create("ModelStringInput", [
-      InputValueNode.create("ne", NamedTypeNode.create("String")),
-      InputValueNode.create("eq", NamedTypeNode.create("String")),
-      InputValueNode.create("le", NamedTypeNode.create("String")),
-      InputValueNode.create("lt", NamedTypeNode.create("String")),
-      InputValueNode.create("ge", NamedTypeNode.create("String")),
-      InputValueNode.create("gt", NamedTypeNode.create("String")),
-      InputValueNode.create("in", ListTypeNode.create(NonNullTypeNode.create("String"))),
-      InputValueNode.create("contains", NamedTypeNode.create("String")),
-      InputValueNode.create("notContains", NamedTypeNode.create("String")),
-      InputValueNode.create("between", ListTypeNode.create(NonNullTypeNode.create("String"))),
-      InputValueNode.create("beginsWith", NamedTypeNode.create("String")),
-      InputValueNode.create("attributeExists", NamedTypeNode.create("Boolean")),
-      InputValueNode.create("size", NamedTypeNode.create("ModelSizeInput")),
-    ]);
-
-    this.context.document.addNode(input);
-  }
-
-  private _createModelIntInput() {
-    const input = InputObjectNode.create("ModelIntInput", [
-      InputValueNode.create("ne", NamedTypeNode.create("Int")),
-      InputValueNode.create("eq", NamedTypeNode.create("Int")),
-      InputValueNode.create("le", NamedTypeNode.create("Int")),
-      InputValueNode.create("lt", NamedTypeNode.create("Int")),
-      InputValueNode.create("ge", NamedTypeNode.create("Int")),
-      InputValueNode.create("gt", NamedTypeNode.create("Int")),
-      InputValueNode.create("in", ListTypeNode.create(NonNullTypeNode.create("Int"))),
-      InputValueNode.create("between", ListTypeNode.create(NonNullTypeNode.create("Int"))),
-      InputValueNode.create("attributeExists", NamedTypeNode.create("Boolean")),
-    ]);
-
-    this.context.document.addNode(input);
-  }
-
-  private _createModelFloatInput() {
-    const input = InputObjectNode.create("ModelFloatInput", [
-      InputValueNode.create("ne", NamedTypeNode.create("Float")),
-      InputValueNode.create("eq", NamedTypeNode.create("Float")),
-      InputValueNode.create("le", NamedTypeNode.create("Float")),
-      InputValueNode.create("lt", NamedTypeNode.create("Float")),
-      InputValueNode.create("ge", NamedTypeNode.create("Float")),
-      InputValueNode.create("gt", NamedTypeNode.create("Float")),
-      InputValueNode.create("in", ListTypeNode.create(NonNullTypeNode.create("Float"))),
-      InputValueNode.create("between", ListTypeNode.create(NonNullTypeNode.create("Float"))),
-      InputValueNode.create("attributeExists", NamedTypeNode.create("Boolean")),
-    ]);
-
-    this.context.document.addNode(input);
-  }
-
-  private _createModelBooleanInput() {
-    const input = InputObjectNode.create("ModelBooleanInput", [
-      InputValueNode.create("ne", NamedTypeNode.create("Boolean")),
-      InputValueNode.create("eq", NamedTypeNode.create("Boolean")),
-      InputValueNode.create("attributeExists", NamedTypeNode.create("Boolean")),
-    ]);
-
-    this.context.document.addNode(input);
-  }
-
-  private _createModelIDInput() {
-    const input = InputObjectNode.create("ModelIDInput", [
-      InputValueNode.create("ne", NamedTypeNode.create("ID")),
-      InputValueNode.create("eq", NamedTypeNode.create("ID")),
-      InputValueNode.create("in", ListTypeNode.create(NonNullTypeNode.create("ID"))),
-      InputValueNode.create("attributeExists", NamedTypeNode.create("Boolean")),
-    ]);
-
-    this.context.document.addNode(input);
-  }
-
-  private _createModelListInput() {
-    const input = InputObjectNode.create("ModelListInput", [
-      InputValueNode.create("contains", NamedTypeNode.create("String")),
-      InputValueNode.create("notContains", NamedTypeNode.create("String")),
-      InputValueNode.create("size", NamedTypeNode.create("ModelSizeInput")),
-    ]);
-
-    this.context.document.addNode(input);
-  }
-
-  private _createSortDirection() {
-    const enumNode = EnumNode.create("SortDirection", ["ASC", "DESC"]);
-    this.context.document.addNode(enumNode);
-  }
-
-  // #endregion Model Resources
-
   // #region Operations
-
-  /**
-   * TODO:
-   *  * Handle shorthands - `read` & `write`
-   *  * User should be able to pass a list of default operations.
-   *  * Default operations should be passed to context in order for plugins to reference it.
-   */
 
   private _getOperationNames(object: ObjectNode) {
     const directive = object.getDirective("model");
 
     if (!directive) {
-      throw new TransformExecutionError(`@model directive not found for type ${object.name}`);
+      throw new TransformPluginExecutionError(
+        this.name,
+        `@model directive not found for type ${object.name}`
+      );
     }
 
     const args = directive.getArgumentsJSON<{ operations?: ModelOperationType[] }>();
     const operations: ModelOperationType[] = args.operations ?? this.context.defaultModelOperations;
 
     return this.context.expandOperations(operations);
+  }
+
+  private _getVerbAction(verb: WriteOperation): LoaderActionType {
+    switch (verb) {
+      case "create":
+        return "putItem";
+      case "update":
+        return "updateItem";
+      case "delete":
+        return "removeItem";
+      case "upsert":
+        return "upsertItem";
+    }
   }
 
   private _createGetQuery(model: ObjectNode) {
@@ -207,19 +110,20 @@ export class ModelPlugin extends TransformerPluginBase {
 
   /**
    * For each field in the model
-   * 1. If has `@readonly` or `@connection` directive - skip
+   * 1. If has `@readOnly` or connection directives - skip
    * 2. If scalar or enum - add to input;
    * 3. If union - skip;
    * 4. If object or interface - check definition;
    *    4.1 If `@model` - skip;
    *    4.2 If implements `Node` interface - skip
-   *    4.3 If `@readonly` - skip;
+   *    4.3 If fields are `@readOnly` - skip;
    */
 
   private _createMutationInput(model: ObjectNode, inputName: string, nonNullIdOrVersion = false) {
     const input = InputObjectNode.create(inputName);
 
     // Special case for delete. we only need id & _version here.
+    // TODO: Add this only if versioning enabled;
     if (inputName.startsWith("Delete")) {
       input
         .addField(InputValueNode.create("id", NonNullTypeNode.create(NamedTypeNode.create("ID"))))
@@ -259,7 +163,7 @@ export class ModelPlugin extends TransformerPluginBase {
         const typeDef = this.context.document.getNode(fieldTypeName);
 
         if (!typeDef) {
-          throw new InvalidDefinitionError(`Unknown type ${fieldTypeName}`);
+          throw new TransformPluginExecutionError(this.name, `Unknown type ${fieldTypeName}`);
         }
 
         if (typeDef instanceof ScalarNode || typeDef instanceof EnumNode) {
@@ -292,28 +196,29 @@ export class ModelPlugin extends TransformerPluginBase {
     this.context.document.addNode(input);
   }
 
-  private _getVerbAction(verb: WriteOperation): LoaderActionType {
-    switch (verb) {
-      case "create":
-        return "putItem";
-      case "update":
-        return "updateItem";
-      case "delete":
-        return "removeItem";
-      case "upsert":
-        return "upsertItem";
+  private _createDeleteMutationField(model: ObjectNode, fieldName: string) {
+    const mutationNode = this.context.document.getMutationNode();
+
+    if (!mutationNode.hasField(fieldName)) {
+      const field = FieldNode.create(fieldName, NamedTypeNode.create(model.name), [
+        InputValueNode.create("id", NonNullTypeNode.create(NamedTypeNode.create("ID"))),
+      ]);
+
+      mutationNode.addField(field);
     }
   }
 
-  private _createMutation(model: ObjectNode, verb: WriteOperation, nonNullIdOrVersion = false) {
-    const fieldName = camelCase(verb, model.name);
-    const inputName = pascalCase(verb, model.name, "input");
+  private _createMutationFields(
+    model: ObjectNode,
+    fieldName: string,
+    inputName: string,
+    verb: WriteOperation
+  ) {
+    const mutationNode = this.context.document.getMutationNode();
 
     if (!this.context.document.getNode(inputName)) {
-      this._createMutationInput(model, inputName, nonNullIdOrVersion);
+      this._createMutationInput(model, inputName, verb === "update");
     }
-
-    const mutationNode = this.context.document.getMutationNode();
 
     if (!mutationNode.hasField(fieldName)) {
       const field = FieldNode.create(fieldName, NamedTypeNode.create(model.name), [
@@ -321,6 +226,17 @@ export class ModelPlugin extends TransformerPluginBase {
       ]);
 
       mutationNode.addField(field);
+    }
+  }
+
+  private _createMutation(model: ObjectNode, verb: WriteOperation) {
+    const fieldName = camelCase(verb, model.name);
+    const inputName = pascalCase(verb, model.name, "input");
+
+    if (verb === "delete") {
+      this._createDeleteMutationField(model, inputName);
+    } else {
+      this._createMutationFields(model, fieldName, inputName, verb);
     }
 
     const authRules = model
@@ -367,15 +283,6 @@ export class ModelPlugin extends TransformerPluginBase {
           ]
         )
       );
-
-    this._createModelSizeInput();
-    this._createModelStringInput();
-    this._createModelIntInput();
-    this._createModelFloatInput();
-    this._createModelBooleanInput();
-    this._createModelIDInput();
-    this._createModelListInput();
-    this._createSortDirection();
   }
 
   public match(definition: DefinitionNode) {
@@ -399,16 +306,10 @@ export class ModelPlugin extends TransformerPluginBase {
           this._createListQuery(definition);
           break;
         case "create":
-          this._createMutation(definition, verb);
-          break;
         case "upsert":
-          this._createMutation(definition, verb);
-          break;
         case "update":
-          this._createMutation(definition, verb, true);
-          break;
         case "delete":
-          this._createMutation(definition, verb, true);
+          this._createMutation(definition, verb);
           break;
         default:
           continue;

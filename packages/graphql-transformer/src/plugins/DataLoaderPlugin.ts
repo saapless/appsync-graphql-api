@@ -26,30 +26,6 @@ export class DataLoaderPlugin extends TransformerPluginBase {
     super(context);
   }
 
-  public before() {
-    this.context.document
-      .addNode(
-        DirectiveDefinitionNode.create("dataSource", "OBJECT", [
-          InputValueNode.create("name", NonNullTypeNode.create("String")),
-        ])
-      )
-      .addNode(
-        DirectiveDefinitionNode.create("resolver", "FIELD_DEFINITION", [
-          InputValueNode.create("name", NonNullTypeNode.create("String")),
-          InputValueNode.create("dataSource", NamedTypeNode.create("String")),
-          InputValueNode.create("pipeline", ListTypeNode.create("String")),
-        ])
-      );
-  }
-
-  public match(definition: DefinitionNode) {
-    if (definition instanceof ObjectNode || definition instanceof InterfaceNode) {
-      return definition.fields?.some((field) => field.hasDirective("resolver")) ?? false;
-    }
-
-    return false;
-  }
-
   private _setFieldResolver(node: ObjectNode | InterfaceNode, field: FieldNode) {
     const args = field.getDirective("resolver")?.getArgumentsJSON<ResesolverDirectiveArgs>();
 
@@ -90,6 +66,30 @@ export class DataLoaderPlugin extends TransformerPluginBase {
         args.pipeline
       )
     );
+  }
+
+  public before() {
+    this.context.document
+      .addNode(
+        DirectiveDefinitionNode.create("dataSource", "OBJECT", [
+          InputValueNode.create("name", NonNullTypeNode.create("String")),
+        ])
+      )
+      .addNode(
+        DirectiveDefinitionNode.create("resolver", "FIELD_DEFINITION", [
+          InputValueNode.create("name", NonNullTypeNode.create("String")),
+          InputValueNode.create("dataSource", NamedTypeNode.create("String")),
+          InputValueNode.create("pipeline", ListTypeNode.create("String")),
+        ])
+      );
+  }
+
+  public match(definition: DefinitionNode) {
+    if (definition instanceof ObjectNode || definition instanceof InterfaceNode) {
+      return definition.fields?.some((field) => field.hasDirective("resolver")) ?? false;
+    }
+
+    return false;
   }
 
   public execute(definition: ObjectNode | InterfaceNode) {

@@ -14,7 +14,7 @@ import {
   DirectiveNode,
   InputObjectNode,
 } from "../definition";
-import { InvalidDefinitionError, TransformPluginExecutionError } from "../utils/errors";
+import { TransformPluginExecutionError } from "../utils/errors";
 import { camelCase, pascalCase } from "../utils/strings";
 import { KeyOperator, KeyValue, RelationType } from "../utils/types";
 import { TransformerPluginBase } from "./TransformerPluginBase";
@@ -36,55 +36,111 @@ export class ConnectionPlugin extends TransformerPluginBase {
     super(context);
   }
 
-  public before() {
-    this.context.document
-      .addNode(
-        InputObjectNode.create("KeyValueInput", [
-          InputValueNode.create("ref", NamedTypeNode.create("String")),
-          InputValueNode.create("eq", NamedTypeNode.create("String")),
-        ])
-      )
-      .addNode(
-        InputObjectNode.create("SortKeyInput", [
-          InputValueNode.create("ref", NamedTypeNode.create("String")),
-          InputValueNode.create("eq", NamedTypeNode.create("String")),
-          InputValueNode.create("ne", NamedTypeNode.create("KeyValueInput")),
-          InputValueNode.create("le", NamedTypeNode.create("KeyValueInput")),
-          InputValueNode.create("lt", NamedTypeNode.create("KeyValueInput")),
-          InputValueNode.create("ge", NamedTypeNode.create("KeyValueInput")),
-          InputValueNode.create("gt", NamedTypeNode.create("KeyValueInput")),
-          InputValueNode.create(
-            "between",
-            ListTypeNode.create(NonNullTypeNode.create("KeyValueInput"))
-          ),
-          InputValueNode.create("beginsWith", NamedTypeNode.create("KeyValueInput")),
-        ])
-      )
-      .addNode(EnumNode.create("ConnectionRelationType", ["oneToMay", "manyToMany"]))
-      .addNode(
-        DirectiveDefinitionNode.create("hasOne", "FIELD_DEFINITION", [
-          InputValueNode.create("key", "KeyValueInput"),
-          InputValueNode.create("sortKey", "SortKeyInput"),
-          InputValueNode.create("index", "String"),
-        ])
-      )
-      .addNode(
-        DirectiveDefinitionNode.create("hasMany", "FIELD_DEFINITION", [
-          InputValueNode.create("relation", "ConnectionRelationType"),
-          InputValueNode.create("key", "KeyValueInput"),
-          InputValueNode.create("sortKey", "SortKeyInput"),
-          InputValueNode.create("index", "String"),
-        ])
-      )
-      .addNode(
-        ObjectNode.create("PageInfo", [
-          FieldNode.create("hasNextPage", NamedTypeNode.create("Boolean")),
-          FieldNode.create("hasPreviousPage", NamedTypeNode.create("Boolean")),
-          FieldNode.create("startCursor", NamedTypeNode.create("String")),
-          FieldNode.create("endCursor", NamedTypeNode.create("String")),
-        ])
-      );
+  // #region Model Resources
+
+  private _createSizeFilterInput() {
+    const input = InputObjectNode.create("SizeFilterInput", [
+      InputValueNode.create("ne", NamedTypeNode.create("Int")),
+      InputValueNode.create("eq", NamedTypeNode.create("Int")),
+      InputValueNode.create("le", NamedTypeNode.create("Int")),
+      InputValueNode.create("lt", NamedTypeNode.create("Int")),
+      InputValueNode.create("ge", NamedTypeNode.create("Int")),
+      InputValueNode.create("gt", NamedTypeNode.create("Int")),
+      InputValueNode.create("between", ListTypeNode.create(NonNullTypeNode.create("Int"))),
+    ]);
+
+    this.context.document.addNode(input);
   }
+
+  private _createStringFilterInput() {
+    const input = InputObjectNode.create("StringFilterInput", [
+      InputValueNode.create("ne", NamedTypeNode.create("String")),
+      InputValueNode.create("eq", NamedTypeNode.create("String")),
+      InputValueNode.create("le", NamedTypeNode.create("String")),
+      InputValueNode.create("lt", NamedTypeNode.create("String")),
+      InputValueNode.create("ge", NamedTypeNode.create("String")),
+      InputValueNode.create("gt", NamedTypeNode.create("String")),
+      InputValueNode.create("in", ListTypeNode.create(NonNullTypeNode.create("String"))),
+      InputValueNode.create("contains", NamedTypeNode.create("String")),
+      InputValueNode.create("notContains", NamedTypeNode.create("String")),
+      InputValueNode.create("between", ListTypeNode.create(NonNullTypeNode.create("String"))),
+      InputValueNode.create("beginsWith", NamedTypeNode.create("String")),
+      InputValueNode.create("attributeExists", NamedTypeNode.create("Boolean")),
+      InputValueNode.create("size", NamedTypeNode.create("SizeFilterInput")),
+    ]);
+
+    this.context.document.addNode(input);
+  }
+
+  private _createIntFilterInput() {
+    const input = InputObjectNode.create("ModelIntFilterInput", [
+      InputValueNode.create("ne", NamedTypeNode.create("Int")),
+      InputValueNode.create("eq", NamedTypeNode.create("Int")),
+      InputValueNode.create("le", NamedTypeNode.create("Int")),
+      InputValueNode.create("lt", NamedTypeNode.create("Int")),
+      InputValueNode.create("ge", NamedTypeNode.create("Int")),
+      InputValueNode.create("gt", NamedTypeNode.create("Int")),
+      InputValueNode.create("in", ListTypeNode.create(NonNullTypeNode.create("Int"))),
+      InputValueNode.create("between", ListTypeNode.create(NonNullTypeNode.create("Int"))),
+      InputValueNode.create("attributeExists", NamedTypeNode.create("Boolean")),
+    ]);
+
+    this.context.document.addNode(input);
+  }
+
+  private _createFloatFilterInput() {
+    const input = InputObjectNode.create("FloatFilterInput", [
+      InputValueNode.create("ne", NamedTypeNode.create("Float")),
+      InputValueNode.create("eq", NamedTypeNode.create("Float")),
+      InputValueNode.create("le", NamedTypeNode.create("Float")),
+      InputValueNode.create("lt", NamedTypeNode.create("Float")),
+      InputValueNode.create("ge", NamedTypeNode.create("Float")),
+      InputValueNode.create("gt", NamedTypeNode.create("Float")),
+      InputValueNode.create("in", ListTypeNode.create(NonNullTypeNode.create("Float"))),
+      InputValueNode.create("between", ListTypeNode.create(NonNullTypeNode.create("Float"))),
+      InputValueNode.create("attributeExists", NamedTypeNode.create("Boolean")),
+    ]);
+
+    this.context.document.addNode(input);
+  }
+
+  private _createBooleanFilterInput() {
+    const input = InputObjectNode.create("BooleanFilterInput", [
+      InputValueNode.create("ne", NamedTypeNode.create("Boolean")),
+      InputValueNode.create("eq", NamedTypeNode.create("Boolean")),
+      InputValueNode.create("attributeExists", NamedTypeNode.create("Boolean")),
+    ]);
+
+    this.context.document.addNode(input);
+  }
+
+  private _createIDFilterInput() {
+    const input = InputObjectNode.create("IDFilterInput", [
+      InputValueNode.create("ne", NamedTypeNode.create("ID")),
+      InputValueNode.create("eq", NamedTypeNode.create("ID")),
+      InputValueNode.create("in", ListTypeNode.create(NonNullTypeNode.create("ID"))),
+      InputValueNode.create("attributeExists", NamedTypeNode.create("Boolean")),
+    ]);
+
+    this.context.document.addNode(input);
+  }
+
+  private _createListFilterInput() {
+    const input = InputObjectNode.create("ListFilterInput", [
+      InputValueNode.create("contains", NamedTypeNode.create("String")),
+      InputValueNode.create("notContains", NamedTypeNode.create("String")),
+      InputValueNode.create("size", NamedTypeNode.create("SizeFilterInput")),
+    ]);
+
+    this.context.document.addNode(input);
+  }
+
+  private _createSortDirection() {
+    const enumNode = EnumNode.create("SortDirection", ["ASC", "DESC"]);
+    this.context.document.addNode(enumNode);
+  }
+
+  // #endregion Model Resources
 
   private _isConnectionType(node: ObjectNode | InterfaceNode | UnionNode) {
     if (node instanceof UnionNode) return false;
@@ -101,7 +157,7 @@ export class ConnectionPlugin extends TransformerPluginBase {
     return true;
   }
 
-  private _getFieldConnectionTarget(field: FieldNode) {
+  private _getConnectionTarget(field: FieldNode) {
     const fieldType = this.context.document.getNode(field.type.getTypeName());
 
     if (field.hasDirective("hasOne") || field.hasDirective("hasMany")) {
@@ -112,7 +168,7 @@ export class ConnectionPlugin extends TransformerPluginBase {
   }
 
   private _getFieldConnection(field: FieldNode): FieldConnection | null {
-    const target = this._getFieldConnectionTarget(field);
+    const target = this._getConnectionTarget(field);
 
     if (!target) return null;
 
@@ -131,7 +187,8 @@ export class ConnectionPlugin extends TransformerPluginBase {
 
     if (directive) {
       if (field.hasDirective("hasMany")) {
-        throw new InvalidDefinitionError(
+        throw new TransformPluginExecutionError(
+          this.name,
           `Multiple connection directive detected for field: ${field.name}`
         );
       }
@@ -153,7 +210,8 @@ export class ConnectionPlugin extends TransformerPluginBase {
 
     if (directive) {
       if (field.hasDirective("hasOne")) {
-        throw new InvalidDefinitionError(
+        throw new TransformPluginExecutionError(
+          this.name,
           `Multiple connection directive detected for field: ${field.name}`
         );
       }
@@ -171,7 +229,51 @@ export class ConnectionPlugin extends TransformerPluginBase {
       };
     }
 
-    throw new InvalidDefinitionError(`Could not find connection directive: ${field.name}`);
+    throw new TransformPluginExecutionError(
+      this.name,
+      `Could not find connection directive: ${field.name}`
+    );
+  }
+
+  private _setConnectionArguments(
+    field: FieldNode,
+    target: ObjectNode | InterfaceNode | UnionNode
+  ) {
+    if (!field.hasArgument("filter")) {
+      const filterInput = this._createFilterInput(target);
+      field.addArgument(InputValueNode.create("filter", NamedTypeNode.create(filterInput.name)));
+    }
+
+    if (!field.hasArgument("first")) {
+      field.addArgument(InputValueNode.create("first", NamedTypeNode.create("Int")));
+    }
+
+    if (!field.hasArgument("after")) {
+      field.addArgument(InputValueNode.create("after", NamedTypeNode.create("String")));
+    }
+
+    if (!field.hasArgument("sort")) {
+      field.addArgument(InputValueNode.create("sort", NamedTypeNode.create("SortDirection")));
+    }
+  }
+
+  /**
+   * For one-to-many connections user should be able to add the connection key via mutations.
+   * By default the connection key is _writeOnly_ meaning we only add it to the mutation inputs.
+   */
+
+  private _setConnectionKey(
+    node: ObjectNode | InterfaceNode,
+    key: string,
+    isPrivate: boolean = false
+  ) {
+    if (!node.hasField(key)) {
+      node.addField(
+        FieldNode.create(key, NamedTypeNode.create("ID"), null, [
+          isPrivate ? DirectiveNode.create("serverOnly") : DirectiveNode.create("writeOnly"),
+        ])
+      );
+    }
   }
 
   private _createEnumFilterInput(node: EnumNode) {
@@ -194,7 +296,10 @@ export class ConnectionPlugin extends TransformerPluginBase {
     let filterInput = this.context.document.getNode(filterInputName);
 
     if (filterInput && !(filterInput instanceof InputObjectNode)) {
-      throw new InvalidDefinitionError(`Type ${filterInputName} is not an input type`);
+      throw new TransformPluginExecutionError(
+        this.name,
+        `Type ${filterInputName} is not an input type`
+      );
     }
 
     if (!filterInput) {
@@ -209,7 +314,10 @@ export class ConnectionPlugin extends TransformerPluginBase {
           const typeDef = this.context.document.getNode(type.getTypeName());
 
           if (!typeDef) {
-            throw new InvalidDefinitionError(`Unknown type ${type.getTypeName()}`);
+            throw new TransformPluginExecutionError(
+              this.name,
+              `Unknown type ${type.getTypeName()}`
+            );
           }
 
           if (typeDef instanceof ObjectNode || typeDef instanceof InterfaceNode) {
@@ -273,7 +381,10 @@ export class ConnectionPlugin extends TransformerPluginBase {
         const typeDef = this.context.document.getNode(field.type.getTypeName());
 
         if (!typeDef) {
-          throw new InvalidDefinitionError(`Unknown type ${field.type.getTypeName()}`);
+          throw new TransformPluginExecutionError(
+            this.name,
+            `Unknown type ${field.type.getTypeName()}`
+          );
         }
 
         if (typeDef instanceof EnumNode) {
@@ -300,45 +411,118 @@ export class ConnectionPlugin extends TransformerPluginBase {
     return filterInput;
   }
 
-  private _setEdgesConnectionArguments(
-    field: FieldNode,
-    target: ObjectNode | InterfaceNode | UnionNode
-  ) {
-    if (!field.hasArgument("filter")) {
-      const filterInput = this._createFilterInput(target);
-      field.addArgument(InputValueNode.create("filter", NamedTypeNode.create(filterInput.name)));
-    }
+  private _createConnectionTypes(field: FieldNode, connection: FieldConnection) {
+    const { target } = connection;
 
-    if (!field.hasArgument("first")) {
-      field.addArgument(InputValueNode.create("first", NamedTypeNode.create("Int")));
-    }
+    if (!this._isConnectionType(target)) {
+      const typeName = pascalCase(target.name, "connection");
 
-    if (!field.hasArgument("after")) {
-      field.addArgument(InputValueNode.create("after", NamedTypeNode.create("String")));
-    }
+      if (!this.context.document.hasNode(typeName)) {
+        const connectionType = ObjectNode.create(typeName, [
+          FieldNode.create(
+            "edges",
+            NonNullTypeNode.create(
+              ListTypeNode.create(NonNullTypeNode.create(`${target.name}Edge`))
+            )
+          ),
+          FieldNode.create("pageInfo", NonNullTypeNode.create("PageInfo")),
+        ]);
 
-    if (!field.hasArgument("sort")) {
-      field.addArgument(InputValueNode.create("sort", NamedTypeNode.create("SortDirection")));
+        const edgeType = ObjectNode.create(`${target.name}Edge`, [
+          FieldNode.create("cursor", NamedTypeNode.create("String"), null, [
+            DirectiveNode.create("clientOnly"),
+          ]),
+          FieldNode.create("node", NamedTypeNode.create(target.name), null, [
+            DirectiveNode.create("clientOnly"),
+          ]),
+        ]);
+
+        if (connection.relation === "manyToMany") {
+          edgeType
+            .addField(
+              FieldNode.create("id", NamedTypeNode.create("ID"), null, [
+                DirectiveNode.create("serverOnly"),
+              ])
+            )
+            .addField(
+              FieldNode.create("_sk", NamedTypeNode.create("ID"), null, [
+                DirectiveNode.create("serverOnly"),
+              ])
+            )
+            .addField(
+              FieldNode.create("sourceId", NamedTypeNode.create("ID"), null, [
+                DirectiveNode.create("writeOnly"),
+              ])
+            )
+            .addField(
+              FieldNode.create("targetId", NamedTypeNode.create("ID"), null, [
+                DirectiveNode.create("writeOnly"),
+              ])
+            );
+        }
+
+        this.context.document.addNode(connectionType).addNode(edgeType);
+      }
+
+      this._setConnectionArguments(field, target);
+      field.setType(NonNullTypeNode.create(typeName));
     }
   }
 
-  /**
-   * For one-to-many connections user should be able to add the connection key via mutations.
-   * By default the connection key is writeonly meaning we only add it to the mutation inputs.
-   */
+  private _createEdgeMutations(connection: FieldConnection) {
+    const edgeName = pascalCase(connection.target.name, "edge");
+    const edgeInputName = pascalCase(edgeName, "input");
+    const createFieldName = camelCase("create", edgeName);
+    const deleteFieldName = camelCase("delete", edgeName);
 
-  private _setConnectionKey(
-    node: ObjectNode | InterfaceNode,
-    key: string,
-    isPrivate: boolean = false
-  ) {
-    if (!node.hasField(key)) {
-      node.addField(
-        FieldNode.create(key, NamedTypeNode.create("ID"), null, [
-          isPrivate ? DirectiveNode.create("serverOnly") : DirectiveNode.create("writeOnly"),
+    if (!this.context.document.hasNode(edgeInputName)) {
+      this.context.document.addNode(
+        InputObjectNode.create(edgeInputName, [
+          InputValueNode.create("sourceId", NonNullTypeNode.create("ID")),
+          InputValueNode.create("targetId", NonNullTypeNode.create("ID")),
         ])
       );
     }
+
+    const mutationNode = this.context.document.getMutationNode();
+
+    if (!mutationNode.hasField(createFieldName)) {
+      mutationNode.addField(
+        FieldNode.create(createFieldName, NamedTypeNode.create(edgeName), [
+          InputValueNode.create("input", NonNullTypeNode.create(edgeInputName)),
+        ])
+      );
+    }
+
+    if (!mutationNode.hasField(deleteFieldName)) {
+      mutationNode.addField(
+        FieldNode.create(deleteFieldName, NamedTypeNode.create(edgeName), [
+          InputValueNode.create("input", NonNullTypeNode.create(edgeInputName)),
+        ])
+      );
+    }
+
+    this.context.loader.setFieldLoader(edgeName, "node", {
+      targetName: connection.target.name,
+      dataSource: this.context.dataSources.primaryDataSourceName,
+      action: {
+        type: "getItem",
+        key: { id: { ref: "source.nodeId" } },
+      },
+      returnType: "result",
+    });
+
+    this.context.loader.setFieldLoader("Mutation", createFieldName, {
+      targetName: edgeName,
+      action: { type: "putItem", key: {} },
+      returnType: "edges",
+    });
+
+    this.context.loader.setFieldLoader("Mutation", deleteFieldName, {
+      targetName: edgeName,
+      action: { type: "removeItem", key: {} },
+      returnType: "result",
+    });
   }
 
   private _createNodeConnection(
@@ -358,115 +542,12 @@ export class ConnectionPlugin extends TransformerPluginBase {
     });
   }
 
-  private _createEdgeMutations(connection: FieldConnection) {
-    const edgeName = pascalCase(connection.target.name, "edge");
-    const edgeInputName = pascalCase(edgeName, "input");
-    const createFieldName = camelCase("create", edgeName);
-    const deleteFieldName = camelCase("delete", edgeName);
-
-    if (!this.context.document.hasNode(edgeInputName)) {
-      this.context.document.addNode(
-        InputObjectNode.create(edgeInputName, [
-          InputValueNode.create("sourceId", NonNullTypeNode.create("ID")),
-          InputValueNode.create("targetId", NonNullTypeNode.create("ID")),
-        ])
-      );
-    }
-
-    this.context.loader.setFunctionLoader("ddbGetItem", {
-      targetName: "Node",
-      dataSource: this.context.dataSources.primaryDataSourceName,
-      action: {
-        type: "getItemCommand",
-        key: { id: { ref: "args.input.targetId" } },
-      },
-      returnType: "command",
-    });
-
-    const mutationNode = this.context.document.getMutationNode();
-
-    if (!mutationNode.hasField(createFieldName)) {
-      mutationNode.addField(
-        FieldNode.create(createFieldName, NamedTypeNode.create(edgeName), [
-          InputValueNode.create("input", NonNullTypeNode.create(edgeInputName)),
-        ])
-      );
-      this.context.loader.setFunctionLoader("ddbPutItem", {
-        targetName: edgeName,
-        dataSource: this.context.dataSources.primaryDataSourceName,
-        action: {
-          type: "putItemCommand",
-          key: {},
-        },
-        returnType: "command",
-      });
-
-      this.context.loader.setFieldLoader("Mutation", createFieldName, {
-        targetName: edgeName,
-        pipeline: ["ddbPutItem", "ddbGetItem"],
-        action: { type: "createEdge", key: {} },
-        returnType: "createEdge",
-      });
-    }
-
-    if (!mutationNode.hasField(deleteFieldName)) {
-      mutationNode.addField(
-        FieldNode.create(deleteFieldName, NamedTypeNode.create(edgeName), [
-          InputValueNode.create("input", NonNullTypeNode.create(edgeInputName)),
-        ])
-      );
-
-      this.context.loader.setFunctionLoader("ddbDeleteItem", {
-        targetName: edgeName,
-        dataSource: this.context.dataSources.primaryDataSourceName,
-        action: {
-          type: "deleteItemCommand",
-          key: {},
-        },
-        returnType: "command",
-      });
-
-      this.context.loader.setFieldLoader("Mutation", deleteFieldName, {
-        targetName: edgeName,
-        pipeline: ["ddbGetItem", "ddbDeleteItem"],
-        action: { type: "deleteEdge", key: {} },
-        returnType: "deleteEdge",
-      });
-    }
-  }
-
   private _createEdgesConnection(
     parent: ObjectNode | InterfaceNode,
     field: FieldNode,
     connection: FieldConnection
   ) {
-    const { target } = connection;
-
-    if (!this._isConnectionType(target)) {
-      const typeName = pascalCase(target.name, "connection");
-
-      if (!this.context.document.hasNode(typeName)) {
-        const connectionType = ObjectNode.create(typeName, [
-          FieldNode.create(
-            "edges",
-            NonNullTypeNode.create(
-              ListTypeNode.create(NonNullTypeNode.create(`${target.name}Edge`))
-            )
-          ),
-          FieldNode.create("pageInfo", NonNullTypeNode.create("PageInfo")),
-        ]);
-
-        const edgeType = ObjectNode.create(`${target.name}Edge`, [
-          FieldNode.create("cursor", NamedTypeNode.create("String")),
-          FieldNode.create("node", NamedTypeNode.create(target.name)),
-        ]);
-
-        this.context.document.addNode(connectionType).addNode(edgeType);
-      }
-
-      this._setEdgesConnectionArguments(field, target);
-      field.setType(NonNullTypeNode.create(typeName));
-    }
+    this._createConnectionTypes(field, connection);
 
     if (connection.relation === "oneToMany") {
       this.context.loader.setFieldLoader(parent.name, field.name, {
@@ -476,57 +557,96 @@ export class ConnectionPlugin extends TransformerPluginBase {
           key: { sourceId: connection.key },
           index: connection.index ?? undefined,
         },
-        returnType: "edges",
+        returnType: "connection",
         dataSource: this.context.dataSources.primaryDataSourceName,
       });
     } else {
-      this.context.loader.setFunctionLoader("ddbQueryItems", {
-        targetName: connection.target.name,
-        dataSource: this.context.dataSources.primaryDataSourceName,
-        action: {
-          type: "queryItemsCommand",
-          key: {},
-        },
-        returnType: "command",
-      });
+      this._createEdgeMutations(connection);
 
-      this.context.loader.setFunctionLoader("mapQueryToBatchGet", {
-        targetName: connection.target.name,
-        dataSource: this.context.dataSources.noneDataSourceName,
-        action: {
-          type: "mapQueryToBatchGet",
-          key: {},
-        },
-        returnType: "result",
-      });
-
-      this.context.loader.setFunctionLoader("ddbBatchGetItems", {
-        targetName: connection.target.name,
-        dataSource: this.context.dataSources.primaryDataSourceName,
-        action: {
-          type: "batchGetItemsCommand",
-          key: {},
-        },
-        returnType: "command",
-      });
+      const { target } = connection;
+      const connectionTypeName = pascalCase(target.name, "connection");
 
       this.context.loader.setFieldLoader(parent.name, field.name, {
         targetName: target.name,
-        pipeline: ["ddbQueryItems", "mapQueryToBatchGet", "ddbBatchGet"],
         dataSource: this.context.dataSources.primaryDataSourceName,
         action: {
-          type: "queryEdges",
+          type: "queryItems",
           key: {
             sourceId: connection.key,
             _sk: { beginsWith: { eq: pascalCase(target.name, "Edge") } },
           },
           index: connection.index ?? undefined,
         },
-        returnType: "queryEdges",
+        returnType: "connection",
       });
 
-      this._createEdgeMutations(connection);
+      this.context.loader.setFieldLoader(connectionTypeName, "edges", {
+        dataSource: this.context.dataSources.primaryDataSourceName,
+        action: {
+          type: "batchGetItems",
+          key: { keys: { ref: "source.edgeKeys" } },
+        },
+      });
     }
+  }
+
+  public before() {
+    this.context.document
+      .addNode(
+        InputObjectNode.create("KeyValueInput", [
+          InputValueNode.create("ref", NamedTypeNode.create("String")),
+          InputValueNode.create("eq", NamedTypeNode.create("String")),
+        ])
+      )
+      .addNode(
+        InputObjectNode.create("SortKeyInput", [
+          InputValueNode.create("ref", NamedTypeNode.create("String")),
+          InputValueNode.create("eq", NamedTypeNode.create("String")),
+          InputValueNode.create("ne", NamedTypeNode.create("KeyValueInput")),
+          InputValueNode.create("le", NamedTypeNode.create("KeyValueInput")),
+          InputValueNode.create("lt", NamedTypeNode.create("KeyValueInput")),
+          InputValueNode.create("ge", NamedTypeNode.create("KeyValueInput")),
+          InputValueNode.create("gt", NamedTypeNode.create("KeyValueInput")),
+          InputValueNode.create(
+            "between",
+            ListTypeNode.create(NonNullTypeNode.create("KeyValueInput"))
+          ),
+          InputValueNode.create("beginsWith", NamedTypeNode.create("KeyValueInput")),
+        ])
+      )
+      .addNode(EnumNode.create("ConnectionRelationType", ["oneToMay", "manyToMany"]))
+      .addNode(
+        DirectiveDefinitionNode.create("hasOne", "FIELD_DEFINITION", [
+          InputValueNode.create("key", "KeyValueInput"),
+          InputValueNode.create("sortKey", "SortKeyInput"),
+          InputValueNode.create("index", "String"),
+        ])
+      )
+      .addNode(
+        DirectiveDefinitionNode.create("hasMany", "FIELD_DEFINITION", [
+          InputValueNode.create("relation", "ConnectionRelationType"),
+          InputValueNode.create("key", "KeyValueInput"),
+          InputValueNode.create("sortKey", "SortKeyInput"),
+          InputValueNode.create("index", "String"),
+        ])
+      )
+      .addNode(
+        ObjectNode.create("PageInfo", [
+          FieldNode.create("hasNextPage", NamedTypeNode.create("Boolean")),
+          FieldNode.create("hasPreviousPage", NamedTypeNode.create("Boolean")),
+          FieldNode.create("startCursor", NamedTypeNode.create("String")),
+          FieldNode.create("endCursor", NamedTypeNode.create("String")),
+        ])
+      );
+
+    this._createSizeFilterInput();
+    this._createStringFilterInput();
+    this._createIntFilterInput();
+    this._createFloatFilterInput();
+    this._createBooleanFilterInput();
+    this._createIDFilterInput();
+    this._createListFilterInput();
+    this._createSortDirection();
   }
 
   public match(definition: DefinitionNode): boolean {
@@ -549,7 +669,7 @@ export class ConnectionPlugin extends TransformerPluginBase {
         continue;
       }
 
-      if (connection.relation === "oneToOne" && connection.key?.ref?.startsWith("source")) {
+      if (connection.relation === "oneToOne" && connection.key.ref?.startsWith("source")) {
         this._setConnectionKey(definition, connection.key.ref);
       }
 

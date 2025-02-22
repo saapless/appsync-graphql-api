@@ -2,7 +2,8 @@ import path from "node:path";
 import { fileURLToPath } from "node:url";
 import { TransformerContext } from "../src/context";
 import { DirectiveDefinitionNode, DocumentNode, ObjectNode } from "../src/definition";
-import { DataLoaderPlugin, FieldResolver } from "../src";
+import { DataLoaderPlugin } from "../src/plugins";
+import { FieldResolver } from "../src/resolver";
 import { TEST_DS_CONFIG } from "../__fixtures__/constants";
 
 const __dirname = path.dirname(fileURLToPath(import.meta.url));

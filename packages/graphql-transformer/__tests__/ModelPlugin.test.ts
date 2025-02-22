@@ -1,5 +1,6 @@
 import { TEST_DS_CONFIG } from "../__fixtures__/constants";
-import { ModelPlugin, TransformerContext } from "../src";
+import { TransformerContext } from "../src/context";
+import { ModelPlugin } from "../src/plugins/ModelPlugin";
 import {
   DirectiveDefinitionNode,
   DocumentNode,

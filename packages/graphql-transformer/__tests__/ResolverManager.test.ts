@@ -1,6 +1,7 @@
 import path from "node:path";
 import { fileURLToPath } from "node:url";
-import { FieldResolver, FunctionResolver, ResolverBase, TransformerContext } from "../src";
+import { TransformerContext } from "../src/context";
+import { FieldResolver, FunctionResolver, ResolverBase } from "../src/resolver";
 import { DocumentNode } from "../src/definition";
 import { ResolverManager } from "../src/resolver/ResolverManager";
 import { TEST_DS_CONFIG } from "../__fixtures__/constants";
