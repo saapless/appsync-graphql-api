@@ -237,7 +237,7 @@ export class ResolverTypesGenerator extends GeneratorBase {
           undefined,
           ts.factory.createNamespaceImport(ts.factory.createIdentifier("Schema"))
         ),
-        ts.factory.createStringLiteral("./schema-types.ts")
+        ts.factory.createStringLiteral("./schema-types")
       ),
       ts.factory.createTypeAliasDeclaration(
         [ts.factory.createModifier(ts.SyntaxKind.ExportKeyword)],
@@ -262,7 +262,7 @@ export class ResolverTypesGenerator extends GeneratorBase {
 
     if (node instanceof ObjectNode && Boolean(node.getField(loader.fieldName)?.arguments?.length)) {
       return ts.factory.createTypeReferenceNode(
-        pascalCase(loader.typeName, loader.fieldName, "args")
+        `Schema.${pascalCase(loader.typeName, loader.fieldName, "args")}`
       );
     }
 

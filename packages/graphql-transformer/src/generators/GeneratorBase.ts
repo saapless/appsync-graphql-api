@@ -16,7 +16,13 @@ export abstract class GeneratorBase {
 
     const result = printer.printList(
       ts.ListFormat.MultiLine,
-      ts.factory.createNodeArray(this._definitions),
+      ts.factory.createNodeArray(
+        this._definitions.sort((a, b) =>
+          a.kind === ts.SyntaxKind.ImportDeclaration && b.kind !== ts.SyntaxKind.ImportDeclaration
+            ? -1
+            : 1
+        )
+      ),
       file
     );
 

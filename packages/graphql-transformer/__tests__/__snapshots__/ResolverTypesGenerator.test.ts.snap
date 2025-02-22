@@ -1,8 +1,8 @@
 // Jest Snapshot v1, https://goo.gl/fbAQLP
 
-exports[`SchemaTypesGenerator genrates schema types 1`] = `
+exports[`ResolverTypesGenerator generates resolver context types 1`] = `
 "import { type Context } from "@aws-appsync/utils";
-import type * as Schema from "./schema-types.ts";
+import type * as Schema from "./schema-types";
 export type Key = {
     id: string;
 };
@@ -39,11 +39,11 @@ export type DynamoDBTransactWriteResult = {
 };
 export type QueryMeReqContext = Context<Record<string, unknown>, Record<string, unknown>, undefined, undefined, undefined>;
 export type QueryMeResContext = Context<Record<string, unknown>, Record<string, unknown>, undefined, undefined, Schema.User>;
-export type MutationCreateUserReqContext = Context<MutationCreateUserArgs, Record<string, unknown>, undefined, undefined, undefined>;
-export type MutationCreateUserResContext = Context<MutationCreateUserArgs, Record<string, unknown>, undefined, undefined, Schema.User>;
-export type MutationUpdateUserReqContext = Context<MutationUpdateUserArgs, Record<string, unknown>, undefined, undefined, undefined>;
-export type MutationUpdateUserResContext = Context<MutationUpdateUserArgs, Record<string, unknown>, undefined, undefined, Schema.User>;
-export type MutationDeleteUserReqContext = Context<MutationDeleteUserArgs, Record<string, unknown>, undefined, undefined, undefined>;
-export type MutationDeleteUserResContext = Context<MutationDeleteUserArgs, Record<string, unknown>, undefined, undefined, Schema.User>;
+export type MutationCreateUserReqContext = Context<Schema.MutationCreateUserArgs, Record<string, unknown>, undefined, undefined, undefined>;
+export type MutationCreateUserResContext = Context<Schema.MutationCreateUserArgs, Record<string, unknown>, undefined, undefined, Schema.User>;
+export type MutationUpdateUserReqContext = Context<Schema.MutationUpdateUserArgs, Record<string, unknown>, undefined, undefined, undefined>;
+export type MutationUpdateUserResContext = Context<Schema.MutationUpdateUserArgs, Record<string, unknown>, undefined, undefined, Schema.User>;
+export type MutationDeleteUserReqContext = Context<Schema.MutationDeleteUserArgs, Record<string, unknown>, undefined, undefined, undefined>;
+export type MutationDeleteUserResContext = Context<Schema.MutationDeleteUserArgs, Record<string, unknown>, undefined, undefined, Schema.User>;
 "
 `;

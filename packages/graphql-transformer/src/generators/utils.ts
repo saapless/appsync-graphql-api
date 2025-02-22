@@ -1,6 +1,12 @@
 /* eslint-disable security/detect-object-injection */
 
-import { FieldLoaderDescriptor, Key, KeyValue, LoaderDescriptor } from "../utils/types";
+import {
+  FieldLoaderDescriptor,
+  Key,
+  KeyValue,
+  LoaderDescriptor,
+  PipelineFunctionLoaderDescriptor,
+} from "../utils/types";
 import { PropertyValue, tc } from "../codegen";
 
 export function formatValue(value: unknown): PropertyValue {
@@ -45,6 +51,12 @@ export function keyValue<T extends string | number>(obj: KeyValue<T>) {
 
 export function isFieldLoader(descriptor: LoaderDescriptor): descriptor is FieldLoaderDescriptor {
   return Object.hasOwn(descriptor, "fieldName") && Object.hasOwn(descriptor, "typeName");
+}
+
+export function isFunctionLoader(
+  descriptor: LoaderDescriptor
+): descriptor is PipelineFunctionLoaderDescriptor {
+  return Object.hasOwn(descriptor, "name");
 }
 
 export function parseKey(key: Key) {

@@ -1,58 +1,384 @@
-import { CodeDocument, tc } from "../codegen";
+import ts from "typescript";
 import { TransformerContext } from "../context";
-import { ObjectNode } from "../definition";
-import { pascalCase } from "../utils/strings";
-import { FieldLoaderDescriptor, Key, LoaderDescriptor } from "../utils/types";
-import { parseKey } from "./utils";
+import { LoaderDescriptor } from "../utils/types";
+import { pascalCase, TransformExecutionError } from "../utils";
+import { GeneratorBase } from "./GeneratorBase";
+import { isFieldLoader, isFunctionLoader } from "./utils";
 
-export abstract class ResolverGeneratorBase {
-  protected readonly code: CodeDocument;
-  protected readonly context: TransformerContext;
-
-  constructor(context: TransformerContext, code: CodeDocument) {
-    this.code = code;
-    this.context = context;
+export abstract class ResolverGeneratorBase extends GeneratorBase {
+  constructor(context: TransformerContext) {
+    super(context);
   }
 
-  protected _setDefaultContextTypes(loader: FieldLoaderDescriptor) {
-    const fieldHasArgs = Boolean(
-      (this.context.document.getNode(loader.typeName) as ObjectNode)?.getField(loader.fieldName)
-        ?.arguments?.length
+  protected _setImport(from: string, specifier: ts.ImportSpecifier) {
+    const current = this._definitions.find(
+      (d) =>
+        ts.isImportDeclaration(d) &&
+        ts.isStringLiteral(d.moduleSpecifier) &&
+        d.moduleSpecifier.text === from
+    ) as ts.ImportDeclaration;
+
+    if (current) {
+      if (!current.importClause) {
+        ts.factory.updateImportDeclaration(
+          current,
+          current.modifiers,
+          ts.factory.createImportClause(false, undefined, ts.factory.createNamedImports([])),
+          current.moduleSpecifier,
+          current.attributes
+        );
+      }
+
+      if (!current.importClause?.namedBindings) {
+        ts.factory.updateImportClause(
+          current.importClause!,
+          current.importClause!.isTypeOnly,
+          current.importClause!.name,
+          ts.factory.createNamedImports([specifier])
+        );
+      } else if (ts.isNamedImports(current.importClause.namedBindings)) {
+        console.log(JSON.stringify(current.importClause.namedBindings.elements));
+        if (
+          !current.importClause.namedBindings.elements.some(
+            (i) => i.name.escapedText === specifier.name.escapedText
+          )
+        ) {
+          console.log("not true");
+          ts.factory.updateImportClause(
+            current.importClause,
+            current.importClause!.isTypeOnly,
+            current.importClause!.name,
+            ts.factory.createNamedImports([
+              ...current.importClause.namedBindings.elements,
+              specifier,
+            ])
+          );
+
+          console.log(JSON.stringify(current.importClause.namedBindings.elements));
+        }
+      }
+    } else {
+      this._definitions.push(
+        ts.factory.createImportDeclaration(
+          undefined,
+          ts.factory.createImportClause(
+            false,
+            undefined,
+            ts.factory.createNamedImports([specifier])
+          ),
+          ts.factory.createStringLiteral(from)
+        )
+      );
+    }
+  }
+
+  protected _errorCheck() {
+    this._setImport(
+      "@aws-appsync/utils",
+      ts.factory.createImportSpecifier(false, undefined, ts.factory.createIdentifier("util"))
     );
 
-    if (fieldHasArgs) {
-      const argsRef = pascalCase(loader.typeName, loader.fieldName, "args");
-      this.code
-        .addImport("../schema-types", tc.named(argsRef))
-        .setContextArgs({ args: tc.typeRef(argsRef) });
-    }
-
-    if (loader.typeName !== "Query" && loader.typeName !== "Mutation") {
-      this.code
-        .addImport("../schema-types", tc.named(loader.typeName))
-        .setContextArgs({ source: tc.typeRef(loader.typeName) });
-    }
-  }
-
-  protected _getCommand() {
-    return [
-      tc.const("command", tc.call(tc.ref(`ctx.prev.result.commands.shift`), [])),
-      tc.if(
-        tc.not(tc.ref("command")),
-        tc.return(
-          tc.call(tc.ref("util.error"), [
-            tc.str("Undefined pipeline command"),
-            tc.str("PipelineCommandException"),
-          ])
-        )
+    return ts.factory.createIfStatement(
+      ts.factory.createPropertyAccessExpression(
+        ts.factory.createIdentifier("ctx"),
+        ts.factory.createIdentifier("error")
       ),
-    ];
+      ts.factory.createBlock([
+        ts.factory.createReturnStatement(
+          ts.factory.createCallExpression(
+            ts.factory.createPropertyAccessExpression(
+              ts.factory.createIdentifier("util"),
+              ts.factory.createIdentifier("error")
+            ),
+            undefined,
+            [
+              ts.factory.createPropertyAccessExpression(
+                ts.factory.createPropertyAccessExpression(
+                  ts.factory.createIdentifier("ctx"),
+                  ts.factory.createIdentifier("error")
+                ),
+                ts.factory.createIdentifier("message")
+              ),
+              ts.factory.createPropertyAccessExpression(
+                ts.factory.createPropertyAccessExpression(
+                  ts.factory.createIdentifier("ctx"),
+                  ts.factory.createIdentifier("error")
+                ),
+                ts.factory.createIdentifier("type")
+              ),
+            ]
+          )
+        ),
+      ]),
+      undefined
+    );
   }
 
-  protected _getKey(key: Key) {
-    this.code.addImport("@saapless/appsync-utils", tc.named("getValueAtPath"));
-    return parseKey(key);
+  protected _earlyReturn(fieldName: string) {
+    this._setImport(
+      "@aws-appsync/utils",
+      ts.factory.createImportSpecifier(false, undefined, ts.factory.createIdentifier("runtime"))
+    );
+
+    return ts.factory.createIfStatement(
+      ts.factory.createPropertyAccessChain(
+        ts.factory.createPropertyAccessExpression(
+          ts.factory.createIdentifier("ctx"),
+          ts.factory.createIdentifier("source")
+        ),
+        ts.factory.createToken(ts.SyntaxKind.QuestionDotToken),
+        ts.factory.createIdentifier(fieldName)
+      ),
+      ts.factory.createBlock([
+        ts.factory.createReturnStatement(
+          ts.factory.createCallExpression(
+            ts.factory.createPropertyAccessExpression(
+              ts.factory.createIdentifier("runtime"),
+              ts.factory.createIdentifier("earlyReturn")
+            ),
+            undefined,
+            [
+              ts.factory.createPropertyAccessExpression(
+                ts.factory.createPropertyAccessExpression(
+                  ts.factory.createIdentifier("ctx"),
+                  ts.factory.createIdentifier("source")
+                ),
+                ts.factory.createIdentifier(fieldName)
+              ),
+            ]
+          )
+        ),
+      ])
+    );
   }
 
-  public abstract generateTemplate(loader: LoaderDescriptor): void;
+  protected _formatResult(loader: LoaderDescriptor) {
+    switch (loader.returnType) {
+      case "connection": {
+        this._setImport(
+          "@saapless/appsync-utils",
+          ts.factory.createImportSpecifier(
+            false,
+            undefined,
+            ts.factory.createIdentifier("formatConnection")
+          )
+        );
+
+        return ts.factory.createCallExpression(
+          ts.factory.createIdentifier("formatConnection"),
+          undefined,
+          [
+            ts.factory.createObjectLiteralExpression(
+              [
+                ts.factory.createPropertyAssignment(
+                  ts.factory.createIdentifier("items"),
+                  ts.factory.createPropertyAccessExpression(
+                    ts.factory.createIdentifier("result"),
+                    ts.factory.createIdentifier("items")
+                  )
+                ),
+                ts.factory.createPropertyAssignment(
+                  ts.factory.createIdentifier("nextToken"),
+                  ts.factory.createPropertyAccessExpression(
+                    ts.factory.createIdentifier("result"),
+                    ts.factory.createIdentifier("nextToken")
+                  )
+                ),
+              ],
+              true
+            ),
+          ]
+        );
+      }
+    }
+  }
+
+  protected _getContextTypeName(loader: LoaderDescriptor, type: "req" | "res") {
+    if (isFieldLoader(loader)) {
+      return pascalCase(loader.typeName, loader.fieldName, type, "context");
+    } else if (isFunctionLoader(loader)) {
+      return pascalCase(loader.name, type, "context");
+    }
+
+    throw new TransformExecutionError("Invalid loader.");
+  }
+
+  protected _getRequestReturnType(loader: LoaderDescriptor) {
+    switch (loader.action.type) {
+      case "getItem": {
+        this._setImport(
+          "@aws-appsync/utils",
+          ts.factory.createImportSpecifier(
+            false,
+            undefined,
+            ts.factory.createIdentifier("DynamoDBGetItemRequest")
+          )
+        );
+        return ts.factory.createTypeReferenceNode("DynamoDBGetItemRequest");
+      }
+      case "putItem": {
+        this._setImport(
+          "@aws-appsync/utils",
+          ts.factory.createImportSpecifier(
+            false,
+            undefined,
+            ts.factory.createIdentifier("DynamoDBPutItemRequest")
+          )
+        );
+        return ts.factory.createTypeReferenceNode("DynamoDBPutItemRequest");
+      }
+      case "updateItem": {
+        this._setImport(
+          "@aws-appsync/utils",
+          ts.factory.createImportSpecifier(
+            false,
+            undefined,
+            ts.factory.createIdentifier("DynamoDBUpdateItemRequest")
+          )
+        );
+        return ts.factory.createTypeReferenceNode("DynamoDBUpdateItemRequest");
+      }
+      case "upsertItem": {
+        this._setImport(
+          "@aws-appsync/utils",
+          ts.factory.createImportSpecifier(
+            false,
+            undefined,
+            ts.factory.createIdentifier("DynamoDBUpdateItemRequest")
+          )
+        );
+        return ts.factory.createTypeReferenceNode("DynamoDBUpdateItemRequest");
+      }
+      case "removeItem": {
+        this._setImport(
+          "@aws-appsync/utils",
+          ts.factory.createImportSpecifier(
+            false,
+            undefined,
+            ts.factory.createIdentifier("DynamoDBDeleteItemRequest")
+          )
+        );
+        return ts.factory.createTypeReferenceNode("DynamoDBDeleteItemRequest");
+      }
+      case "queryItems": {
+        this._setImport(
+          "@aws-appsync/utils",
+          ts.factory.createImportSpecifier(
+            false,
+            undefined,
+            ts.factory.createIdentifier("DynamoDBQueryRequest")
+          )
+        );
+        return ts.factory.createTypeReferenceNode("DynamoDBQueryRequest");
+      }
+      case "batchGetItems": {
+        this._setImport(
+          "@aws-appsync/utils",
+          ts.factory.createImportSpecifier(
+            false,
+            undefined,
+            ts.factory.createIdentifier("DynamoDBBatchGetItemRequest")
+          )
+        );
+        return ts.factory.createTypeReferenceNode("DynamoDBBatchGetItemRequest");
+      }
+    }
+  }
+
+  protected _getResponseReturnType(loader: LoaderDescriptor) {
+    switch (loader.returnType) {
+      case "connection": {
+        const name = pascalCase(loader.targetName, "connection");
+        this._setImport(
+          "../schema-types",
+          ts.factory.createImportSpecifier(false, undefined, ts.factory.createIdentifier(name))
+        );
+
+        return ts.factory.createTypeReferenceNode(name);
+      }
+      case "edges": {
+        this._setImport(
+          "../schema-types",
+          ts.factory.createImportSpecifier(
+            false,
+            undefined,
+            ts.factory.createIdentifier(loader.targetName)
+          )
+        );
+
+        return ts.factory.createArrayTypeNode(
+          ts.factory.createTypeReferenceNode(loader.targetName)
+        );
+      }
+      case "prev":
+      case "result":
+      case "node": {
+        const name = pascalCase(loader.targetName);
+        this._setImport(
+          "../schema-types",
+          ts.factory.createImportSpecifier(false, undefined, ts.factory.createIdentifier(name))
+        );
+
+        return ts.factory.createTypeReferenceNode(name);
+      }
+    }
+  }
+
+  protected _setRequestFunction(loader: LoaderDescriptor, block: ts.Block) {
+    const ctx = this._getContextTypeName(loader, "req");
+    this._setImport(
+      "../resolver-types",
+      ts.factory.createImportSpecifier(false, undefined, ts.factory.createIdentifier(ctx))
+    );
+
+    this._definitions.push(
+      ts.factory.createFunctionDeclaration(
+        [ts.factory.createModifier(ts.SyntaxKind.ExportKeyword)],
+        undefined,
+        ts.factory.createIdentifier("request"),
+        undefined,
+        [
+          ts.factory.createParameterDeclaration(
+            undefined,
+            undefined,
+            ts.factory.createIdentifier("ctx"),
+            undefined,
+            ts.factory.createTypeReferenceNode(ctx)
+          ),
+        ],
+        this._getRequestReturnType(loader),
+        block
+      )
+    );
+  }
+
+  protected _setResponseFunction(loader: LoaderDescriptor, block: ts.Block) {
+    const ctx = this._getContextTypeName(loader, "res");
+    this._setImport(
+      "../resolver-types",
+      ts.factory.createImportSpecifier(false, undefined, ts.factory.createIdentifier(ctx))
+    );
+
+    this._definitions.push(
+      ts.factory.createFunctionDeclaration(
+        [ts.factory.createModifier(ts.SyntaxKind.ExportKeyword)],
+        undefined,
+        ts.factory.createIdentifier("response"),
+        undefined,
+        [
+          ts.factory.createParameterDeclaration(
+            undefined,
+            undefined,
+            ts.factory.createIdentifier("ctx"),
+            undefined,
+            ts.factory.createTypeReferenceNode(ctx)
+          ),
+        ],
+        this._getResponseReturnType(loader),
+        block
+      )
+    );
+  }
+
+  public abstract generateTemplate(loader: LoaderDescriptor): string;
 }

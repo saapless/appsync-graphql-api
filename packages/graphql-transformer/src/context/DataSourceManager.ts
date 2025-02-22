@@ -1,4 +1,3 @@
-import { CodeDocument } from "../codegen";
 import { DynamoDbGenerator, NoneGenerator, ResolverGeneratorBase } from "../generators";
 import { TransformExecutionError } from "../utils/errors";
 import { TransformerContext } from "./TransformerContext";
@@ -80,14 +79,14 @@ export class DataSourceManager {
     return dataSource;
   }
 
-  public getDataSourceGenerator(dataSourceName: string, code: CodeDocument): ResolverGeneratorBase {
+  public getDataSourceGenerator(dataSourceName: string): ResolverGeneratorBase {
     const dataSource = this.getDataSource(dataSourceName);
 
     switch (dataSource.type) {
       case "DYNAMO_DB":
-        return new DynamoDbGenerator(this._context, code);
+        return new DynamoDbGenerator(this._context);
       case "NONE":
-        return new NoneGenerator(this._context, code);
+        return new NoneGenerator(this._context);
       default:
         throw new TransformExecutionError(
           `Generator not implemented for data source type: ${dataSource}`

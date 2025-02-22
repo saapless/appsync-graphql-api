@@ -73,7 +73,7 @@ export class ConnectionPlugin extends TransformerPluginBase {
   }
 
   private _createIntFilterInput() {
-    const input = InputObjectNode.create("ModelIntFilterInput", [
+    const input = InputObjectNode.create("IntFilterInput", [
       InputValueNode.create("ne", NamedTypeNode.create("Int")),
       InputValueNode.create("eq", NamedTypeNode.create("Int")),
       InputValueNode.create("le", NamedTypeNode.create("Int")),
@@ -344,22 +344,22 @@ export class ConnectionPlugin extends TransformerPluginBase {
         switch (field.type.getTypeName()) {
           case "ID":
             filterInput.addField(
-              InputValueNode.create(field.name, NamedTypeNode.create(`ModelIDInput`))
+              InputValueNode.create(field.name, NamedTypeNode.create(`IDFilterInput`))
             );
             continue;
           case "Int":
             filterInput.addField(
-              InputValueNode.create(field.name, NamedTypeNode.create("ModelIntInput"))
+              InputValueNode.create(field.name, NamedTypeNode.create("IntFilterInput"))
             );
             continue;
           case "Float":
             filterInput.addField(
-              InputValueNode.create(field.name, NamedTypeNode.create("ModelFloatInput"))
+              InputValueNode.create(field.name, NamedTypeNode.create("FloatFilterInput"))
             );
             continue;
           case "Boolean":
             filterInput.addField(
-              InputValueNode.create(field.name, NamedTypeNode.create("ModelBooleanInput"))
+              InputValueNode.create(field.name, NamedTypeNode.create("BooleanFilterInput"))
             );
             continue;
           case "String":
@@ -373,7 +373,7 @@ export class ConnectionPlugin extends TransformerPluginBase {
           case "AWSPhone":
           case "AWSIPAddress":
             filterInput.addField(
-              InputValueNode.create(field.name, NamedTypeNode.create("ModelStringInput"))
+              InputValueNode.create(field.name, NamedTypeNode.create("StringFilterInput"))
             );
             continue;
         }
@@ -440,22 +440,22 @@ export class ConnectionPlugin extends TransformerPluginBase {
         if (connection.relation === "manyToMany") {
           edgeType
             .addField(
-              FieldNode.create("id", NamedTypeNode.create("ID"), null, [
+              FieldNode.create("id", NonNullTypeNode.create("ID"), null, [
                 DirectiveNode.create("serverOnly"),
               ])
             )
             .addField(
-              FieldNode.create("_sk", NamedTypeNode.create("ID"), null, [
+              FieldNode.create("_sk", NonNullTypeNode.create("ID"), null, [
                 DirectiveNode.create("serverOnly"),
               ])
             )
             .addField(
-              FieldNode.create("sourceId", NamedTypeNode.create("ID"), null, [
+              FieldNode.create("sourceId", NonNullTypeNode.create("ID"), null, [
                 DirectiveNode.create("writeOnly"),
               ])
             )
             .addField(
-              FieldNode.create("targetId", NamedTypeNode.create("ID"), null, [
+              FieldNode.create("targetId", NonNullTypeNode.create("ID"), null, [
                 DirectiveNode.create("writeOnly"),
               ])
             );
@@ -567,7 +567,7 @@ export class ConnectionPlugin extends TransformerPluginBase {
       const connectionTypeName = pascalCase(target.name, "connection");
 
       this.context.loader.setFieldLoader(parent.name, field.name, {
-        targetName: target.name,
+        targetName: pascalCase(target.name, "edge"),
         dataSource: this.context.dataSources.primaryDataSourceName,
         action: {
           type: "queryItems",
@@ -581,11 +581,13 @@ export class ConnectionPlugin extends TransformerPluginBase {
       });
 
       this.context.loader.setFieldLoader(connectionTypeName, "edges", {
+        targetName: target.name,
         dataSource: this.context.dataSources.primaryDataSourceName,
         action: {
           type: "batchGetItems",
           key: { keys: { ref: "source.edgeKeys" } },
         },
+        returnType: "edges",
       });
     }
   }

@@ -10,6 +10,7 @@ import { ensureOutputDirectory } from "../utils/output";
 import { SchemaTypesGenerator } from "../generators";
 import { FieldResolver, FunctionResolver, ResolverBase } from "../resolver";
 import { TransformerContextConfig } from "../context/TransformerContext";
+import { ResolverTypesGenerator } from "../generators/ResolverTypesGenerator";
 
 export interface GraphQLTransformerOptions extends Omit<TransformerContextConfig, "document"> {
   definition: string;
@@ -61,13 +62,22 @@ export class GraphQLTransformer {
     return plugins.map((factory) => factory.create(context));
   }
 
-  private _printSchemaTypes() {
-    const outputPath = ensureOutputDirectory(this._outDir);
+  private _printSchemaTypes(outDir: string) {
     const typesGen = new SchemaTypesGenerator(this.context);
 
     writeFileSync(
-      path.resolve(outputPath, "schema-types.ts"),
+      path.resolve(outDir, "schema-types.ts"),
       prettier.format(typesGen.generate("schema-types.ts"), { parser: "typescript" }),
+      { encoding: "utf-8" }
+    );
+  }
+
+  private _printResolverTypes(outDir: string) {
+    const typesGen = new ResolverTypesGenerator(this.context);
+
+    writeFileSync(
+      path.resolve(outDir, "resolver-types.ts"),
+      prettier.format(typesGen.generate("resolver-types.ts"), { parser: "typescript" }),
       { encoding: "utf-8" }
     );
   }
@@ -190,9 +200,9 @@ export class GraphQLTransformer {
     return { fieldResolvers, pipelineFunctions };
   }
 
-  private _generateResources() {
-    this._printSchema(this._outDir);
-    this._printResolvers(this._outDir);
+  private _generateResources(outDir: string) {
+    this._printSchema(outDir);
+    this._printResolvers(outDir);
   }
 
   public transform(): TransformerOutput {
@@ -239,7 +249,10 @@ export class GraphQLTransformer {
       plugin.after();
     }
 
-    this._printSchemaTypes();
+    const outputPath = ensureOutputDirectory(this._outDir);
+
+    this._printSchemaTypes(outputPath);
+    this._printResolverTypes(outputPath);
 
     for (const definition of this.context.document.definitions.values()) {
       for (const plugin of this.plugins) {
@@ -249,7 +262,7 @@ export class GraphQLTransformer {
       }
     }
 
-    this._generateResources();
+    this._generateResources(outputPath);
 
     const { fieldResolvers, pipelineFunctions } = this._buildResolvers();
 

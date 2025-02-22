@@ -135,12 +135,10 @@ export class ResolverManager {
 
   private _generateResolver(resolver: ResolverBase, loader: LoaderDescriptor) {
     if (!resolver.isReadonly) {
-      const generator = this._context.dataSources.getDataSourceGenerator(
-        resolver.dataSource!,
-        resolver.code
-      );
+      const generator = this._context.dataSources.getDataSourceGenerator(resolver.dataSource!);
 
-      generator.generateTemplate(loader);
+      const code = generator.generateTemplate(loader);
+      resolver.setCode(code);
     }
   }
 

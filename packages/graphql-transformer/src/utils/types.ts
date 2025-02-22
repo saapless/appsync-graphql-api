@@ -64,6 +64,7 @@ export type LoaderDescriptor = {
   dataSource: string;
   targetName: string;
   action: LoaderAction;
+  checkEarlyReturn?: boolean;
   authRules?: AuthorizationRule[];
   returnType?: LoaderReturnType;
 };

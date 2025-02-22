@@ -37,6 +37,80 @@ type PageInfo {
   endCursor: String
 }
 
+input SizeFilterInput {
+  ne: Int
+  eq: Int
+  le: Int
+  lt: Int
+  ge: Int
+  gt: Int
+  between: [Int!]
+}
+
+input StringFilterInput {
+  ne: String
+  eq: String
+  le: String
+  lt: String
+  ge: String
+  gt: String
+  in: [String!]
+  contains: String
+  notContains: String
+  between: [String!]
+  beginsWith: String
+  attributeExists: Boolean
+  size: SizeFilterInput
+}
+
+input IntFilterInput {
+  ne: Int
+  eq: Int
+  le: Int
+  lt: Int
+  ge: Int
+  gt: Int
+  in: [Int!]
+  between: [Int!]
+  attributeExists: Boolean
+}
+
+input FloatFilterInput {
+  ne: Float
+  eq: Float
+  le: Float
+  lt: Float
+  ge: Float
+  gt: Float
+  in: [Float!]
+  between: [Float!]
+  attributeExists: Boolean
+}
+
+input BooleanFilterInput {
+  ne: Boolean
+  eq: Boolean
+  attributeExists: Boolean
+}
+
+input IDFilterInput {
+  ne: ID
+  eq: ID
+  in: [ID!]
+  attributeExists: Boolean
+}
+
+input ListFilterInput {
+  contains: String
+  notContains: String
+  size: SizeFilterInput
+}
+
+enum SortDirection {
+  ASC
+  DESC
+}
+
 type TodoConnection {
   edges: [TodoEdge!]!
   pageInfo: PageInfo!
@@ -48,8 +122,8 @@ type TodoEdge {
 }
 
 input TodoFilterInput {
-  id: ModelIDInput
-  content: ModelStringInput
+  id: IDFilterInput
+  content: StringFilterInput
   and: [TodoFilterInput]
   or: [TodoFilterInput]
   not: TodoFilterInput
@@ -66,9 +140,9 @@ type ResourceEdge {
 }
 
 input ResourceFilterInput {
-  __typename: ModelStringInput
-  url: ModelStringInput
-  content: ModelStringInput
+  __typename: StringFilterInput
+  url: StringFilterInput
+  content: StringFilterInput
   and: [ResourceFilterInput]
   or: [ResourceFilterInput]
   not: ResourceFilterInput

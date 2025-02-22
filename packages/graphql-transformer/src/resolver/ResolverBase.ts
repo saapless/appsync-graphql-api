@@ -1,5 +1,4 @@
 import type { OutputFile } from "esbuild";
-import { CodeDocument } from "../codegen";
 
 export enum ResolverKind {
   FIELD_RESOLVER = "FieldResolver",
@@ -22,15 +21,14 @@ export enum ResolverKind {
 export class ResolverBase {
   private readonly _name: string;
   public readonly isReadonly: boolean = false;
-  public readonly code: CodeDocument;
   public readonly dataSource?: string;
+  private _code?: string;
   public source?: string;
   public output?: OutputFile;
 
   constructor(name: string, dataSource?: string, source?: string, isReadonly = false) {
     this._name = name;
     this.dataSource = dataSource;
-    this.code = CodeDocument.create();
     this.source = source;
     this.isReadonly = isReadonly;
   }
@@ -43,8 +41,12 @@ export class ResolverBase {
     this.output = output;
   }
 
+  public setCode(code: string) {
+    this._code = code;
+  }
+
   public print(): string {
-    return this.code.print();
+    return this._code ?? "";
   }
 
   static fromSource(name: string, source: string, dataSource?: string) {

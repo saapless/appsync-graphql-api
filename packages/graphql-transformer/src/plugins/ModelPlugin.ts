@@ -234,7 +234,7 @@ export class ModelPlugin extends TransformerPluginBase {
     const inputName = pascalCase(verb, model.name, "input");
 
     if (verb === "delete") {
-      this._createDeleteMutationField(model, inputName);
+      this._createDeleteMutationField(model, fieldName);
     } else {
       this._createMutationField(model, fieldName, inputName, verb);
     }
@@ -245,6 +245,7 @@ export class ModelPlugin extends TransformerPluginBase {
         key: { id: { ref: "args.input.id" } },
       },
       targetName: model.name,
+      returnType: "result",
     });
   }
 

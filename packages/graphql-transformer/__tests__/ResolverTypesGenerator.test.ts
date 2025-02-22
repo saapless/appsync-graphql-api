@@ -33,7 +33,7 @@ const context = new TransformerContext({
   dataSourceConfig: TEST_DS_CONFIG,
 });
 
-describe("SchemaTypesGenerator", () => {
+describe("ResolverTypesGenerator", () => {
   beforeAll(() => {
     context.loader.setFieldLoader("Query", "me", {
       targetName: "User",
@@ -71,7 +71,7 @@ describe("SchemaTypesGenerator", () => {
     });
   });
 
-  it("genrates schema types", () => {
+  it("generates resolver context types", () => {
     const generator = new ResolverTypesGenerator(context);
 
     const types = generator.generate("resolver-types.ts");

@@ -190,9 +190,7 @@ describe("GraphQLTransformer", () => {
       it("created operation inputs & types", () => {
         expect(context.document.getNode("CreateUserInput")).toBeDefined();
         expect(context.document.getNode("UpdateUserInput")).toBeDefined();
-        expect(context.document.getNode("DeleteUserInput")).toBeDefined();
         expect(context.document.getNode("UpsertTaskInput")).toBeDefined();
-        expect(context.document.getNode("DeleteTaskInput")).toBeDefined();
       });
     });
   });
