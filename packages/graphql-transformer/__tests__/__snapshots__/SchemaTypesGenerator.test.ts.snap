@@ -5,34 +5,31 @@ exports[`SchemaTypesGenerator genrates schema types 1`] = `
 export type User = {
     id: string;
     name: string;
-    tasks?: Maybe<Task>;
 };
-export type Task = {
+export type CreateUserInput = {
+    id?: Maybe<string>;
+    name?: Maybe<string>;
+};
+export type UpdateUserInput = {
     id: string;
-    name: string;
-    user?: Maybe<User>;
+    name?: Maybe<string>;
 };
-export type CreateTaskInput = {
-    name: string;
-    userId: string;
+export type Query = {
+    me?: Maybe<User>;
 };
-export type UpdateTaskInput = {
-    id: string;
-    name: string;
+export type MutationCreateUserArgs = {
+    input: CreateUserInput;
 };
-export type MutationCreateTaskArgs = {
-    input: CreateTaskInput;
+export type MutationUpdateUserArgs = {
+    input: UpdateUserInput;
 };
-export type MutationUpdateTaskArgs = {
-    input: UpdateTaskInput;
-};
-export type MutationDeleteTaskArgs = {
+export type MutationDeleteUserArgs = {
     id: string;
 };
 export type Mutation = {
-    createTask?: Maybe<Task>;
-    updateTask?: Maybe<Task>;
-    deleteTask?: Maybe<Task>;
+    createUser?: Maybe<User>;
+    updateUser?: Maybe<User>;
+    deleteUser?: Maybe<User>;
 };
 "
 `;

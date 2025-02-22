@@ -17,7 +17,7 @@ import {
 } from "../definition";
 import { TransformPluginExecutionError } from "../utils/errors";
 import { camelCase, pascalCase, pluralize } from "../utils/strings";
-import { AuthorizationRule, LoaderActionType, WriteOperation } from "../utils/types";
+import { LoaderActionType, WriteOperation } from "../utils/types";
 import { TransformerPluginBase } from "./TransformerPluginBase";
 
 type ModelOperationType =
@@ -208,7 +208,7 @@ export class ModelPlugin extends TransformerPluginBase {
     }
   }
 
-  private _createMutationFields(
+  private _createMutationField(
     model: ObjectNode,
     fieldName: string,
     inputName: string,
@@ -236,12 +236,8 @@ export class ModelPlugin extends TransformerPluginBase {
     if (verb === "delete") {
       this._createDeleteMutationField(model, inputName);
     } else {
-      this._createMutationFields(model, fieldName, inputName, verb);
+      this._createMutationField(model, fieldName, inputName, verb);
     }
-
-    const authRules = model
-      .getDirective("auth")
-      ?.getArgumentsJSON<{ rules: AuthorizationRule[] }>();
 
     this.context.loader.setFieldLoader("Mutation", fieldName, {
       action: {
@@ -249,7 +245,6 @@ export class ModelPlugin extends TransformerPluginBase {
         key: { id: { ref: "args.input.id" } },
       },
       targetName: model.name,
-      authRules: authRules?.rules,
     });
   }
 

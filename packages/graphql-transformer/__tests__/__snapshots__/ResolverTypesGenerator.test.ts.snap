@@ -1,0 +1,49 @@
+// Jest Snapshot v1, https://goo.gl/fbAQLP
+
+exports[`SchemaTypesGenerator genrates schema types 1`] = `
+"import { type Context } from "@aws-appsync/utils";
+import type * as Schema from "./schema-types.ts";
+export type Key = {
+    id: string;
+};
+export type DynamoDBQueryResult<T extends Key = Key> = {
+    items: T[];
+    nextToken: string | null;
+    scannedCount: number;
+};
+export type TrasactionCancellationReason = {
+    type: string;
+    message: string;
+};
+export type DynamoDBBatchResult<T extends Key = Key> = {
+    data: {
+        [K: string]: (T | null)[];
+    };
+    unprocessedKeys: {
+        [K: string]: Key[];
+    };
+};
+export type DynamoDBTransactGetResult<T extends Key = Key> = {
+    items: T[];
+    cancellationReasons: null;
+} | {
+    items: null;
+    cancellationReasons: TrasactionCancellationReason[];
+};
+export type DynamoDBTransactWriteResult = {
+    keys: Key[];
+    cancellationReasons: null;
+} | {
+    keys: null;
+    cancellationReasons: TrasactionCancellationReason[];
+};
+export type QueryMeReqContext = Context<Record<string, unknown>, Record<string, unknown>, undefined, undefined, undefined>;
+export type QueryMeResContext = Context<Record<string, unknown>, Record<string, unknown>, undefined, undefined, Schema.User>;
+export type MutationCreateUserReqContext = Context<MutationCreateUserArgs, Record<string, unknown>, undefined, undefined, undefined>;
+export type MutationCreateUserResContext = Context<MutationCreateUserArgs, Record<string, unknown>, undefined, undefined, Schema.User>;
+export type MutationUpdateUserReqContext = Context<MutationUpdateUserArgs, Record<string, unknown>, undefined, undefined, undefined>;
+export type MutationUpdateUserResContext = Context<MutationUpdateUserArgs, Record<string, unknown>, undefined, undefined, Schema.User>;
+export type MutationDeleteUserReqContext = Context<MutationDeleteUserArgs, Record<string, unknown>, undefined, undefined, undefined>;
+export type MutationDeleteUserResContext = Context<MutationDeleteUserArgs, Record<string, unknown>, undefined, undefined, Schema.User>;
+"
+`;

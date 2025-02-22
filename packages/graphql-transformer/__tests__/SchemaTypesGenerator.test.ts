@@ -5,32 +5,29 @@ import { SchemaTypesGenerator } from "../src/generators";
 
 const context = new TransformerContext({
   document: DocumentNode.fromSource(/* GraphQL */ `
-    type User @model @auth(rules: [{ allow: owner }]) {
+    type User {
       id: ID!
       name: String!
-      tasks: Task @hasMany
     }
 
-    type Task @model @auth(rules: [{ allow: owner }]) {
+    input CreateUserInput {
+      id: ID
+      name: String
+    }
+
+    input UpdateUserInput {
       id: ID!
-      name: String!
-      user: User
+      name: String
     }
 
-    type CreateTaskInput {
-      name: String!
-      userId: ID!
-    }
-
-    type UpdateTaskInput {
-      id: ID!
-      name: String!
+    type Query {
+      me: User
     }
 
     type Mutation {
-      createTask(input: CreateTaskInput!): Task
-      updateTask(input: UpdateTaskInput!): Task
-      deleteTask(id: ID!): Task
+      createUser(input: CreateUserInput!): User
+      updateUser(input: UpdateUserInput!): User
+      deleteUser(id: ID!): User
     }
   `),
   dataSourceConfig: TEST_DS_CONFIG,
@@ -39,6 +36,7 @@ const context = new TransformerContext({
 describe("SchemaTypesGenerator", () => {
   it("genrates schema types", () => {
     const generator = new SchemaTypesGenerator(context);
+
     const types = generator.generate("schema-types.ts");
     expect(types).toMatchSnapshot();
   });
