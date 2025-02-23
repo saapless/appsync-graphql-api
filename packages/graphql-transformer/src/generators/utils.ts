@@ -1,5 +1,4 @@
-/* eslint-disable security/detect-object-injection */
-
+import ts from "typescript";
 import {
   FieldLoaderDescriptor,
   Key,
@@ -7,28 +6,26 @@ import {
   LoaderDescriptor,
   PipelineFunctionLoaderDescriptor,
 } from "../utils/types";
-import { PropertyValue, tc } from "../codegen";
 
-export function formatValue(value: unknown): PropertyValue {
+export function formatValue(value: unknown): ts.Expression {
   if (typeof value === "string") {
-    return tc.str(value);
+    return ts.factory.createStringLiteral(value);
   } else if (typeof value === "number") {
-    return tc.num(value);
+    return ts.factory.createNumericLiteral(value);
   } else if (typeof value === "boolean") {
-    return tc.bool(value);
+    return value === true ? ts.factory.createTrue() : ts.factory.createFalse();
   } else if (Array.isArray(value)) {
-    return tc.arr(...value.map((v) => formatValue(v)));
+    return ts.factory.createArrayLiteralExpression(value.map((v) => formatValue(v)));
   } else if (value === null) {
-    return tc.null();
+    return ts.factory.createNull();
   } else if (typeof value === "object") {
-    return tc.obj(
-      Object.entries(value).reduce(
-        (agg, [n, v]) => {
-          agg[n] = formatValue(v);
-          return agg;
-        },
-        {} as Record<string, PropertyValue>
-      )
+    return ts.factory.createObjectLiteralExpression(
+      Object.entries(value).reduce((agg, [n, v]) => {
+        agg.push(
+          ts.factory.createPropertyAssignment(ts.factory.createIdentifier(n), formatValue(v))
+        );
+        return agg;
+      }, [] as ts.ObjectLiteralElementLike[])
     );
   } else {
     throw new Error("Invalid value");
@@ -39,13 +36,25 @@ export function keyValue<T extends string | number>(obj: KeyValue<T>) {
   if (obj.ref) {
     // `ctx.source` is typed as optional in Context
 
-    // if (obj.ref.startsWith("source")) {
-    //   obj.ref = obj.ref.replace("source", "source?");
-    // }
+    if (obj.ref.includes("source")) {
+      obj.ref = obj.ref.replace("source", "source?");
+    }
 
-    return tc.call(tc.ref("getValueAtPath"), [tc.ref("ctx"), tc.str(obj.ref)]);
+    if (obj.ref.startsWith("ctx")) {
+      return ts.factory.createIdentifier(obj.ref);
+    }
+
+    return ts.factory.createPropertyAccessExpression(
+      ts.factory.createIdentifier("ctx"),
+      ts.factory.createIdentifier(obj.ref)
+    );
   }
-  if (obj.eq) return typeof obj.eq === "string" ? tc.str(obj.eq) : tc.num(obj.eq);
+
+  if (obj.eq) {
+    return typeof obj.eq === "string"
+      ? ts.factory.createStringLiteral(obj.eq)
+      : ts.factory.createNumericLiteral(obj.eq);
+  }
   throw new Error("Invalid key value");
 }
 
@@ -60,29 +69,104 @@ export function isFunctionLoader(
 }
 
 export function parseKey(key: Key) {
-  return tc.obj(
-    Object.entries(key).reduce(
-      (agg, [name, op]) => {
-        if (op.ref || op.eq) {
-          Object.assign(agg, { [name]: keyValue(op) });
-        } else if (op.le) {
-          Object.assign(agg, { [name]: tc.obj({ le: keyValue(op.le) }) });
-        } else if (op.lt) {
-          Object.assign(agg, { [name]: tc.obj({ lt: keyValue(op.lt) }) });
-        } else if (op.ge) {
-          Object.assign(agg, { [name]: tc.obj({ ge: keyValue(op.ge) }) });
-        } else if (op.gt) {
-          Object.assign(agg, { [name]: tc.obj({ gt: keyValue(op.gt) }) });
-        } else if (op.between) {
-          Object.assign(agg, {
-            [name]: tc.obj({ between: tc.arr(...op.between.map((i) => keyValue(i))) }),
-          });
-        } else if (op.beginsWith) {
-          Object.assign(agg, { [name]: tc.obj({ beginsWith: keyValue(op.beginsWith) }) });
-        }
-        return agg;
-      },
-      {} as Record<string, PropertyValue>
-    )
+  return ts.factory.createObjectLiteralExpression(
+    Object.entries(key).reduce((agg, [name, op]) => {
+      if (op.ref || op.eq) {
+        agg.push(
+          ts.factory.createPropertyAssignment(ts.factory.createIdentifier(name), keyValue(op))
+        );
+      } else if (op.le) {
+        agg.push(
+          ts.factory.createPropertyAssignment(
+            ts.factory.createIdentifier(name),
+            ts.factory.createObjectLiteralExpression(
+              [
+                ts.factory.createPropertyAssignment(
+                  ts.factory.createIdentifier("le"),
+                  keyValue(op.le)
+                ),
+              ],
+              true
+            )
+          )
+        );
+      } else if (op.lt) {
+        agg.push(
+          ts.factory.createPropertyAssignment(
+            ts.factory.createIdentifier(name),
+            ts.factory.createObjectLiteralExpression(
+              [
+                ts.factory.createPropertyAssignment(
+                  ts.factory.createIdentifier("lt"),
+                  keyValue(op.lt)
+                ),
+              ],
+              true
+            )
+          )
+        );
+      } else if (op.ge) {
+        agg.push(
+          ts.factory.createPropertyAssignment(
+            ts.factory.createIdentifier(name),
+            ts.factory.createObjectLiteralExpression(
+              [
+                ts.factory.createPropertyAssignment(
+                  ts.factory.createIdentifier("ge"),
+                  keyValue(op.ge)
+                ),
+              ],
+              true
+            )
+          )
+        );
+      } else if (op.gt) {
+        agg.push(
+          ts.factory.createPropertyAssignment(
+            ts.factory.createIdentifier(name),
+            ts.factory.createObjectLiteralExpression(
+              [
+                ts.factory.createPropertyAssignment(
+                  ts.factory.createIdentifier("gt"),
+                  keyValue(op.gt)
+                ),
+              ],
+              true
+            )
+          )
+        );
+      } else if (op.between) {
+        agg.push(
+          ts.factory.createPropertyAssignment(
+            ts.factory.createIdentifier(name),
+            ts.factory.createObjectLiteralExpression(
+              [
+                ts.factory.createPropertyAssignment(
+                  ts.factory.createIdentifier("between"),
+                  ts.factory.createArrayLiteralExpression(op.between.map((i) => keyValue(i)))
+                ),
+              ],
+              true
+            )
+          )
+        );
+      } else if (op.beginsWith) {
+        agg.push(
+          ts.factory.createPropertyAssignment(
+            ts.factory.createIdentifier(name),
+            ts.factory.createObjectLiteralExpression(
+              [
+                ts.factory.createPropertyAssignment(
+                  ts.factory.createIdentifier("beginsWith"),
+                  keyValue(op.beginsWith)
+                ),
+              ],
+              true
+            )
+          )
+        );
+      }
+      return agg;
+    }, [] as ts.ObjectLiteralElementLike[])
   );
 }

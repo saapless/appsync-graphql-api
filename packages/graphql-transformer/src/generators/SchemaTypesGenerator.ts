@@ -5,8 +5,10 @@ import {
   InputObjectNode,
   InputValueNode,
   InterfaceNode,
+  ListTypeNode,
   NonNullTypeNode,
   ObjectNode,
+  TypeNode,
   UnionNode,
 } from "../definition";
 import { pascalCase } from "../utils/strings";
@@ -61,6 +63,16 @@ export class SchemaTypesGenerator extends GeneratorBase {
     }
   }
 
+  private _fieldType(type: TypeNode): ts.TypeNode {
+    if (type instanceof NonNullTypeNode) {
+      return this._fieldType(type.type);
+    } else if (type instanceof ListTypeNode) {
+      return ts.factory.createArrayTypeNode(this._value(type.getTypeName()));
+    } else {
+      return this._value(type.getTypeName());
+    }
+  }
+
   private _field(field: FieldNode | InputValueNode) {
     return ts.factory.createPropertySignature(
       undefined,
@@ -69,8 +81,8 @@ export class SchemaTypesGenerator extends GeneratorBase {
         ? undefined
         : ts.factory.createToken(ts.SyntaxKind.QuestionToken),
       field.type instanceof NonNullTypeNode
-        ? this._value(field.type.getTypeName())
-        : ts.factory.createTypeReferenceNode("Maybe", [this._value(field.type.getTypeName())])
+        ? this._fieldType(field.type.type)
+        : ts.factory.createTypeReferenceNode("Maybe", [this._fieldType(field.type)])
     );
   }
 

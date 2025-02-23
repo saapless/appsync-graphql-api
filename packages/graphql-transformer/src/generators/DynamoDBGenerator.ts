@@ -2,7 +2,7 @@ import type { LoaderDescriptor } from "../utils/types";
 import ts from "typescript";
 import { TransformerContext } from "../context";
 import { TransformExecutionError } from "../utils/errors";
-import { isFieldLoader, isFunctionLoader } from "./utils";
+import { parseKey } from "./utils";
 import { ResolverGeneratorBase } from "./ResolverGeneratorBase";
 
 export class DynamoDbGenerator extends ResolverGeneratorBase {
@@ -10,239 +10,502 @@ export class DynamoDbGenerator extends ResolverGeneratorBase {
     super(context);
   }
 
-  // // #region Operations
-  // private _getItem(descriptor: LoaderDescriptor) {
-  //   this.code.addImport("@aws-appsync/utils/dynamodb", tc.named("get"));
-  //   this.code.setRequest(
-  //     tc.return(tc.call(tc.ref("get"), tc.obj({ key: this._getKey(descriptor.action.key) })))
-  //   );
-  // }
+  // #region Operations
 
-  // private _queryItems(descriptor: LoaderDescriptor) {
-  //   this.code.addImport("@aws-appsync/utils/dynamodb", tc.named("query"));
-  //   this.code.setRequest(
-  //     tc.return(
-  //       tc.call(
-  //         tc.ref("query"),
-  //         tc.obj({
-  //           query: this._getKey(descriptor.action.key),
-  //           filter: tc.ref("ctx.args.filter"),
-  //           limit: tc.coalesce(tc.ref("ctx.args.first"), tc.num(100)),
-  //           nextToken: tc.coalesce(tc.ref("ctx.args.after"), tc.undef()),
-  //           scanIndexForward: tc.eq(tc.ref("ctx.args.sort"), tc.str("ASC")),
-  //           index: descriptor.action.index ? tc.str(descriptor.action.index) : tc.undef(),
-  //         })
-  //       )
-  //     )
-  //   );
-  // }
+  private _getItem(descriptor: LoaderDescriptor) {
+    this._setImport(
+      "@aws-appsync/utils/dynamodb",
+      ts.factory.createImportSpecifier(false, undefined, ts.factory.createIdentifier("get"))
+    );
 
-  // private _putItem(descriptor: LoaderDescriptor) {
-  //   const typename: string = descriptor.targetName;
+    return ts.factory.createCallExpression(ts.factory.createIdentifier("get"), undefined, [
+      ts.factory.createObjectLiteralExpression([
+        ts.factory.createPropertyAssignment("key", parseKey(descriptor.action.key)),
+      ]),
+    ]);
+  }
 
-  //   this.code.addImport("@aws-appsync/utils/dynamodb", tc.named("put")).setRequest(
-  //     tc.const(tc.obj(tc.ref("input")), tc.ref("ctx.args")),
-  //     tc.const("id", tc.coalesce(tc.ref("input.id"), tc.call(tc.ref("util.autoId"), []))),
-  //     tc.const(
-  //       "createdAt",
-  //       tc.coalesce(tc.ref("input.createdAt"), tc.call(tc.ref("util.time.nowISO8601"), []))
-  //     ),
-  //     tc.const(
-  //       "item",
-  //       tc.obj(tc.spread("input"), {
-  //         id: tc.ref("id"),
-  //         createdAt: tc.ref("createdAt"),
-  //         updatedAt: tc.coalesce(tc.ref("input.updatedAt"), tc.ref("createdAt")),
-  //         __typename: tc.str(typename),
-  //         _sk: tc.tick(`${typename}#\${id}`),
-  //         _version: tc.coalesce(tc.ref("input._version"), tc.num(1)),
-  //       })
-  //     ),
-  //     tc.return(
-  //       tc.call(
-  //         tc.ref("put"),
-  //         tc.obj({
-  //           key: tc.obj({ id: tc.ref("item.id") }),
-  //           item: tc.ref("item"),
-  //           condition: tc.obj({
-  //             id: tc.obj({
-  //               attributeExists: tc.bool(false),
-  //             }),
-  //           }),
-  //         })
-  //       )
-  //     )
-  //   );
-  // }
+  private _queryItems(descriptor: LoaderDescriptor) {
+    this._setImport(
+      "@aws-appsync/utils/dynamodb",
+      ts.factory.createImportSpecifier(false, undefined, ts.factory.createIdentifier("query"))
+    );
 
-  // private _updateItem() {
-  //   this.code
-  //     .addImport("@aws-appsync/utils/dynamodb", tc.named("update"), tc.named("operations"))
-  //     .setRequest(
-  //       tc.const(tc.obj(tc.ref("input")), tc.ref("ctx.args")),
-  //       tc.const(
-  //         "updatedAt",
-  //         tc.coalesce(tc.ref("input.updatedAt"), tc.call(tc.ref("util.time.nowISO8601"), []))
-  //       ),
-  //       tc.const(
-  //         "attributes",
-  //         tc.obj(tc.spread("input"), {
-  //           id: tc.ref("input.id"),
-  //           updatedAt: tc.ref("updatedAt"),
-  //         })
-  //       ),
-  //       tc.const(
-  //         tc.ref("item", tc.typeRef("Record", [tc.typeRef("string"), tc.typeRef("unknown")])),
-  //         tc.obj({ _version: tc.call(tc.ref("operations.increment"), [tc.num(1)]) })
-  //       ),
-  //       tc.forOf(
-  //         tc.const(tc.arr(tc.ref("key"), tc.ref("value"))),
-  //         tc.call(tc.ref("Object.entries"), [tc.ref("attributes")]),
-  //         tc.assign(tc.ref("item[key]"), tc.call(tc.ref("operations.replace"), [tc.ref("value")]))
-  //       ),
-  //       tc.return(
-  //         tc.call(
-  //           tc.ref("update"),
-  //           tc.obj({
-  //             key: tc.obj({ id: tc.ref("input.id") }),
-  //             update: tc.ref("item"),
-  //             condition: tc.obj({
-  //               id: tc.obj({
-  //                 attributeExists: tc.bool(true),
-  //               }),
-  //               _version: tc.obj({ eq: tc.ref("input._version") }),
-  //             }),
-  //           })
-  //         )
-  //       )
-  //     );
-  // }
+    return ts.factory.createCallExpression(ts.factory.createIdentifier("query"), undefined, [
+      ts.factory.createObjectLiteralExpression(
+        [
+          ts.factory.createPropertyAssignment("query", parseKey(descriptor.action.key)),
+          ts.factory.createPropertyAssignment(
+            "filter",
+            ts.factory.createIdentifier("ctx.args.filter")
+          ),
+          ts.factory.createPropertyAssignment(
+            "limit",
+            ts.factory.createBinaryExpression(
+              ts.factory.createIdentifier("ctx.args.first"),
+              ts.factory.createToken(ts.SyntaxKind.QuestionQuestionToken),
+              ts.factory.createNumericLiteral(100)
+            )
+          ),
+          ts.factory.createPropertyAssignment(
+            "nextToken",
+            ts.factory.createBinaryExpression(
+              ts.factory.createIdentifier("ctx.args.after"),
+              ts.factory.createToken(ts.SyntaxKind.QuestionQuestionToken),
+              ts.factory.createIdentifier("undefined")
+            )
+          ),
+          ts.factory.createPropertyAssignment(
+            "scanIndexForward",
+            ts.factory.createBinaryExpression(
+              ts.factory.createIdentifier("ctx.args.sort"),
+              ts.factory.createToken(ts.SyntaxKind.EqualsEqualsEqualsToken),
+              ts.factory.createStringLiteral("ASC")
+            )
+          ),
+          ts.factory.createPropertyAssignment(
+            "index",
+            descriptor.action.index
+              ? ts.factory.createStringLiteral(descriptor.action.index)
+              : ts.factory.createIdentifier("undefined")
+          ),
+        ],
+        true
+      ),
+    ]);
+  }
 
-  // private _upsertItem(descriptor: LoaderDescriptor) {
-  //   const typename: string = descriptor.targetName;
+  private _batchGetItems(descriptor: LoaderDescriptor) {
+    const dataSource = this._context.dataSources.getDataSource(descriptor.dataSource);
 
-  //   this.code
-  //     .addImport("@aws-appsync/utils/dynamodb", tc.named("update"), tc.named("operations"))
-  //     .setRequest(
-  //       tc.const(tc.obj(tc.ref("input")), tc.ref("ctx.args")),
-  //       tc.const("id", tc.coalesce(tc.ref("input.id"), tc.call(tc.ref("util.autoId"), []))),
-  //       tc.const("timestamp", tc.call(tc.ref("util.time.nowISO8601"), [])),
-  //       tc.const(
-  //         "createdAt",
-  //         tc.ternary(tc.not(tc.ref("input.id")), tc.ref("timestamp"), tc.undef())
-  //       ),
-  //       tc.const("updatedAt", tc.coalesce(tc.ref("input.updatedAt"), tc.ref("timestamp"))),
-  //       tc.const(
-  //         "attributes",
-  //         tc.obj(tc.spread("input"), {
-  //           createdAt: tc.coalesce(tc.ref("input.createdAt"), tc.ref("createdAt")),
-  //           updatedAt: tc.ref("updatedAt"),
-  //           __typename: tc.str(typename),
-  //           _sk: tc.tick(`${typename}#\${id}`),
-  //         })
-  //       ),
-  //       tc.const(
-  //         tc.ref("item", tc.typeRef("Record", [tc.typeRef("string"), tc.typeRef("unknown")])),
-  //         tc.obj({ _version: tc.call(tc.ref("operations.increment"), [tc.num(1)]) })
-  //       ),
-  //       tc.forOf(
-  //         tc.const(tc.arr(tc.ref("key"), tc.ref("value"))),
-  //         tc.call(tc.ref("Object.entries"), [tc.ref("attributes")]),
-  //         tc.assign(tc.ref("item[key]"), tc.call(tc.ref("operations.replace"), [tc.ref("value")]))
-  //       ),
-  //       tc.return(
-  //         tc.call(
-  //           tc.ref("update"),
-  //           tc.obj({
-  //             key: tc.obj(tc.ref("id")),
-  //             update: tc.ref("item"),
-  //           })
-  //         )
-  //       )
-  //     );
-  // }
+    if (dataSource.type !== "DYNAMO_DB") {
+      throw new TransformExecutionError("Invalid data source type provided to batchGetItem.");
+    }
 
-  // private _deleteItem(descriptor: LoaderDescriptor) {
-  //   this.code
-  //     .addImport("@aws-appsync/utils/dynamodb", tc.named("update"), tc.named("operations"))
-  //     .setRequest(
-  //       tc.const(tc.obj(tc.ref("input")), tc.ref("ctx.args")),
-  //       tc.return(
-  //         tc.call(
-  //           tc.ref("update"),
-  //           tc.obj({
-  //             key: this._getKey(descriptor.action.key),
-  //             update: tc.obj({
-  //               updatedAt: tc.call(tc.ref("operations.replace"), [
-  //                 tc.call(tc.ref("util.time.nowISO8601"), []),
-  //               ]),
-  //               _version: tc.call(tc.ref("operations.increment"), [tc.num(1)]),
-  //               _deleted: tc.call(tc.ref("operations.replace"), [tc.bool(true)]),
-  //             }),
-  //             condition: tc.obj({
-  //               id: tc.obj({ attributeExists: tc.bool(true) }),
-  //               _version: tc.obj({ eq: tc.ref("input._version") }),
-  //             }),
-  //           })
-  //         )
-  //       )
-  //     );
-  // }
+    const tableName = dataSource.config.tableName;
 
-  // // #endregion Operations
+    return ts.factory.createObjectLiteralExpression(
+      [
+        ts.factory.createPropertyAssignment(
+          "operation",
+          ts.factory.createStringLiteral("BatchGetItem")
+        ),
+        ts.factory.createPropertyAssignment(
+          "tables",
+          ts.factory.createObjectLiteralExpression(
+            [
+              ts.factory.createPropertyAssignment(
+                ts.factory.createComputedPropertyName(ts.factory.createStringLiteral(tableName)),
+                ts.factory.createObjectLiteralExpression(
+                  [
+                    ts.factory.createPropertyAssignment(
+                      ts.factory.createIdentifier("keys"),
+                      ts.factory.createIdentifier("keys")
+                    ),
+                  ],
+                  false
+                )
+              ),
+            ],
+            true
+          )
+        ),
+      ],
+      true
+    );
+  }
 
-  // _setOperation(descriptor: LoaderDescriptor) {
-  //   switch (descriptor.action.type) {
-  //     case "getItem":
-  //       this._getItem(descriptor);
-  //       break;
-  //     case "queryItems":
-  //       this._queryItems(descriptor);
-  //       break;
-  //     case "putItem":
-  //       this._putItem(descriptor);
-  //       break;
-  //     case "updateItem":
-  //       this._updateItem();
-  //       break;
-  //     case "upsertItem":
-  //       this._upsertItem(descriptor);
-  //       break;
-  //     case "removeItem":
-  //       this._deleteItem(descriptor);
-  //       break;
+  private _putItemInit(descriptor: LoaderDescriptor) {
+    const typename: string = descriptor.targetName;
 
-  //     // case "createEdge":
-  //     //   this._createEdge(descriptor);
-  //     //   break;
-  //     // case "deleteEdge":
-  //     //   this._deleteEdge();
-  //     //   break;
-  //     // case "queryEdges":
-  //     //   this._queryEdges(descriptor);
-  //     //   break;
-  //     // case "getItemCommand":
-  //     //   this._getItemCommand("get");
-  //     //   break;
-  //     // case "putItemCommand":
-  //     //   this._getItemCommand("put");
-  //     //   break;
-  //     // case "updateItemCommand":
-  //     //   this._getItemCommand("update");
-  //     //   break;
-  //     // case "deleteItemCommand":
-  //     //   this._getItemCommand("remove");
-  //     //   break;
-  //     // case "queryItemsCommand":
-  //     //   this._getItemCommand("query");
-  //     //   break;
-  //     // case "batchGetItemsCommand":
-  //     //   this._batchGetItemsCommand();
-  //     //   break;
-  //     default:
-  //       throw new TransformExecutionError(`Unknown operation ${descriptor.action.type}`);
-  //   }
-  // }
+    const id = ts.factory.createVariableStatement(
+      undefined,
+      ts.factory.createVariableDeclarationList(
+        [
+          ts.factory.createVariableDeclaration(
+            ts.factory.createIdentifier("id"),
+            undefined,
+            undefined,
+            ts.factory.createBinaryExpression(
+              ts.factory.createIdentifier("ctx.args.input.id"),
+              ts.factory.createToken(ts.SyntaxKind.QuestionQuestionToken),
+              ts.factory.createCallExpression(
+                ts.factory.createPropertyAccessExpression(
+                  ts.factory.createIdentifier("util"),
+                  ts.factory.createIdentifier("autoId")
+                ),
+                undefined,
+                []
+              )
+            )
+          ),
+        ],
+        ts.NodeFlags.Const
+      )
+    );
+
+    const timestamp = ts.factory.createVariableStatement(
+      undefined,
+      ts.factory.createVariableDeclarationList(
+        [
+          ts.factory.createVariableDeclaration(
+            ts.factory.createIdentifier("timestamp"),
+            undefined,
+            undefined,
+            ts.factory.createCallExpression(
+              ts.factory.createPropertyAccessExpression(
+                ts.factory.createIdentifier("util.time"),
+                ts.factory.createIdentifier("nowISO8601")
+              ),
+              undefined,
+              []
+            )
+          ),
+        ],
+        ts.NodeFlags.Const
+      )
+    );
+
+    const values = ts.factory.createVariableStatement(
+      undefined,
+      ts.factory.createVariableDeclarationList(
+        [
+          ts.factory.createVariableDeclaration(
+            ts.factory.createIdentifier("values"),
+            undefined,
+            undefined,
+            ts.factory.createObjectLiteralExpression(
+              [
+                ts.factory.createSpreadAssignment(ts.factory.createIdentifier("ctx.args.input")),
+                ts.factory.createPropertyAssignment("id", ts.factory.createIdentifier("id")),
+                ts.factory.createPropertyAssignment(
+                  "createdAt",
+                  ts.factory.createBinaryExpression(
+                    ts.factory.createIdentifier("ctx.args.input.createdAt"),
+                    ts.factory.createToken(ts.SyntaxKind.QuestionQuestionToken),
+                    ts.factory.createIdentifier("timestamp")
+                  )
+                ),
+                ts.factory.createPropertyAssignment(
+                  "updatedAt",
+                  ts.factory.createBinaryExpression(
+                    ts.factory.createIdentifier("ctx.args.input.updatedAt"),
+                    ts.factory.createToken(ts.SyntaxKind.QuestionQuestionToken),
+                    ts.factory.createIdentifier("timestamp")
+                  )
+                ),
+                ts.factory.createPropertyAssignment(
+                  "__typename",
+                  ts.factory.createStringLiteral(typename)
+                ),
+                ts.factory.createPropertyAssignment(
+                  "_sk",
+                  ts.factory.createTemplateExpression(
+                    ts.factory.createTemplateHead(`${typename}#`),
+                    [
+                      ts.factory.createTemplateSpan(
+                        ts.factory.createIdentifier("id"),
+                        ts.factory.createTemplateTail("")
+                      ),
+                    ]
+                  )
+                ),
+              ],
+              true
+            )
+          ),
+        ],
+        ts.NodeFlags.Const
+      )
+    );
+
+    return [id, timestamp, values];
+  }
+
+  private _putItem(payloadRef: string) {
+    this._setImport(
+      "@aws-appsync/utils/dynamodb",
+      ts.factory.createImportSpecifier(false, undefined, ts.factory.createIdentifier("put"))
+    );
+
+    return ts.factory.createCallExpression(ts.factory.createIdentifier("put"), undefined, [
+      ts.factory.createObjectLiteralExpression(
+        [
+          ts.factory.createPropertyAssignment(
+            "key",
+            ts.factory.createObjectLiteralExpression([
+              ts.factory.createPropertyAssignment(
+                "id",
+                ts.factory.createIdentifier(`${payloadRef}.id`)
+              ),
+            ])
+          ),
+          ts.factory.createPropertyAssignment("item", ts.factory.createIdentifier(payloadRef)),
+          ts.factory.createPropertyAssignment(
+            "condition",
+            ts.factory.createObjectLiteralExpression(
+              [
+                ts.factory.createPropertyAssignment(
+                  "id",
+                  ts.factory.createObjectLiteralExpression(
+                    [
+                      ts.factory.createPropertyAssignment(
+                        "attributeExists",
+                        ts.factory.createFalse()
+                      ),
+                    ],
+                    true
+                  )
+                ),
+              ],
+              true
+            )
+          ),
+        ],
+        true
+      ),
+    ]);
+  }
+
+  private _updateItemInit(loader: LoaderDescriptor) {
+    this._setImport(
+      "@aws-appsync/utils/dynamodb",
+      ts.factory.createImportSpecifier(false, undefined, ts.factory.createIdentifier("operations"))
+    );
+
+    this._setImport(
+      "@aws-appsync/utils/dynamodb",
+      ts.factory.createImportSpecifier(
+        false,
+        undefined,
+        ts.factory.createIdentifier("DynamoDBUpdateObject")
+      )
+    );
+
+    const input = ts.factory.createVariableStatement(
+      undefined,
+      ts.factory.createVariableDeclarationList(
+        [
+          ts.factory.createVariableDeclaration(
+            ts.factory.createIdentifier("input"),
+            undefined,
+            // ts.factory.createTypeReferenceNode(""),
+            undefined,
+            ts.factory.createObjectLiteralExpression([
+              ts.factory.createSpreadAssignment(ts.factory.createIdentifier("ctx.args.input")),
+              ts.factory.createPropertyAssignment(
+                "updatedAt",
+                ts.factory.createBinaryExpression(
+                  ts.factory.createIdentifier("ctx.args.input.updatedAt"),
+                  ts.factory.createToken(ts.SyntaxKind.QuestionQuestionToken),
+                  ts.factory.createCallExpression(
+                    ts.factory.createPropertyAccessExpression(
+                      ts.factory.createIdentifier("util.time"),
+                      ts.factory.createIdentifier("nowISO8601")
+                    ),
+                    undefined,
+                    []
+                  )
+                )
+              ),
+            ])
+          ),
+        ],
+        ts.NodeFlags.Const
+      )
+    );
+
+    const values = ts.factory.createVariableStatement(
+      undefined,
+      ts.factory.createVariableDeclarationList(
+        [
+          ts.factory.createVariableDeclaration(
+            ts.factory.createIdentifier("values"),
+            undefined,
+            ts.factory.createTypeReferenceNode("DynamoDBUpdateObject", [
+              ts.factory.createTypeReferenceNode(loader.targetName),
+            ]),
+            ts.factory.createObjectLiteralExpression([], false)
+          ),
+        ],
+        ts.NodeFlags.Const
+      )
+    );
+
+    const loop = ts.factory.createForOfStatement(
+      undefined,
+      ts.factory.createVariableDeclarationList(
+        [
+          ts.factory.createVariableDeclaration(
+            ts.factory.createArrayBindingPattern([
+              ts.factory.createBindingElement(undefined, undefined, "key"),
+              ts.factory.createBindingElement(undefined, undefined, "value"),
+            ]),
+            undefined,
+            undefined
+          ),
+        ],
+        ts.NodeFlags.Const
+      ),
+      ts.factory.createCallExpression(
+        ts.factory.createPropertyAccessExpression(
+          ts.factory.createIdentifier("Object"),
+          ts.factory.createIdentifier("entries")
+        ),
+        undefined,
+        [ts.factory.createIdentifier("input")]
+      ),
+      ts.factory.createBlock([
+        ts.factory.createExpressionStatement(
+          ts.factory.createCallExpression(
+            ts.factory.createPropertyAccessExpression(
+              ts.factory.createIdentifier("Object"),
+              ts.factory.createIdentifier("assign")
+            ),
+            undefined,
+            [
+              ts.factory.createIdentifier("values"),
+              ts.factory.createObjectLiteralExpression([
+                ts.factory.createPropertyAssignment(
+                  ts.factory.createComputedPropertyName(ts.factory.createIdentifier("key")),
+                  ts.factory.createCallExpression(
+                    ts.factory.createPropertyAccessExpression(
+                      ts.factory.createIdentifier("operations"),
+                      ts.factory.createIdentifier("replace")
+                    ),
+                    undefined,
+                    [ts.factory.createIdentifier("value")]
+                  )
+                ),
+              ]),
+            ]
+          )
+        ),
+      ])
+    );
+
+    return [input, values, loop];
+  }
+
+  private _updateItem(payloadRef: string) {
+    this._setImport(
+      "@aws-appsync/utils/dynamodb",
+      ts.factory.createImportSpecifier(false, undefined, ts.factory.createIdentifier("update"))
+    );
+
+    return ts.factory.createCallExpression(ts.factory.createIdentifier("update"), undefined, [
+      ts.factory.createObjectLiteralExpression(
+        [
+          ts.factory.createPropertyAssignment(
+            "key",
+            ts.factory.createObjectLiteralExpression([
+              ts.factory.createPropertyAssignment(
+                "id",
+                ts.factory.createIdentifier(`${payloadRef}.id`)
+              ),
+            ])
+          ),
+          ts.factory.createPropertyAssignment("update", ts.factory.createIdentifier(payloadRef)),
+          ts.factory.createPropertyAssignment(
+            "condition",
+            ts.factory.createObjectLiteralExpression(
+              [
+                ts.factory.createPropertyAssignment(
+                  "id",
+                  ts.factory.createObjectLiteralExpression(
+                    [
+                      ts.factory.createPropertyAssignment(
+                        "attributeExists",
+                        ts.factory.createTrue()
+                      ),
+                    ],
+                    true
+                  )
+                ),
+              ],
+              true
+            )
+          ),
+        ],
+        true
+      ),
+    ]);
+  }
+
+  private _deleteItem() {
+    this._setImport(
+      "@aws-appsync/utils/dynamodb",
+      ts.factory.createImportSpecifier(false, undefined, ts.factory.createIdentifier("remove"))
+    );
+
+    return ts.factory.createCallExpression(ts.factory.createIdentifier("remove"), undefined, [
+      ts.factory.createObjectLiteralExpression(
+        [
+          ts.factory.createPropertyAssignment(
+            "key",
+            ts.factory.createObjectLiteralExpression([
+              ts.factory.createPropertyAssignment("id", ts.factory.createIdentifier(`ctx.args.id`)),
+            ])
+          ),
+          ts.factory.createPropertyAssignment(
+            "condition",
+            ts.factory.createObjectLiteralExpression(
+              [
+                ts.factory.createPropertyAssignment(
+                  "id",
+                  ts.factory.createObjectLiteralExpression(
+                    [
+                      ts.factory.createPropertyAssignment(
+                        "attributeExists",
+                        ts.factory.createTrue()
+                      ),
+                    ],
+                    true
+                  )
+                ),
+              ],
+              true
+            )
+          ),
+        ],
+        true
+      ),
+    ]);
+  }
+
+  private _getOperationInit(descriptor: LoaderDescriptor): ts.Statement[] {
+    switch (descriptor.action.type) {
+      case "putItem":
+        return this._putItemInit(descriptor);
+      case "updateItem":
+        return this._updateItemInit(descriptor);
+      default:
+        return [];
+    }
+  }
+
+  private _getOperation(descriptor: LoaderDescriptor) {
+    switch (descriptor.action.type) {
+      case "getItem":
+        return this._getItem(descriptor);
+      case "queryItems":
+        return this._queryItems(descriptor);
+      case "batchGetItems":
+        return this._batchGetItems(descriptor);
+      case "putItem":
+        return this._putItem("values");
+      case "updateItem":
+        return this._updateItem("values");
+      case "upsertItem":
+        return ts.factory.createNull();
+      case "removeItem":
+        return this._deleteItem();
+      default:
+        throw new TransformExecutionError(`Operation not implemented: ${descriptor.action.type}`);
+    }
+  }
+
+  // #endregion Operations
 
   // // #region Return Types
   // private _returnEdges() {
@@ -403,29 +666,27 @@ export class DynamoDbGenerator extends ResolverGeneratorBase {
   //     );
   // }
 
-  private _getFileName(loader: LoaderDescriptor) {
-    if (isFieldLoader(loader)) {
-      return `${loader.typeName}.${loader.fieldName}.ts`;
-    } else if (isFunctionLoader(loader)) {
-      return `${loader.name}.ts`;
-    } else {
-      throw new TransformExecutionError("Could not get filename from loader");
-    }
-  }
-
   public generate(filename: string) {
     return this._printDefinitions(filename);
   }
 
   public generateTemplate(loader: LoaderDescriptor) {
-    // Setup imports;
-
     // Setup request types;
     // Init;
     // Auth;
     // Precheck;
+    // Init operation;
     // Operation;
-    this._setRequestFunction(loader, ts.factory.createBlock([], true));
+    this._setRequestFunction(
+      loader,
+      ts.factory.createBlock(
+        [
+          ...this._getOperationInit(loader),
+          ts.factory.createReturnStatement(this._getOperation(loader)),
+        ],
+        true
+      )
+    );
 
     // Setup response types;
     // Check error;

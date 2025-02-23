@@ -534,6 +534,7 @@ export class ConnectionPlugin extends TransformerPluginBase {
       typeName: parent.name,
       fieldName: field.name,
       targetName: connection.target.name,
+      returnType: "result",
       action: {
         type: "getItem",
         key: { id: connection.key },

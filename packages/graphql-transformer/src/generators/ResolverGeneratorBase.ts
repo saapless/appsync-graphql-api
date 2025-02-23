@@ -11,52 +11,62 @@ export abstract class ResolverGeneratorBase extends GeneratorBase {
   }
 
   protected _setImport(from: string, specifier: ts.ImportSpecifier) {
-    const current = this._definitions.find(
+    const index = this._definitions.findIndex(
       (d) =>
         ts.isImportDeclaration(d) &&
         ts.isStringLiteral(d.moduleSpecifier) &&
         d.moduleSpecifier.text === from
-    ) as ts.ImportDeclaration;
+    );
+
+    // eslint-disable-next-line security/detect-object-injection
+    const current = index > -1 ? (this._definitions[index] as ts.ImportDeclaration) : undefined;
 
     if (current) {
-      if (!current.importClause) {
-        ts.factory.updateImportDeclaration(
-          current,
-          current.modifiers,
-          ts.factory.createImportClause(false, undefined, ts.factory.createNamedImports([])),
-          current.moduleSpecifier,
-          current.attributes
-        );
-      }
+      const result = ts.transform(current, [
+        () => (node) => {
+          let importClause = node.importClause;
 
-      if (!current.importClause?.namedBindings) {
-        ts.factory.updateImportClause(
-          current.importClause!,
-          current.importClause!.isTypeOnly,
-          current.importClause!.name,
-          ts.factory.createNamedImports([specifier])
-        );
-      } else if (ts.isNamedImports(current.importClause.namedBindings)) {
-        console.log(JSON.stringify(current.importClause.namedBindings.elements));
-        if (
-          !current.importClause.namedBindings.elements.some(
-            (i) => i.name.escapedText === specifier.name.escapedText
-          )
-        ) {
-          console.log("not true");
-          ts.factory.updateImportClause(
-            current.importClause,
-            current.importClause!.isTypeOnly,
-            current.importClause!.name,
-            ts.factory.createNamedImports([
-              ...current.importClause.namedBindings.elements,
-              specifier,
-            ])
+          if (!importClause) {
+            importClause = ts.factory.createImportClause(
+              false,
+              undefined,
+              ts.factory.createNamedImports([specifier])
+            );
+          }
+
+          if (!importClause.namedBindings) {
+            importClause = ts.factory.updateImportClause(
+              importClause,
+              importClause.isTypeOnly,
+              importClause.name,
+              ts.factory.createNamedImports([specifier])
+            );
+          } else if (ts.isNamedImports(importClause.namedBindings)) {
+            if (
+              !importClause.namedBindings.elements.some(
+                (i) => i.name.escapedText === specifier.name.escapedText
+              )
+            ) {
+              importClause = ts.factory.updateImportClause(
+                importClause,
+                importClause!.isTypeOnly,
+                importClause!.name,
+                ts.factory.createNamedImports([...importClause.namedBindings.elements, specifier])
+              );
+            }
+          }
+
+          return ts.factory.updateImportDeclaration(
+            current,
+            current.modifiers,
+            importClause,
+            current.moduleSpecifier,
+            current.attributes
           );
+        },
+      ]);
 
-          console.log(JSON.stringify(current.importClause.namedBindings.elements));
-        }
-      }
+      this._definitions.splice(index, 1, result.transformed[0]);
     } else {
       this._definitions.push(
         ts.factory.createImportDeclaration(
@@ -378,6 +388,16 @@ export abstract class ResolverGeneratorBase extends GeneratorBase {
         block
       )
     );
+  }
+
+  protected _getFileName(loader: LoaderDescriptor) {
+    if (isFieldLoader(loader)) {
+      return `${loader.typeName}.${loader.fieldName}.ts`;
+    } else if (isFunctionLoader(loader)) {
+      return `${loader.name}.ts`;
+    } else {
+      throw new TransformExecutionError("Could not get filename from loader");
+    }
   }
 
   public abstract generateTemplate(loader: LoaderDescriptor): string;
