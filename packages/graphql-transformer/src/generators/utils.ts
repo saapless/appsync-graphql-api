@@ -36,7 +36,7 @@ export function keyValue<T extends string | number>(obj: KeyValue<T>) {
   if (obj.ref) {
     // `ctx.source` is typed as optional in Context
 
-    if (obj.ref.includes("source")) {
+    if (obj.ref.includes("source.")) {
       obj.ref = obj.ref.replace("source", "source?");
     }
 

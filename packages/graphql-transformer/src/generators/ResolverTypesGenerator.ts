@@ -67,7 +67,7 @@ export class ResolverTypesGenerator extends GeneratorBase {
           ),
         ])
       ),
-      // Batch
+      // Batch Result
       ts.factory.createTypeAliasDeclaration(
         [ts.factory.createModifier(ts.SyntaxKind.ExportKeyword)],
         ts.factory.createIdentifier("DynamoDBBatchResult"),
@@ -122,6 +122,65 @@ export class ResolverTypesGenerator extends GeneratorBase {
                   ),
                 ],
                 ts.factory.createArrayTypeNode(ts.factory.createTypeReferenceNode("Key"))
+              ),
+            ])
+          ),
+        ])
+      ),
+      ts.factory.createTypeAliasDeclaration(
+        [ts.factory.createModifier(ts.SyntaxKind.ExportKeyword)],
+        ts.factory.createIdentifier("DynamoDBBatchGetItemRequest"),
+        [
+          ts.factory.createTypeParameterDeclaration(
+            undefined,
+            "T",
+            ts.factory.createTypeReferenceNode("Key"),
+            ts.factory.createTypeReferenceNode("Key")
+          ),
+        ],
+        ts.factory.createTypeLiteralNode([
+          ts.factory.createPropertySignature(
+            undefined,
+            ts.factory.createIdentifier("operation"),
+            undefined,
+            ts.factory.createLiteralTypeNode(ts.factory.createStringLiteral("BatchGetItem"))
+          ),
+          ts.factory.createPropertySignature(
+            undefined,
+            ts.factory.createIdentifier("tables"),
+            undefined,
+            ts.factory.createTypeLiteralNode([
+              ts.factory.createIndexSignature(
+                undefined,
+                [
+                  ts.factory.createParameterDeclaration(
+                    undefined,
+                    undefined,
+                    ts.factory.createIdentifier("K"),
+                    undefined,
+                    ts.factory.createTypeReferenceNode("string")
+                  ),
+                ],
+                ts.factory.createTypeLiteralNode([
+                  ts.factory.createPropertySignature(
+                    undefined,
+                    ts.factory.createIdentifier("keys"),
+                    undefined,
+                    ts.factory.createArrayTypeNode(ts.factory.createTypeReferenceNode("T"))
+                  ),
+                  ts.factory.createPropertySignature(
+                    undefined,
+                    ts.factory.createIdentifier("consistentRead"),
+                    ts.factory.createToken(ts.SyntaxKind.QuestionToken),
+                    ts.factory.createTypeReferenceNode("boolean")
+                  ),
+                  ts.factory.createPropertySignature(
+                    undefined,
+                    ts.factory.createIdentifier("projection"),
+                    ts.factory.createToken(ts.SyntaxKind.QuestionToken),
+                    ts.factory.createTypeReferenceNode("DynamoDBProjectionExpression")
+                  ),
+                ])
               ),
             ])
           ),
@@ -225,6 +284,11 @@ export class ResolverTypesGenerator extends GeneratorBase {
               true,
               undefined,
               ts.factory.createIdentifier("Context")
+            ),
+            ts.factory.createImportSpecifier(
+              true,
+              undefined,
+              ts.factory.createIdentifier("DynamoDBProjectionExpression")
             ),
           ])
         ),

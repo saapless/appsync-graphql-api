@@ -132,6 +132,7 @@ input TodoFilterInput {
 type ResourceConnection {
   edges: [ResourceEdge!]!
   pageInfo: PageInfo!
+  keys: [Node] @serverOnly
 }
 
 type ResourceEdge {

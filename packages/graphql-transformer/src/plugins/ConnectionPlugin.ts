@@ -388,10 +388,11 @@ export class ConnectionPlugin extends TransformerPluginBase {
       const edgeTypeName = pascalCase(target.name, "edge");
       const hasEdgeRecord = this._needsEdgeRecord(connection);
 
+      let connectionType = this.context.document.getNode(connectionTypeName) as ObjectNode;
       let edgeType = this.context.document.getNode(edgeTypeName) as ObjectNode;
 
-      if (!this.context.document.hasNode(connectionTypeName)) {
-        const connectionType = ObjectNode.create(connectionTypeName, [
+      if (!connectionType) {
+        connectionType = ObjectNode.create(connectionTypeName, [
           FieldNode.create(
             "edges",
             NonNullTypeNode.create(ListTypeNode.create(NonNullTypeNode.create(edgeTypeName)))
@@ -412,45 +413,46 @@ export class ConnectionPlugin extends TransformerPluginBase {
           ]),
         ]);
 
-        if (
-          connection.relation === "manyToMany" ||
-          target instanceof UnionNode ||
-          target instanceof InterfaceNode
-        ) {
-          edgeType
-            .addField(
-              FieldNode.create("id", NonNullTypeNode.create("ID"), null, [
-                DirectiveNode.create("serverOnly"),
-              ])
-            )
-            .addField(
-              FieldNode.create("_sk", NonNullTypeNode.create("ID"), null, [
-                DirectiveNode.create("serverOnly"),
-              ])
-            )
-            .addField(
-              FieldNode.create("sourceId", NonNullTypeNode.create("ID"), null, [
-                DirectiveNode.create("writeOnly"),
-              ])
-            )
-            .addField(
-              FieldNode.create("targetId", NonNullTypeNode.create("ID"), null, [
-                DirectiveNode.create("writeOnly"),
-              ])
-            )
-            .addField(
-              FieldNode.create("createdAt", NonNullTypeNode.create("AWSDateTime"), null, [
-                DirectiveNode.create("filterOnly"),
-              ])
-            )
-            .addField(
-              FieldNode.create("updatedAt", NonNullTypeNode.create("AWSDateTime"), null, [
-                DirectiveNode.create("filterOnly"),
-              ])
-            );
-        }
-
         this.context.document.addNode(edgeType);
+      }
+
+      if (this._needsEdgeRecord(connection)) {
+        connectionType.addField(
+          FieldNode.create("keys", ListTypeNode.create("Node"), null, [
+            DirectiveNode.create("serverOnly"),
+          ])
+        );
+        edgeType
+          .addField(
+            FieldNode.create("id", NonNullTypeNode.create("ID"), null, [
+              DirectiveNode.create("serverOnly"),
+            ])
+          )
+          .addField(
+            FieldNode.create("_sk", NonNullTypeNode.create("ID"), null, [
+              DirectiveNode.create("serverOnly"),
+            ])
+          )
+          .addField(
+            FieldNode.create("sourceId", NonNullTypeNode.create("ID"), null, [
+              DirectiveNode.create("writeOnly"),
+            ])
+          )
+          .addField(
+            FieldNode.create("targetId", NonNullTypeNode.create("ID"), null, [
+              DirectiveNode.create("writeOnly"),
+            ])
+          )
+          .addField(
+            FieldNode.create("createdAt", NonNullTypeNode.create("AWSDateTime"), null, [
+              DirectiveNode.create("filterOnly"),
+            ])
+          )
+          .addField(
+            FieldNode.create("updatedAt", NonNullTypeNode.create("AWSDateTime"), null, [
+              DirectiveNode.create("filterOnly"),
+            ])
+          );
       }
 
       this._setConnectionArguments(field, hasEdgeRecord ? edgeType : (target as ObjectNode));
@@ -496,7 +498,7 @@ export class ConnectionPlugin extends TransformerPluginBase {
       dataSource: this.context.dataSources.primaryDataSourceName,
       action: {
         type: "getItem",
-        key: { id: { ref: "source.nodeId" } },
+        key: { id: { ref: "source.targetId" } },
       },
       checkEarlyReturn: true,
       returnType: "result",
@@ -581,7 +583,7 @@ export class ConnectionPlugin extends TransformerPluginBase {
         dataSource: this.context.dataSources.primaryDataSourceName,
         action: {
           type: "batchGetItems",
-          key: { keys: { ref: "source.edgeKeys" } },
+          key: { keys: { ref: "source.keys" } },
         },
         checkEarlyReturn: true,
         returnType: "edges",

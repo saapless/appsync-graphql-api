@@ -2,7 +2,7 @@ import type { LoaderDescriptor } from "../utils/types";
 import ts from "typescript";
 import { TransformerContext } from "../context";
 import { TransformExecutionError } from "../utils/errors";
-import { parseKey } from "./utils";
+import { isFieldLoader, keyValue, parseKey } from "./utils";
 import { ResolverGeneratorBase } from "./ResolverGeneratorBase";
 
 export class DynamoDbGenerator extends ResolverGeneratorBase {
@@ -75,6 +75,33 @@ export class DynamoDbGenerator extends ResolverGeneratorBase {
     ]);
   }
 
+  private _batchGetItemsInit(loader: LoaderDescriptor) {
+    return [
+      ts.factory.createIfStatement(
+        ts.factory.createPrefixUnaryExpression(
+          ts.SyntaxKind.ExclamationToken,
+          keyValue(loader.action.key["keys"])
+        ),
+        ts.factory.createBlock([
+          ts.factory.createReturnStatement(
+            ts.factory.createCallExpression(
+              ts.factory.createPropertyAccessExpression(
+                ts.factory.createIdentifier("util"),
+                ts.factory.createIdentifier("error")
+              ),
+              undefined,
+              [
+                ts.factory.createStringLiteral("Missing operation keys"),
+                ts.factory.createStringLiteral("InvalidOperationException"),
+              ]
+            )
+          ),
+        ]),
+        undefined
+      ),
+    ];
+  }
+
   private _batchGetItems(descriptor: LoaderDescriptor) {
     const dataSource = this._context.dataSources.getDataSource(descriptor.dataSource);
 
@@ -96,15 +123,7 @@ export class DynamoDbGenerator extends ResolverGeneratorBase {
             [
               ts.factory.createPropertyAssignment(
                 ts.factory.createComputedPropertyName(ts.factory.createStringLiteral(tableName)),
-                ts.factory.createObjectLiteralExpression(
-                  [
-                    ts.factory.createPropertyAssignment(
-                      ts.factory.createIdentifier("keys"),
-                      ts.factory.createIdentifier("keys")
-                    ),
-                  ],
-                  false
-                )
+                parseKey(descriptor.action.key)
               ),
             ],
             true
@@ -614,6 +633,8 @@ export class DynamoDbGenerator extends ResolverGeneratorBase {
         return this._updateItemInit(descriptor);
       case "removeItem":
         return this._deleteItemInit(descriptor);
+      case "batchGetItems":
+        return this._batchGetItemsInit(descriptor);
       default:
         return [];
     }
@@ -816,6 +837,9 @@ export class DynamoDbGenerator extends ResolverGeneratorBase {
       loader,
       ts.factory.createBlock(
         [
+          loader.checkEarlyReturn && isFieldLoader(loader)
+            ? this._earlyReturn(loader.fieldName, loader.returnType === "edges")
+            : ts.factory.createEmptyStatement(),
           ...this._getOperationInit(loader),
           ts.factory.createReturnStatement(this._getOperation(loader)),
         ],
@@ -830,7 +854,13 @@ export class DynamoDbGenerator extends ResolverGeneratorBase {
     this._setResponseFunction(
       loader,
       ts.factory.createBlock(
-        [this._checkResponseError(), ts.factory.createReturnStatement(this._formatResult(loader))],
+        [
+          this._checkResponseError(),
+          loader.returnType === "connection" && loader.isEdge
+            ? this._formatConnectionKeys()
+            : ts.factory.createEmptyStatement(),
+          ts.factory.createReturnStatement(this._formatResult(loader)),
+        ],
         true
       )
     );

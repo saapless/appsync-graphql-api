@@ -1,7 +1,7 @@
 // Jest Snapshot v1, https://goo.gl/fbAQLP
 
 exports[`ResolverTypesGenerator generates resolver context types 1`] = `
-"import { type Context } from "@aws-appsync/utils";
+"import { type Context, type DynamoDBProjectionExpression } from "@aws-appsync/utils";
 import type * as Schema from "./schema-types";
 export type Key = {
     id: string;
@@ -21,6 +21,16 @@ export type DynamoDBBatchResult<T extends Key = Key> = {
     };
     unprocessedKeys: {
         [K: string]: Key[];
+    };
+};
+export type DynamoDBBatchGetItemRequest<T extends Key = Key> = {
+    operation: "BatchGetItem";
+    tables: {
+        [K: string]: {
+            keys: T[];
+            consistentRead?: boolean;
+            projection?: DynamoDBProjectionExpression;
+        };
     };
 };
 export type DynamoDBTransactGetResult<T extends Key = Key> = {

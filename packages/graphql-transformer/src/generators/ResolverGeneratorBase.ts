@@ -134,21 +134,40 @@ export abstract class ResolverGeneratorBase extends GeneratorBase {
     );
   }
 
-  protected _earlyReturn(fieldName: string) {
+  protected _earlyReturn(fieldName: string, isArray?: boolean) {
     this._setImport(
       "@aws-appsync/utils",
       ts.factory.createImportSpecifier(false, undefined, ts.factory.createIdentifier("runtime"))
     );
 
-    return ts.factory.createIfStatement(
-      ts.factory.createPropertyAccessChain(
-        ts.factory.createPropertyAccessExpression(
-          ts.factory.createIdentifier("ctx"),
-          ts.factory.createIdentifier("source")
-        ),
-        ts.factory.createToken(ts.SyntaxKind.QuestionDotToken),
-        ts.factory.createIdentifier(fieldName)
+    const propExists = ts.factory.createPropertyAccessChain(
+      ts.factory.createPropertyAccessExpression(
+        ts.factory.createIdentifier("ctx"),
+        ts.factory.createIdentifier("source")
       ),
+      ts.factory.createToken(ts.SyntaxKind.QuestionDotToken),
+      ts.factory.createIdentifier(fieldName)
+    );
+
+    return ts.factory.createIfStatement(
+      isArray
+        ? ts.factory.createBinaryExpression(
+            propExists,
+            ts.factory.createToken(ts.SyntaxKind.AmpersandAmpersandToken),
+            ts.factory.createPropertyAccessChain(
+              ts.factory.createPropertyAccessChain(
+                ts.factory.createPropertyAccessExpression(
+                  ts.factory.createIdentifier("ctx"),
+                  ts.factory.createIdentifier("source")
+                ),
+                undefined,
+                ts.factory.createIdentifier(fieldName)
+              ),
+              undefined,
+              ts.factory.createIdentifier("length")
+            )
+          )
+        : propExists,
       ts.factory.createBlock([
         ts.factory.createReturnStatement(
           ts.factory.createCallExpression(
@@ -170,6 +189,45 @@ export abstract class ResolverGeneratorBase extends GeneratorBase {
         ),
       ])
     );
+  }
+
+  protected _formatConnectionKeys() {
+    const keys = ts.factory.createVariableStatement(
+      undefined,
+      ts.factory.createVariableDeclarationList(
+        [
+          ts.factory.createVariableDeclaration(
+            ts.factory.createIdentifier("keys"),
+            undefined,
+            undefined,
+            ts.factory.createCallExpression(
+              ts.factory.createIdentifier("ctx.result.items.map"),
+              undefined,
+              [
+                ts.factory.createArrowFunction(
+                  undefined,
+                  undefined,
+                  [ts.factory.createParameterDeclaration(undefined, undefined, "edge")],
+                  undefined,
+                  undefined,
+                  ts.factory.createParenthesizedExpression(
+                    ts.factory.createObjectLiteralExpression([
+                      ts.factory.createPropertyAssignment(
+                        ts.factory.createIdentifier("id"),
+                        ts.factory.createIdentifier("edge.targetId")
+                      ),
+                    ])
+                  )
+                ),
+              ]
+            )
+          ),
+        ],
+        ts.NodeFlags.Const
+      )
+    );
+
+    return keys;
   }
 
   private _formatConnection(loader: LoaderDescriptor) {
@@ -197,6 +255,14 @@ export abstract class ResolverGeneratorBase extends GeneratorBase {
                     ts.factory.createIdentifier("items")
                   )
             ),
+            ...(loader.isEdge
+              ? [
+                  ts.factory.createPropertyAssignment(
+                    ts.factory.createIdentifier("keys"),
+                    ts.factory.createIdentifier("keys")
+                  ),
+                ]
+              : []),
             ts.factory.createPropertyAssignment(
               ts.factory.createIdentifier("prevToken"),
               ts.factory.createPropertyAccessExpression(
@@ -346,7 +412,7 @@ export abstract class ResolverGeneratorBase extends GeneratorBase {
       }
       case "batchGetItems": {
         this._setImport(
-          "@aws-appsync/utils",
+          "../resolver-types",
           ts.factory.createImportSpecifier(
             false,
             undefined,
