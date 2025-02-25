@@ -105,7 +105,9 @@ describe("ConnectionPlugin", () => {
       expect(todosField?.hasArgument("sort")).toBe(true);
 
       expect(resourcesField?.type.getTypeName()).toBe("ResourceConnection");
-      expect(resourcesField?.getArgument("filter")?.type.getTypeName()).toBe("ResourceFilterInput");
+      expect(resourcesField?.getArgument("filter")?.type.getTypeName()).toBe(
+        "ResourceEdgeFilterInput"
+      );
       expect(resourcesField?.hasArgument("first")).toBe(true);
       expect(resourcesField?.hasArgument("after")).toBe(true);
       expect(resourcesField?.hasArgument("sort")).toBe(true);

@@ -143,6 +143,24 @@ export class NodeInterfacePlugin extends TransformerPluginBase {
     }
   }
 
+  public after(): void {
+    const iface = this.context.document.getNode("Node");
+
+    if (!iface || !(iface instanceof InterfaceNode)) {
+      throw new TransformPluginExecutionError(
+        this.name,
+        "Node Interface not found. Make sure you run `plugin.before()` before executing."
+      );
+    }
+
+    // Node interface should have only 1 field, the `id`
+    for (const field of iface.fields ?? []) {
+      if (field.name !== "id") {
+        iface.removeField(field.name);
+      }
+    }
+  }
+
   static create(context: TransformerContext): NodeInterfacePlugin {
     return new NodeInterfacePlugin(context);
   }

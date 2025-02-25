@@ -9,7 +9,7 @@ exports[`ConnectionPlugin matches snapshot 1`] = `
 type Todo {
   id: ID
   content: String
-  resources(filter: ResourceFilterInput, first: Int, after: String, sort: SortDirection): ResourceConnection!
+  resources(filter: ResourceEdgeFilterInput, first: Int, after: String, sort: SortDirection): ResourceConnection!
   sourceId: ID @writeOnly
 }
 
@@ -137,14 +137,29 @@ type ResourceConnection {
 type ResourceEdge {
   cursor: String @clientOnly
   node: Resource @clientOnly
+  id: ID! @serverOnly
+  _sk: ID! @serverOnly
+  sourceId: ID! @writeOnly
+  targetId: ID! @writeOnly
+  createdAt: AWSDateTime! @filterOnly
+  updatedAt: AWSDateTime! @filterOnly
 }
 
-input ResourceFilterInput {
-  __typename: StringFilterInput
-  url: StringFilterInput
-  content: StringFilterInput
-  and: [ResourceFilterInput]
-  or: [ResourceFilterInput]
-  not: ResourceFilterInput
+input ResourceEdgeFilterInput {
+  createdAt: StringFilterInput
+  updatedAt: StringFilterInput
+  and: [ResourceEdgeFilterInput]
+  or: [ResourceEdgeFilterInput]
+  not: ResourceEdgeFilterInput
+}
+
+input ResourceEdgeInput {
+  sourceId: ID!
+  targetId: ID!
+}
+
+type Mutation {
+  createResourceEdge(input: ResourceEdgeInput!): ResourceEdge
+  deleteResourceEdge(input: ResourceEdgeInput!): ResourceEdge
 }"
 `;

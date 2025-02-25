@@ -96,9 +96,15 @@ export class AppSyncGraphQLApi extends Construct {
       ".appsync"
     );
 
+    const dataSourcesMap = this._createDataSources(dataSourceConfig);
+
     const transformer = createTransformer({
       definition: definition.toString(),
       outDir: outputDirectory,
+      dataSourceConfig: {
+        primaryDataSourceName: "",
+        dataSources: {},
+      },
       // fieldResolvers: resolvers?.map((resolver) => resolver.getConfig()),
       // pipelineFunctions: pipelineFunctions?.map((resolver) => resolver.getConfig()),
     });
@@ -111,7 +117,6 @@ export class AppSyncGraphQLApi extends Construct {
       ...apiConfig,
     });
 
-    const dataSourcesMap = this._createDataSources(dataSourceConfig);
     const pipelineFunctionsMap = this._createPipelineFunctions(
       result.pipelineFunctions,
       dataSourcesMap

@@ -14,9 +14,6 @@ export type UpdateUserInput = {
     id: string;
     name?: Maybe<string>;
 };
-export type Query = {
-    me?: Maybe<User>;
-};
 export type MutationCreateUserArgs = {
     input: CreateUserInput;
 };
@@ -25,11 +22,6 @@ export type MutationUpdateUserArgs = {
 };
 export type MutationDeleteUserArgs = {
     id: string;
-};
-export type Mutation = {
-    createUser?: Maybe<User>;
-    updateUser?: Maybe<User>;
-    deleteUser?: Maybe<User>;
 };
 "
 `;

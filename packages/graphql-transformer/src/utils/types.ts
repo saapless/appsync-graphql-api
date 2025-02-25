@@ -64,8 +64,10 @@ export type LoaderDescriptor = {
   dataSource: string;
   targetName: string;
   action: LoaderAction;
+  isEdge?: boolean;
   checkEarlyReturn?: boolean;
   authRules?: AuthorizationRule[];
+  returnTargetName?: string;
   returnType?: LoaderReturnType;
 };
 

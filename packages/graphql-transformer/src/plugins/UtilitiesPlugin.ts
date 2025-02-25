@@ -1,5 +1,6 @@
 import { TransformerContext } from "../context";
 import { DefinitionNode, DirectiveDefinitionNode, InterfaceNode, ObjectNode } from "../definition";
+import * as C from "../utils/constants";
 import { TransformerPluginBase } from "./TransformerPluginBase";
 
 export class UtilitiesPlugin extends TransformerPluginBase {
@@ -11,10 +12,11 @@ export class UtilitiesPlugin extends TransformerPluginBase {
 
   public before() {
     this.context.document
-      .addNode(DirectiveDefinitionNode.create("readOnly", ["FIELD_DEFINITION"]))
-      .addNode(DirectiveDefinitionNode.create("writeOnly", ["FIELD_DEFINITION"]))
-      .addNode(DirectiveDefinitionNode.create("serverOnly", ["FIELD_DEFINITION"]))
-      .addNode(DirectiveDefinitionNode.create("clientOnly", ["FIELD_DEFINITION"]));
+      .addNode(DirectiveDefinitionNode.create(C.READ_ONLY_DIRECTIVE, ["FIELD_DEFINITION"]))
+      .addNode(DirectiveDefinitionNode.create(C.WRITE_ONLY_DIRECTIVE, ["FIELD_DEFINITION"]))
+      .addNode(DirectiveDefinitionNode.create(C.SERVER_ONLY_DIRECTIVE, ["FIELD_DEFINITION"]))
+      .addNode(DirectiveDefinitionNode.create(C.CLIENT_ONLY_DIRECTIVE, ["FIELD_DEFINITION"]))
+      .addNode(DirectiveDefinitionNode.create(C.FILTER_ONLY_DIRECTIVE, ["FIELD_DEFINITION"]));
   }
 
   public match(definition: DefinitionNode) {
@@ -29,19 +31,23 @@ export class UtilitiesPlugin extends TransformerPluginBase {
 
   public cleanup(definition: ObjectNode | InterfaceNode): void {
     for (const field of definition.fields ?? []) {
-      if (field.hasDirective("readOnly")) {
-        field.removeDirective("readOnly");
+      if (field.hasDirective(C.READ_ONLY_DIRECTIVE)) {
+        field.removeDirective(C.READ_ONLY_DIRECTIVE);
       }
 
-      if (field.hasDirective("clientOnly")) {
-        field.removeDirective("clientOnly");
+      if (field.hasDirective(C.FILTER_ONLY_DIRECTIVE)) {
+        field.removeDirective(C.READ_ONLY_DIRECTIVE);
       }
 
-      if (field.hasDirective("writeOnly")) {
+      if (field.hasDirective(C.CLIENT_ONLY_DIRECTIVE)) {
+        field.removeDirective(C.CLIENT_ONLY_DIRECTIVE);
+      }
+
+      if (field.hasDirective(C.WRITE_ONLY_DIRECTIVE)) {
         definition.removeField(field.name);
       }
 
-      if (field.hasDirective("serverOnly")) {
+      if (field.hasDirective(C.SERVER_ONLY_DIRECTIVE)) {
         definition.removeField(field.name);
       }
     }
@@ -49,10 +55,11 @@ export class UtilitiesPlugin extends TransformerPluginBase {
 
   public after(): void {
     this.context.document
-      .removeNode("readOnly")
-      .removeNode("writeOnly")
-      .removeNode("serverOnly")
-      .removeNode("clientOnly");
+      .removeNode(C.READ_ONLY_DIRECTIVE)
+      .removeNode(C.WRITE_ONLY_DIRECTIVE)
+      .removeNode(C.SERVER_ONLY_DIRECTIVE)
+      .removeNode(C.CLIENT_ONLY_DIRECTIVE)
+      .removeNode(C.FILTER_ONLY_DIRECTIVE);
   }
 
   static create(context: TransformerContext): UtilitiesPlugin {

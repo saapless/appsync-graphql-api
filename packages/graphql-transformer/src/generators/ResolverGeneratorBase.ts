@@ -298,7 +298,7 @@ export abstract class ResolverGeneratorBase extends GeneratorBase {
   protected _getResponseReturnType(loader: LoaderDescriptor) {
     switch (loader.returnType) {
       case "connection": {
-        const name = pascalCase(loader.targetName, "connection");
+        const name = pascalCase(loader.returnTargetName ?? loader.targetName, "connection");
         this._setImport(
           "../schema-types",
           ts.factory.createImportSpecifier(false, undefined, ts.factory.createIdentifier(name))
@@ -307,18 +307,13 @@ export abstract class ResolverGeneratorBase extends GeneratorBase {
         return ts.factory.createTypeReferenceNode(name);
       }
       case "edges": {
+        const name = pascalCase(loader.targetName, "edge");
         this._setImport(
           "../schema-types",
-          ts.factory.createImportSpecifier(
-            false,
-            undefined,
-            ts.factory.createIdentifier(loader.targetName)
-          )
+          ts.factory.createImportSpecifier(false, undefined, ts.factory.createIdentifier(name))
         );
 
-        return ts.factory.createArrayTypeNode(
-          ts.factory.createTypeReferenceNode(loader.targetName)
-        );
+        return ts.factory.createArrayTypeNode(ts.factory.createTypeReferenceNode(name));
       }
       case "prev":
       case "result":

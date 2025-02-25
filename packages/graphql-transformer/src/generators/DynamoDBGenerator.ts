@@ -115,8 +115,109 @@ export class DynamoDbGenerator extends ResolverGeneratorBase {
     );
   }
 
+  private _putEdgeItemInit(descriptor: LoaderDescriptor) {
+    const typename: string = descriptor.targetName;
+
+    const id = ts.factory.createVariableStatement(
+      undefined,
+      ts.factory.createVariableDeclarationList(
+        [
+          ts.factory.createVariableDeclaration(
+            ts.factory.createIdentifier("id"),
+            undefined,
+            undefined,
+            ts.factory.createTemplateExpression(ts.factory.createTemplateHead(""), [
+              ts.factory.createTemplateSpan(
+                ts.factory.createIdentifier("ctx.args.input.sourceId"),
+                ts.factory.createTemplateMiddle("#")
+              ),
+              ts.factory.createTemplateSpan(
+                ts.factory.createIdentifier("ctx.args.input.targetId"),
+                ts.factory.createTemplateTail("")
+              ),
+            ])
+          ),
+        ],
+        ts.NodeFlags.Const
+      )
+    );
+
+    const timestamp = ts.factory.createVariableStatement(
+      undefined,
+      ts.factory.createVariableDeclarationList(
+        [
+          ts.factory.createVariableDeclaration(
+            ts.factory.createIdentifier("timestamp"),
+            undefined,
+            undefined,
+            ts.factory.createCallExpression(
+              ts.factory.createPropertyAccessExpression(
+                ts.factory.createIdentifier("util.time"),
+                ts.factory.createIdentifier("nowISO8601")
+              ),
+              undefined,
+              []
+            )
+          ),
+        ],
+        ts.NodeFlags.Const
+      )
+    );
+
+    const values = ts.factory.createVariableStatement(
+      undefined,
+      ts.factory.createVariableDeclarationList(
+        [
+          ts.factory.createVariableDeclaration(
+            ts.factory.createIdentifier("values"),
+            undefined,
+            undefined,
+            ts.factory.createObjectLiteralExpression(
+              [
+                ts.factory.createSpreadAssignment(ts.factory.createIdentifier("ctx.args.input")),
+                ts.factory.createPropertyAssignment("id", ts.factory.createIdentifier("id")),
+                ts.factory.createPropertyAssignment(
+                  "createdAt",
+                  ts.factory.createIdentifier("timestamp")
+                ),
+                ts.factory.createPropertyAssignment(
+                  "updatedAt",
+                  ts.factory.createIdentifier("timestamp")
+                ),
+                ts.factory.createPropertyAssignment(
+                  "__typename",
+                  ts.factory.createStringLiteral(typename)
+                ),
+                ts.factory.createPropertyAssignment(
+                  "_sk",
+                  ts.factory.createTemplateExpression(
+                    ts.factory.createTemplateHead(`${typename}#`),
+                    [
+                      ts.factory.createTemplateSpan(
+                        ts.factory.createIdentifier("id"),
+                        ts.factory.createTemplateTail("")
+                      ),
+                    ]
+                  )
+                ),
+              ],
+              true
+            )
+          ),
+        ],
+        ts.NodeFlags.Const
+      )
+    );
+
+    return [id, timestamp, values];
+  }
+
   private _putItemInit(descriptor: LoaderDescriptor) {
     const typename: string = descriptor.targetName;
+
+    if (descriptor.isEdge) {
+      return this._putEdgeItemInit(descriptor);
+    }
 
     const id = ts.factory.createVariableStatement(
       undefined,
@@ -432,6 +533,38 @@ export class DynamoDbGenerator extends ResolverGeneratorBase {
     ]);
   }
 
+  private _deleteItemInit(descriptor: LoaderDescriptor) {
+    const initializer = descriptor.isEdge
+      ? ts.factory.createTemplateExpression(ts.factory.createTemplateHead(""), [
+          ts.factory.createTemplateSpan(
+            ts.factory.createIdentifier("ctx.args.input.sourceId"),
+            ts.factory.createTemplateMiddle("#")
+          ),
+          ts.factory.createTemplateSpan(
+            ts.factory.createIdentifier("ctx.args.input.targetId"),
+            ts.factory.createTemplateTail("")
+          ),
+        ])
+      : ts.factory.createIdentifier(`ctx.args.id`);
+
+    return [
+      ts.factory.createVariableStatement(
+        undefined,
+        ts.factory.createVariableDeclarationList(
+          [
+            ts.factory.createVariableDeclaration(
+              ts.factory.createIdentifier("id"),
+              undefined,
+              undefined,
+              initializer
+            ),
+          ],
+          ts.NodeFlags.Const
+        )
+      ),
+    ];
+  }
+
   private _deleteItem() {
     this._setImport(
       "@aws-appsync/utils/dynamodb",
@@ -444,7 +577,7 @@ export class DynamoDbGenerator extends ResolverGeneratorBase {
           ts.factory.createPropertyAssignment(
             "key",
             ts.factory.createObjectLiteralExpression([
-              ts.factory.createPropertyAssignment("id", ts.factory.createIdentifier(`ctx.args.id`)),
+              ts.factory.createPropertyAssignment("id", ts.factory.createIdentifier(`id`)),
             ])
           ),
           ts.factory.createPropertyAssignment(
@@ -479,6 +612,8 @@ export class DynamoDbGenerator extends ResolverGeneratorBase {
         return this._putItemInit(descriptor);
       case "updateItem":
         return this._updateItemInit(descriptor);
+      case "removeItem":
+        return this._deleteItemInit(descriptor);
       default:
         return [];
     }

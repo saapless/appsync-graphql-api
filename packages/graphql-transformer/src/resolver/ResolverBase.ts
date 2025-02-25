@@ -5,19 +5,6 @@ export enum ResolverKind {
   FUNCTION_RESOLVER = "FunctionResolver",
 }
 
-/**
- * In order to allow plugins to handle a different aspect in the execution process of a resolver
- * we heed a way organize and identify the declarations.
- *
- * The execution process is divided into 4 stages:
- * 1. `Initiate` - tipically used in the entrypoint resolver
- *     like `Query.node` or `Mutation.createCode` to setup the context and default values
- * 2. `Authorize` - check request authorization based on context or set up condition rules
- * 3. `Load` - used by all resolver, defines the dataSource request.
- * 4. `Return` - tipically used in the `response` resolver to check and format
- *     the dataSource result.
- */
-
 export class ResolverBase {
   private readonly _name: string;
   public readonly isReadonly: boolean = false;

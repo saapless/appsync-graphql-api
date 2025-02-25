@@ -35,6 +35,14 @@ export class SchemaTypesGenerator extends GeneratorBase {
     );
   }
 
+  private _shouldIncludeField(field: FieldNode) {
+    if (field.hasDirective("hasOne") || field.hasDirective("hasMany")) {
+      return false;
+    }
+
+    return true;
+  }
+
   private _value(ref: string) {
     switch (ref) {
       case "ID":
@@ -108,7 +116,9 @@ export class SchemaTypesGenerator extends GeneratorBase {
     const members: ts.TypeElement[] = [];
 
     for (const field of object.fields ?? []) {
-      members.push(this._field(field));
+      if (this._shouldIncludeField(field)) {
+        members.push(this._field(field));
+      }
 
       if (field.arguments?.length) {
         this._args(object, field);
@@ -163,21 +173,25 @@ export class SchemaTypesGenerator extends GeneratorBase {
     const members: ts.TypeElement[] = [];
 
     for (const field of node.fields ?? []) {
-      members.push(this._field(field));
+      if (this._shouldIncludeField(field)) {
+        members.push(this._field(field));
+      }
 
       if (field.arguments?.length) {
         this._args(node, field);
       }
     }
 
-    this._definitions.push(
-      ts.factory.createTypeAliasDeclaration(
-        [ts.factory.createModifier(ts.SyntaxKind.ExportKeyword)],
-        ts.factory.createIdentifier(node.name),
-        undefined,
-        ts.factory.createTypeLiteralNode(members)
-      )
-    );
+    if (!["Query", "Mutation", "Subscription"].includes(node.name)) {
+      this._definitions.push(
+        ts.factory.createTypeAliasDeclaration(
+          [ts.factory.createModifier(ts.SyntaxKind.ExportKeyword)],
+          ts.factory.createIdentifier(node.name),
+          undefined,
+          ts.factory.createTypeLiteralNode(members)
+        )
+      );
+    }
   }
 
   public _union(node: UnionNode) {
