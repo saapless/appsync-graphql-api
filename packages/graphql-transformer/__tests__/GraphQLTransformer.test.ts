@@ -34,9 +34,9 @@ const schema = /* GraphQL */ `
 
     # Connections
     labels: Label @hasMany(relation: manyToMany)
+    occurrences: Task @hasMany
     subtasks: Task @hasMany
     artifacts: Artifact @hasMany
-    occurrences: Task @hasMany
   }
 
   type RRule {

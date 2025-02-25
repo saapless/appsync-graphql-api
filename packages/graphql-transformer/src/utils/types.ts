@@ -52,7 +52,7 @@ export type LoaderActionType =
   | "removeItem"
   | "batchGetItems";
 
-export type LoaderReturnType = "connection" | "edges" | "node" | "prev" | "result";
+export type LoaderReturnType = "connection" | "edges" | "edge" | "result";
 
 export type LoaderAction = {
   type: LoaderActionType;

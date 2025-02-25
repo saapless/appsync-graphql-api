@@ -82,7 +82,17 @@ export abstract class ResolverGeneratorBase extends GeneratorBase {
     }
   }
 
-  protected _errorCheck() {
+  protected _getTableName(descriptor: LoaderDescriptor) {
+    const dataSource = this._context.dataSources.getDataSource(descriptor.dataSource);
+
+    if (dataSource.type !== "DYNAMO_DB") {
+      throw new TransformExecutionError("Invalid data source type provided to batchGetItem.");
+    }
+
+    return dataSource.config.tableName;
+  }
+
+  protected _checkResponseError() {
     this._setImport(
       "@aws-appsync/utils",
       ts.factory.createImportSpecifier(false, undefined, ts.factory.createIdentifier("util"))
@@ -162,43 +172,96 @@ export abstract class ResolverGeneratorBase extends GeneratorBase {
     );
   }
 
-  protected _formatResult(loader: LoaderDescriptor) {
-    switch (loader.returnType) {
-      case "connection": {
-        this._setImport(
-          "@saapless/appsync-utils",
-          ts.factory.createImportSpecifier(
-            false,
-            undefined,
-            ts.factory.createIdentifier("formatConnection")
-          )
-        );
+  private _formatConnection(loader: LoaderDescriptor) {
+    this._setImport(
+      "@saapless/appsync-utils",
+      ts.factory.createImportSpecifier(
+        false,
+        undefined,
+        ts.factory.createIdentifier("formatConnection")
+      )
+    );
 
-        return ts.factory.createCallExpression(
-          ts.factory.createIdentifier("formatConnection"),
-          undefined,
+    return ts.factory.createCallExpression(
+      ts.factory.createIdentifier("formatConnection"),
+      undefined,
+      [
+        ts.factory.createObjectLiteralExpression(
           [
-            ts.factory.createObjectLiteralExpression(
-              [
-                ts.factory.createPropertyAssignment(
-                  ts.factory.createIdentifier("items"),
-                  ts.factory.createPropertyAccessExpression(
-                    ts.factory.createIdentifier("result"),
+            ts.factory.createPropertyAssignment(
+              ts.factory.createIdentifier("items"),
+              loader.isEdge
+                ? ts.factory.createArrayLiteralExpression([], false)
+                : ts.factory.createPropertyAccessExpression(
+                    ts.factory.createIdentifier("ctx.result"),
                     ts.factory.createIdentifier("items")
                   )
-                ),
-                ts.factory.createPropertyAssignment(
-                  ts.factory.createIdentifier("nextToken"),
-                  ts.factory.createPropertyAccessExpression(
-                    ts.factory.createIdentifier("result"),
-                    ts.factory.createIdentifier("nextToken")
-                  )
-                ),
-              ],
-              true
             ),
-          ]
-        );
+            ts.factory.createPropertyAssignment(
+              ts.factory.createIdentifier("prevToken"),
+              ts.factory.createPropertyAccessExpression(
+                ts.factory.createIdentifier("ctx.args"),
+                ts.factory.createIdentifier("after")
+              )
+            ),
+            ts.factory.createPropertyAssignment(
+              ts.factory.createIdentifier("nextToken"),
+              ts.factory.createPropertyAccessExpression(
+                ts.factory.createIdentifier("ctx.result"),
+                ts.factory.createIdentifier("nextToken")
+              )
+            ),
+          ],
+          true
+        ),
+      ]
+    );
+  }
+
+  private _formatEdges(loader: LoaderDescriptor) {
+    this._setImport(
+      "@saapless/appsync-utils",
+      ts.factory.createImportSpecifier(false, undefined, ts.factory.createIdentifier("formatEdges"))
+    );
+
+    let ref;
+
+    if (loader.action.type === "queryItems") {
+      ref = ts.factory.createIdentifier("ctx.result.items");
+    } else if (loader.action.type === "batchGetItems") {
+      ref = ts.factory.createElementAccessExpression(
+        ts.factory.createIdentifier("ctx.result.data"),
+        ts.factory.createStringLiteral(this._getTableName(loader))
+      );
+    } else {
+      ref = ts.factory.createArrayLiteralExpression([ts.factory.createIdentifier("ctx.result")]);
+    }
+    return ts.factory.createCallExpression(ts.factory.createIdentifier("formatEdges"), undefined, [
+      ref,
+    ]);
+  }
+
+  private _formatEdge() {
+    this._setImport(
+      "@saapless/appsync-utils",
+      ts.factory.createImportSpecifier(false, undefined, ts.factory.createIdentifier("formatEdge"))
+    );
+
+    return ts.factory.createCallExpression(ts.factory.createIdentifier("formatEdge"), undefined, [
+      ts.factory.createIdentifier("ctx.result"),
+    ]);
+  }
+
+  protected _formatResult(loader: LoaderDescriptor) {
+    switch (loader.returnType) {
+      case "connection":
+        return this._formatConnection(loader);
+      case "edges":
+        return this._formatEdges(loader);
+      case "edge":
+        return this._formatEdge();
+      case "result": {
+        return ts.factory.createIdentifier("ctx.result");
       }
     }
   }
@@ -315,9 +378,17 @@ export abstract class ResolverGeneratorBase extends GeneratorBase {
 
         return ts.factory.createArrayTypeNode(ts.factory.createTypeReferenceNode(name));
       }
-      case "prev":
-      case "result":
-      case "node": {
+      case "edge": {
+        const name = pascalCase(loader.targetName, "edge");
+        this._setImport(
+          "../schema-types",
+          ts.factory.createImportSpecifier(false, undefined, ts.factory.createIdentifier(name))
+        );
+
+        return ts.factory.createTypeReferenceNode(name);
+      }
+
+      case "result": {
         const name = pascalCase(loader.targetName);
         this._setImport(
           "../schema-types",

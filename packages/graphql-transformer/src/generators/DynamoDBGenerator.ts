@@ -827,7 +827,13 @@ export class DynamoDbGenerator extends ResolverGeneratorBase {
     // Check error;
     // Format response;
     // Return;
-    this._setResponseFunction(loader, ts.factory.createBlock([], true));
+    this._setResponseFunction(
+      loader,
+      ts.factory.createBlock(
+        [this._checkResponseError(), ts.factory.createReturnStatement(this._formatResult(loader))],
+        true
+      )
+    );
 
     return this._printDefinitions(this._getFileName(loader));
   }

@@ -388,6 +388,8 @@ export class ConnectionPlugin extends TransformerPluginBase {
       const edgeTypeName = pascalCase(target.name, "edge");
       const hasEdgeRecord = this._needsEdgeRecord(connection);
 
+      let edgeType = this.context.document.getNode(edgeTypeName) as ObjectNode;
+
       if (!this.context.document.hasNode(connectionTypeName)) {
         const connectionType = ObjectNode.create(connectionTypeName, [
           FieldNode.create(
@@ -400,8 +402,8 @@ export class ConnectionPlugin extends TransformerPluginBase {
         this.context.document.addNode(connectionType);
       }
 
-      if (!this.context.document.hasNode(edgeTypeName)) {
-        const edgeType = ObjectNode.create(`${target.name}Edge`, [
+      if (!edgeType) {
+        edgeType = ObjectNode.create(`${target.name}Edge`, [
           FieldNode.create("cursor", NamedTypeNode.create("String"), null, [
             DirectiveNode.create("clientOnly"),
           ]),
@@ -449,9 +451,9 @@ export class ConnectionPlugin extends TransformerPluginBase {
         }
 
         this.context.document.addNode(edgeType);
-        this._setConnectionArguments(field, hasEdgeRecord ? edgeType : (target as ObjectNode));
       }
 
+      this._setConnectionArguments(field, hasEdgeRecord ? edgeType : (target as ObjectNode));
       field.setType(NonNullTypeNode.create(connectionTypeName));
     }
   }
@@ -496,6 +498,7 @@ export class ConnectionPlugin extends TransformerPluginBase {
         type: "getItem",
         key: { id: { ref: "source.nodeId" } },
       },
+      checkEarlyReturn: true,
       returnType: "result",
     });
 
@@ -539,7 +542,7 @@ export class ConnectionPlugin extends TransformerPluginBase {
   ) {
     this._createConnectionTypes(field, connection);
 
-    if (!this._needsEdgeRecord(connection)) {
+    if (connection.relation === "oneToMany" && !this._needsEdgeRecord(connection)) {
       this.context.loader.setFieldLoader(parent.name, field.name, {
         targetName: connection.target.name,
         action: {
@@ -560,6 +563,7 @@ export class ConnectionPlugin extends TransformerPluginBase {
       this.context.loader.setFieldLoader(parent.name, field.name, {
         targetName: edgeTypeName,
         dataSource: this.context.dataSources.primaryDataSourceName,
+        isEdge: true,
         action: {
           type: "queryItems",
           key: {
@@ -579,6 +583,7 @@ export class ConnectionPlugin extends TransformerPluginBase {
           type: "batchGetItems",
           key: { keys: { ref: "source.edgeKeys" } },
         },
+        checkEarlyReturn: true,
         returnType: "edges",
       });
     }
