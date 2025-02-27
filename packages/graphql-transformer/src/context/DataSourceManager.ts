@@ -2,16 +2,6 @@ import { DynamoDbGenerator, NoneGenerator, ResolverGeneratorBase } from "../gene
 import { TransformExecutionError } from "../utils/errors";
 import { TransformerContext } from "./TransformerContext";
 
-export type DataSourceType =
-  | "DYNAMO_DB"
-  | "HTTP"
-  | "RDS"
-  | "AWS_LAMBDA"
-  | "EVENT_BRIDGE"
-  | "AWS_BEDROCK"
-  | "NONE"
-  | "OPEN_SEARCH";
-
 export type NoneDataSorce = {
   type: "NONE";
 };

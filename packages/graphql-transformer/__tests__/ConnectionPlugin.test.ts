@@ -60,6 +60,17 @@ describe("ConnectionPlugin", () => {
       expect(context.document.getNode("hasOne")).toBeInstanceOf(DirectiveDefinitionNode);
       expect(context.document.getNode("hasMany")).toBeInstanceOf(DirectiveDefinitionNode);
     });
+
+    it("adds scalars filter types", () => {
+      expect(context.document.getNode("StringFilterInput")).toBeInstanceOf(InputObjectNode);
+      expect(context.document.getNode("IntFilterInput")).toBeInstanceOf(InputObjectNode);
+      expect(context.document.getNode("FloatFilterInput")).toBeInstanceOf(InputObjectNode);
+      expect(context.document.getNode("BooleanFilterInput")).toBeInstanceOf(InputObjectNode);
+      expect(context.document.getNode("IDFilterInput")).toBeInstanceOf(InputObjectNode);
+      expect(context.document.getNode("SizeFilterInput")).toBeInstanceOf(InputObjectNode);
+      expect(context.document.getNode("ListFilterInput")).toBeInstanceOf(InputObjectNode);
+      expect(context.document.getNode("SortDirection")).toBeInstanceOf(EnumNode);
+    });
   });
 
   describe("on normalize node", () => {
@@ -113,8 +124,8 @@ describe("ConnectionPlugin", () => {
       expect(resourcesField?.hasArgument("sort")).toBe(true);
     });
 
-    it.skip("creates field resolvers", () => {
-      // expect(context.resolvers.get("Todo.resources")).toBeInstanceOf(FieldResolver);
+    it("creates field resolvers", () => {
+      expect(context.loader.hasFieldLoader("Todo.resources")).toStrictEqual(true);
     });
   });
 

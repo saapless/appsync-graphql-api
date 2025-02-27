@@ -5,7 +5,7 @@ export type EdgeType<T extends Node> = {
   node?: T | null;
 };
 
-export type ConnectionType<T extends Node> = {
+export type ConnectionType<T extends Node = Node> = {
   edges: EdgeType<T>[];
   pageInfo: {
     hasPreviousPage?: boolean | null;
@@ -15,15 +15,13 @@ export type ConnectionType<T extends Node> = {
   };
 };
 
-type ConnectionProps<T extends ConnectionType<Node>> = {
+type ConnectionProps<T extends ConnectionType> = {
   items: T extends ConnectionType<infer I> ? I[] : never;
   prevToken?: string | null;
   nextToken?: string | null;
 };
 
-export function formatConnection<T extends ConnectionType<Node>>(
-  props: ConnectionProps<T> & Omit<T, "edges" | "pageInfo">
-) {
+export function formatConnection<T extends ConnectionType>(props: ConnectionProps<T>) {
   const { items, prevToken, nextToken, ...rest } = props;
 
   const edges = items.filter(Boolean).map((item) => ({
@@ -38,7 +36,7 @@ export function formatConnection<T extends ConnectionType<Node>>(
     startCursor: prevToken || null,
   };
 
-  return { edges, pageInfo, ...rest } as unknown as T;
+  return { edges, pageInfo, ...rest } as T;
 }
 
 export function formatEdges<T>(items: T extends Array<EdgeType<infer N>> ? (N | null)[] : never) {

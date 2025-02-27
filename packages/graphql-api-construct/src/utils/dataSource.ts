@@ -7,13 +7,14 @@ import { IServerlessCluster } from "aws-cdk-lib/aws-rds";
 import { ISecret } from "aws-cdk-lib/aws-secretsmanager";
 
 export type DataSourceType =
-  | "NONE"
-  | "DynamoDB"
+  | "DYNAMO_DB"
   | "HTTP"
   | "RDS"
-  | "OpenSearch"
-  | "EventBridge"
-  | "Lambda";
+  | "AWS_LAMBDA"
+  | "EVENT_BRIDGE"
+  | "AWS_BEDROCK"
+  | "NONE"
+  | "OPEN_SEARCH";
 
 export interface IDataSourceOptions {
   type: DataSourceType;
@@ -25,7 +26,7 @@ export interface NoneDataSourceOptions extends IDataSourceOptions {
 }
 
 export interface DynamoDBDataSourceOptions extends IDataSourceOptions {
-  type: "DynamoDB";
+  type: "DYNAMO_DB";
   table: ITable;
 }
 
@@ -42,17 +43,22 @@ export interface RdsDataSourceOptions extends IDataSourceOptions {
 }
 
 export interface OpenSearchDataSourceOptions extends IDataSourceOptions {
-  type: "OpenSearch";
+  type: "OPEN_SEARCH";
   domain: IDomain;
 }
 
 export interface EventBridgeDataSourceOptions extends IDataSourceOptions {
-  type: "EventBridge";
+  type: "EVENT_BRIDGE";
   eventBus: IEventBus;
 }
 
 export interface LambdaDataSourceOptions extends IDataSourceOptions {
-  type: "Lambda";
+  type: "AWS_LAMBDA";
+  lambdaFunction: IFunction;
+}
+
+export interface BedrockDataSourceOptions extends IDataSourceOptions {
+  type: "AWS_BEDROCK";
   lambdaFunction: IFunction;
 }
 
@@ -63,10 +69,11 @@ export type DataSourceOptions =
   | RdsDataSourceOptions
   | OpenSearchDataSourceOptions
   | EventBridgeDataSourceOptions
-  | LambdaDataSourceOptions;
+  | LambdaDataSourceOptions
+  | BedrockDataSourceOptions;
 
 export interface DataSourceConfig {
-  defaultDataSource?: DynamoDBDataSourceOptions;
+  primaryDataSource?: DynamoDBDataSourceOptions;
   additionalDataSources?: DataSourceOptions[];
 }
 

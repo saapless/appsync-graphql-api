@@ -134,3 +134,6 @@ dist
 
 # cdk
 cdk.out
+
+# artifacts
+__generated__

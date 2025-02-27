@@ -35,17 +35,6 @@ describe("ModelPlugin", () => {
       expect(context.document.getNode("model")).toBeInstanceOf(DirectiveDefinitionNode);
       expect(context.document.getNode("ModelOperation")).toBeInstanceOf(EnumNode);
     });
-
-    it.skip(`adds scalar model inputs`, () => {
-      expect(context.document.getNode("StringFilterInput")).toBeInstanceOf(InputObjectNode);
-      expect(context.document.getNode("IntFilterInput")).toBeInstanceOf(InputObjectNode);
-      expect(context.document.getNode("FloatFilterInput")).toBeInstanceOf(InputObjectNode);
-      expect(context.document.getNode("BooleanFilterInput")).toBeInstanceOf(InputObjectNode);
-      expect(context.document.getNode("IDFilterInput")).toBeInstanceOf(InputObjectNode);
-      expect(context.document.getNode("SizeFilterInput")).toBeInstanceOf(InputObjectNode);
-      expect(context.document.getNode("ListFilterInput")).toBeInstanceOf(InputObjectNode);
-      expect(context.document.getNode("SortDirection")).toBeInstanceOf(EnumNode);
-    });
   });
 
   describe("on executing model node", () => {
@@ -82,13 +71,10 @@ describe("ModelPlugin", () => {
       expect(context.document.getNode("UpdateModelInput")).toBeInstanceOf(InputObjectNode);
     });
 
-    it.skip("creates operation resolvers", () => {
-      expect(context.resolvers.getFieldResolver("Query", "getModel")).toBeDefined();
-      expect(context.resolvers.getFieldResolver("Query", "listModels")).toBeDefined();
-
-      expect(context.resolvers.getFieldResolver("Mutation", "createModel")).toBeDefined();
-      expect(context.resolvers.getFieldResolver("Mutation", "updateModel")).toBeDefined();
-      expect(context.resolvers.getFieldResolver("Mutation", "deleteModel")).toBeDefined();
+    it("adds mutation loaders", () => {
+      expect(context.loader.hasFieldLoader("Mutation.createModel")).toBeTruthy();
+      expect(context.loader.hasFieldLoader("Mutation.updateModel")).toBeTruthy();
+      expect(context.loader.hasFieldLoader("Mutation.deleteModel")).toBeTruthy();
     });
   });
 

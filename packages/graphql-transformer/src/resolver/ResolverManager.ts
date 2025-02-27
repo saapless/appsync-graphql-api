@@ -8,7 +8,7 @@ import { FunctionResolver } from "./FunctionResolver";
 import { ResolverBase } from "./ResolverBase";
 
 export type ResolverManagerConfig = {
-  readonly customResolversSource?: string;
+  readonly customResolversSource?: string | string[];
 };
 
 export class ResolverManager {
@@ -40,10 +40,10 @@ export class ResolverManager {
     return false;
   }
 
-  private _createCustomResolvers(source: string) {
+  private _createCustomResolvers(source: string | string[]) {
     let globPath = source;
 
-    if (fs.lstatSync(source).isDirectory()) {
+    if (!Array.isArray(source) && fs.lstatSync(source).isDirectory()) {
       globPath = path.join(source, "**", "*.{js,ts}");
     }
 

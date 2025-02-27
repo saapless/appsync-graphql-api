@@ -80,3 +80,13 @@ export type FieldLoaderDescriptor = LoaderDescriptor & {
 export type PipelineFunctionLoaderDescriptor = LoaderDescriptor & {
   name: string;
 };
+
+export type DataSourceType =
+  | "DYNAMO_DB"
+  | "HTTP"
+  | "RDS"
+  | "AWS_LAMBDA"
+  | "EVENT_BRIDGE"
+  | "AWS_BEDROCK"
+  | "NONE"
+  | "OPEN_SEARCH";

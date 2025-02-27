@@ -34,7 +34,7 @@ export function createTransformer(options: Partial<GraphQLTransformerOptions>) {
     dataSourceConfig: dataSourceConfig,
     plugins: plugins,
     mode: options.mode ?? "production",
-    outDir: options.outDir ?? "out",
+    outDir: options.outDir ?? "__generated__",
     ...rest,
   });
 }
