@@ -4,6 +4,7 @@
   "description": "Utilities for AWS AppSync JS resolvers",
   "author": "Saapless",
   "license": "MIT",
+  "sideEffects": false,
   "main": "dist/index.js",
   "types": "dist/index.d.ts",
   "scripts": {

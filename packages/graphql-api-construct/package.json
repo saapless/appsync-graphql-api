@@ -2,6 +2,7 @@
   "name": "@saapless/graphql-api-construct",
   "version": "0.0.1",
   "description": "AppSync GraphQL Api Construct",
+  "sideEffects": false,
   "author": "Saapless",
   "license": "MIT",
   "type": "module",

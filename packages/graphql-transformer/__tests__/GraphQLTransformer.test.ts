@@ -103,7 +103,7 @@ describe("GraphQLTransformer", () => {
   const transformer = createTransformer({
     definition: schema,
     mode: "development",
-    outDir: resolve(dirname(fileURLToPath(import.meta.url)), "out"),
+    outDir: resolve(dirname(fileURLToPath(import.meta.url)), "../__generated__"),
     dataSourceConfig: TEST_DS_CONFIG,
   });
 

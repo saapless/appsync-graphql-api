@@ -35,12 +35,12 @@ export class UtilitiesPlugin extends TransformerPluginBase {
         field.removeDirective(C.READ_ONLY_DIRECTIVE);
       }
 
-      if (field.hasDirective(C.FILTER_ONLY_DIRECTIVE)) {
-        field.removeDirective(C.READ_ONLY_DIRECTIVE);
-      }
-
       if (field.hasDirective(C.CLIENT_ONLY_DIRECTIVE)) {
         field.removeDirective(C.CLIENT_ONLY_DIRECTIVE);
+      }
+
+      if (field.hasDirective(C.FILTER_ONLY_DIRECTIVE)) {
+        definition.removeField(field.name);
       }
 
       if (field.hasDirective(C.WRITE_ONLY_DIRECTIVE)) {

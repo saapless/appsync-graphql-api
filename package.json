@@ -3,6 +3,7 @@
   "version": "0.0.1",
   "main": "turbo.json",
   "author": "Saapless",
+  "sideEffects": false,
   "private": true,
   "type": "module",
   "workspaces": [
