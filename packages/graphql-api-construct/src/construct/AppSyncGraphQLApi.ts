@@ -109,13 +109,18 @@ export class AppSyncGraphQLApi extends Construct {
     this._createFieldResolvers(fieldResolvers);
   }
 
+  private _getDataSource(name: string) {
+    const dataSource = this._dataSources.getDataSource(name);
+
+    if (!dataSource) {
+      throw new Error(`Data source ${name} not found`);
+    }
+    return dataSource;
+  }
+
   private _createPipelineFunctions(configs: PipelineFunctionOutput[]) {
     for (const func of configs) {
-      const dataSource = this._dataSources.getDataSource(func.dataSource ?? "");
-
-      if (!dataSource) {
-        throw new Error(`Data source ${func.dataSource} not found`);
-      }
+      const dataSource = this._getDataSource(func.dataSource);
 
       const appsyncFunction = dataSource.createFunction(`${func.name}Function`, {
         name: func.name,
@@ -131,13 +136,9 @@ export class AppSyncGraphQLApi extends Construct {
     const stash = new Map<string, Resolver>();
 
     for (const config of configs) {
-      const dataSource = this._dataSources.getDataSource(config.dataSource ?? "");
+      const dataSource = this._getDataSource(config.dataSource);
 
-      if (!dataSource) {
-        throw new Error(`Data source ${config.dataSource} not found`);
-      }
-
-      let pipelineConfig: IAppsyncFunction[] | undefined = undefined;
+      let pipelineConfig: IAppsyncFunction[] = [];
 
       if (config.pipelineFunctions?.length) {
         pipelineConfig = config.pipelineFunctions.map((func) => {
@@ -152,7 +153,7 @@ export class AppSyncGraphQLApi extends Construct {
       }
 
       const resolver = this.api.createResolver(`${config.typeName}${config.fieldName}Resolver`, {
-        dataSource: pipelineConfig?.length ? undefined : dataSource,
+        dataSource: pipelineConfig.length ? undefined : dataSource,
         typeName: config.typeName,
         fieldName: config.fieldName,
         pipelineConfig: pipelineConfig,

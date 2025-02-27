@@ -1,16 +1,11 @@
-import { writeFileSync } from "node:fs";
 import path from "node:path";
-import prettier from "@prettier/sync";
-import { buildSync } from "esbuild";
-import { TransformerContext } from "../context";
-import { IPluginFactory, TransformerPluginBase } from "../plugins";
 import { DocumentNode } from "../definition";
-import { SchemaValidationError } from "../utils/errors";
-import { ensureOutputDirectory } from "../utils/output";
-import { SchemaTypesGenerator } from "../generators";
+import { TransformerContext, TransformerContextConfig } from "../context";
+import { SchemaTypesGenerator, ResolverTypesGenerator } from "../generators";
+import { IPluginFactory, TransformerPluginBase } from "../plugins";
 import { FieldResolver, FunctionResolver, ResolverBase } from "../resolver";
-import { TransformerContextConfig } from "../context/TransformerContext";
-import { ResolverTypesGenerator } from "../generators/ResolverTypesGenerator";
+import { SchemaValidationError } from "../utils/errors";
+import { buildPaths, ensureOutputDirectory, prettyPrintFile, printFile } from "../utils/output";
 
 export interface GraphQLTransformerOptions extends Omit<TransformerContextConfig, "document"> {
   definition: string;
@@ -24,13 +19,13 @@ export type FieldResolverOutput = {
   typeName: string;
   fieldName: string;
   pipelineFunctions?: string[];
-  dataSource?: string;
+  dataSource: string;
   code: string;
 };
 
 export type PipelineFunctionOutput = {
   name: string;
-  dataSource?: string;
+  dataSource: string;
   code: string;
 };
 
@@ -64,28 +59,19 @@ export class GraphQLTransformer {
 
   private _printSchemaTypes(outDir: string) {
     const typesGen = new SchemaTypesGenerator(this.context);
-
-    writeFileSync(
-      path.resolve(outDir, "schema-types.ts"),
-      prettier.format(typesGen.generate("schema-types.ts"), { parser: "typescript" }),
-      { encoding: "utf-8" }
-    );
+    prettyPrintFile(path.resolve(outDir, "schema-types.ts"), typesGen.generate("schema-types.ts"));
   }
 
   private _printResolverTypes(outDir: string) {
     const typesGen = new ResolverTypesGenerator(this.context);
-
-    writeFileSync(
+    prettyPrintFile(
       path.resolve(outDir, "resolver-types.ts"),
-      prettier.format(typesGen.generate("resolver-types.ts"), { parser: "typescript" }),
-      { encoding: "utf-8" }
+      typesGen.generate("resolver-types.ts")
     );
   }
 
   private _printSchema(outDir: string) {
-    writeFileSync(path.resolve(outDir, "schema.graphql"), this.context.document.print(), {
-      encoding: "utf-8",
-    });
+    printFile(path.resolve(outDir, "schema.graphql"), this.context.document.print());
   }
 
   private _printResolvers(outDir: string) {
@@ -96,12 +82,7 @@ export class GraphQLTransformer {
       if (!resolver.isReadonly) {
         const filename = `${resolver.typeName}.${resolver.fieldName}.ts`;
 
-        writeFileSync(
-          path.resolve(basePath, filename),
-          prettier.format(resolver.print(), { parser: "typescript" }),
-          { encoding: "utf-8" }
-        );
-
+        prettyPrintFile(path.resolve(basePath, filename), resolver.print());
         resolver.setSource(path.resolve(basePath, filename));
       }
     }
@@ -110,12 +91,7 @@ export class GraphQLTransformer {
       if (!pipelineFunction.isReadonly) {
         const filename = `${pipelineFunction.name}.ts`;
 
-        writeFileSync(
-          path.resolve(basePath, filename),
-          prettier.format(pipelineFunction.print(), { parser: "typescript" }),
-          { encoding: "utf-8" }
-        );
-
+        prettyPrintFile(path.resolve(basePath, filename), pipelineFunction.print());
         pipelineFunction.setSource(path.resolve(basePath, filename));
       }
     }
@@ -147,39 +123,26 @@ export class GraphQLTransformer {
       }
     }
 
-    const buildPaths = Array.from(resolversBySource.keys());
+    const paths = Array.from(resolversBySource.keys());
 
-    const build = buildSync({
-      entryPoints: buildPaths,
-      outdir: this._outDir,
-      target: "esnext",
-      sourcemap: "inline",
-      sourcesContent: false,
-      treeShaking: true,
-      platform: "node",
-      format: "esm",
-      minify: false,
-      bundle: true,
-      write: false,
-      external: ["@aws-appsync/utils"],
-    });
+    const buildResult = buildPaths(paths, this._outDir);
 
-    if (build.errors.length) {
-      build.errors.forEach((error) => {
+    if (buildResult.errors.length) {
+      buildResult.errors.forEach((error) => {
         console.error(error);
       });
     }
 
-    for (const [index, sourcePath] of buildPaths.entries()) {
+    for (const [index, sourcePath] of paths.entries()) {
       const resolverForPath = resolversBySource.get(sourcePath);
-      const file = build.outputFiles[Number(index)];
+      const file = buildResult.outputFiles[Number(index)];
 
       if (resolverForPath) {
         for (const resolver of resolverForPath) {
           if (resolver instanceof FunctionResolver) {
             pipelineFunctions.push({
               name: resolver.name,
-              dataSource: resolver.dataSource,
+              dataSource: resolver.dataSource ?? this.context.dataSources.primaryDataSourceName,
               code: file.text,
             });
           }
@@ -189,7 +152,7 @@ export class GraphQLTransformer {
               typeName: resolver.typeName,
               fieldName: resolver.fieldName,
               pipelineFunctions: resolver.pipelineFunctions,
-              dataSource: resolver.dataSource,
+              dataSource: resolver.dataSource ?? this.context.dataSources.primaryDataSourceName,
               code: file.text,
             });
           }
@@ -239,7 +202,7 @@ export class GraphQLTransformer {
 
     /**
      * We clean up internal declaration first because we don't want to polute the schema types
-     * with internal, processing only types that can confused the user.
+     * with internal, processing only types that can confuse users.
      *
      * After this we generate the types with hints from directives, then we cleanup
      * the declared schema.
