@@ -1,4 +1,4 @@
-import { AttributeType, Billing, StreamViewType, TableV2 } from "aws-cdk-lib/aws-dynamodb";
+import { AttributeType, Billing, TableV2 } from "aws-cdk-lib/aws-dynamodb";
 import { Construct } from "constructs";
 
 export interface PrimaryDBTableProps {
@@ -14,7 +14,7 @@ export class PrimaryDBTable extends TableV2 {
       },
       billing: Billing.onDemand(),
       timeToLiveAttribute: "_ttl",
-      dynamoStream: StreamViewType.NEW_AND_OLD_IMAGES,
+      // dynamoStream: StreamViewType.NEW_AND_OLD_IMAGES,
       globalSecondaryIndexes: [
         {
           indexName: "byTypename",
