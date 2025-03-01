@@ -51,9 +51,7 @@ export class ModelPlugin extends TransformerPluginBase {
     }
 
     const args = directive.getArgumentsJSON<{ operations?: ModelOperationType[] }>();
-    const operations: ModelOperationType[] = args.operations ?? this.context.defaultModelOperations;
-
-    return this.context.expandOperations(operations);
+    return this.context.operations.getModelOperations(args.operations);
   }
 
   private _getVerbAction(verb: WriteOperation): LoaderActionType {

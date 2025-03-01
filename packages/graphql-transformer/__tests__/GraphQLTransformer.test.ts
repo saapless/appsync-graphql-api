@@ -106,7 +106,7 @@ describe("GraphQLTransformer", () => {
     outDir: resolve(dirname(fileURLToPath(import.meta.url)), "../__generated__"),
     dataSourceConfig: TEST_DS_CONFIG,
     authorizationConfig: {
-      defaultAuthorizationMode: "userPools",
+      defaultAuthorizationMode: "USER_POOL",
       defaultAuthorizationRules: [{ allow: "owner" }],
     },
   });

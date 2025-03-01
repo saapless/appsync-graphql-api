@@ -1,5 +1,6 @@
 import { DynamoDbGenerator, NoneGenerator, ResolverGeneratorBase } from "../generators";
 import { TransformExecutionError } from "../utils/errors";
+import { ContextManagerBase } from "./ContextManagerBase";
 import { TransformerContext } from "./TransformerContext";
 
 export type NoneDataSorce = {
@@ -20,13 +21,13 @@ export interface DataSourceManagerConfig {
   dataSources: Record<string, DataSourceConfig>;
 }
 
-export class DataSourceManager {
+export class DataSourceManager extends ContextManagerBase {
   private readonly _primaryDataSourceName: string;
   private readonly _dataSources: Map<string, DataSourceConfig>;
-  private readonly _context: TransformerContext;
 
   constructor(context: TransformerContext, config: DataSourceManagerConfig) {
-    this._context = context;
+    super(context);
+
     this._primaryDataSourceName = config.primaryDataSourceName;
     this._dataSources = new Map(Object.entries(config.dataSources));
 

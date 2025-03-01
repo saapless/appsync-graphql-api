@@ -1,4 +1,5 @@
 import { AuthorizationRule, ReadOperation, WriteOperation } from "../utils/types";
+import { ContextManagerBase } from "./ContextManagerBase";
 import { TransformerContext } from "./TransformerContext";
 
 type AuthorizationMode = "API_KEY" | "USER_POOL" | "IAM" | "OIDC" | "LAMBDA";
@@ -9,15 +10,15 @@ export interface AuthorizationManagerConfig {
   defaultAuthorizationRules?: AuthorizationRule[];
 }
 
-export class AuthorizationManager {
-  private readonly _context: TransformerContext;
+export class AuthorizationManager extends ContextManagerBase {
   private readonly _defaultAuthorizationMode: AuthorizationMode;
   private readonly _additionalAuthorizationModes: AuthorizationMode[];
   private readonly _defaultAuthorizationRules: AuthorizationRule[];
   private readonly _modelAuthRules: Map<string, AuthorizationRule[]> = new Map();
 
   constructor(context: TransformerContext, config: AuthorizationManagerConfig) {
-    this._context = context;
+    super(context);
+
     this._defaultAuthorizationMode = config.defaultAuthorizationMode = "API_KEY";
     this._defaultAuthorizationRules = config.defaultAuthorizationRules ?? [];
     this._additionalAuthorizationModes = config.additionalauthorizationModes ?? [];
