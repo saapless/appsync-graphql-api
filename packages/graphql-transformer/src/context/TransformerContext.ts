@@ -1,14 +1,14 @@
 import { DocumentNode } from "../definition";
 import { ResolverManager, ResolverManagerConfig } from "../resolver/ResolverManager";
 import { Operation, ReadOperation, WriteOperation } from "../utils/types";
-import { AuthorizationConfig, AuthorizationManager } from "./AuthorizationManager";
+import { AuthorizationManagerConfig, AuthorizationManager } from "./AuthorizationManager";
 import { DataSourceManager, DataSourceManagerConfig } from "./DataSourceManager";
 import { ResolverLoader } from "./ResolverLoader";
 
 export interface TransformerContextConfig extends ResolverManagerConfig {
   document: DocumentNode;
   dataSourceConfig: DataSourceManagerConfig;
-  authorizationConfig?: AuthorizationConfig;
+  authorizationConfig?: AuthorizationManagerConfig;
   readOperations?: ReadOperation[];
   writeOperations?: WriteOperation[];
   defaultModelOperations?: Operation[];
@@ -22,10 +22,10 @@ export class TransformerContext {
   public readonly resolvers: ResolverManager;
   public readonly loader: ResolverLoader;
   public readonly auth: AuthorizationManager;
+  public readonly dataSources: DataSourceManager;
   public readonly readOperations: ReadOperation[];
   public readonly writeOperations: WriteOperation[];
   public readonly defaultModelOperations: (ReadOperation | WriteOperation)[];
-  public readonly dataSources: DataSourceManager;
 
   constructor(config: TransformerContextConfig) {
     this.document = config.document;

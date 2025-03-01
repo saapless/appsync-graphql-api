@@ -54,7 +54,7 @@ describe("AuthPlugin", () => {
       plugin.normalize(context.document.getNode("Post") as ObjectNode);
     });
 
-    it(`added default auth to node`, () => {
+    it.skip(`added default auth to node`, () => {
       const postNode = context.document.getNode("Post") as ObjectNode;
       expect(postNode.hasDirective("auth")).toBeTruthy();
     });

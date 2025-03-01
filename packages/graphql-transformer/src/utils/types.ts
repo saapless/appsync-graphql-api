@@ -10,6 +10,13 @@ export type AuthorizationProvider = "iam" | "oidc" | "userPools" | "lambda";
 
 export type RelationType = "oneToOne" | "oneToMany" | "manyToMany";
 
+export type AuthClaimCondition = {
+  key: string;
+  ref?: string;
+  eq?: string;
+  in?: string[];
+};
+
 export type AuthorizationClaim = {
   key?: string;
   ref?: string;

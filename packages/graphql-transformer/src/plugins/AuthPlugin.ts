@@ -1,9 +1,7 @@
 import { TransformerContext } from "../context";
 import {
-  ArgumentNode,
   DefinitionNode,
   DirectiveDefinitionNode,
-  DirectiveNode,
   EnumNode,
   FieldNode,
   InputObjectNode,
@@ -12,7 +10,6 @@ import {
   ListTypeNode,
   NonNullTypeNode,
   ObjectNode,
-  ValueNode,
 } from "../definition";
 import { AuthorizationRule } from "../utils/types";
 import { TransformerPluginBase } from "./TransformerPluginBase";
@@ -33,67 +30,31 @@ export class AuthPlugin extends TransformerPluginBase {
     super(context);
   }
 
-  private _setDefaultDirective(node: ObjectNode) {
-    const defaultAuthRule = this.context.auth.defaultAuthRules;
+  private _stashModelRules(model: ObjectNode) {
+    const directiveArgs = model
+      .getDirective("auth")
+      ?.getArgumentsJSON<{ rules: AuthorizationRule[] }>();
 
-    if (!defaultAuthRule) return node;
-
-    return node.addDirective(
-      DirectiveNode.create("auth", [
-        ArgumentNode.create("rules", ValueNode.fromValue(defaultAuthRule)),
-      ])
-    );
+    if (directiveArgs?.rules?.length) {
+      this.context.auth.setModelReuls(model.name, directiveArgs.rules);
+    }
   }
 
-  private _setFieldAuthRules(object: ObjectNode, field: FieldNode) {
-    const rules: AuthorizationRule[] = [];
+  private _setFieldLoaderRules(object: ObjectNode, field: FieldNode) {
+    const definedRules = field
+      .getDirective("auth")
+      ?.getArgumentsJSON<{ rules: AuthorizationRule[] }>();
 
-    if (field.hasDirective("auth")) {
-      const authRule = field
-        .getDirective("auth")
-        ?.getArgumentsJSON<{ rules: AuthorizationRule[] }>();
+    const rules = this.context.auth.getAuthRules(
+      "get",
+      field.type.getTypeName(),
+      definedRules?.rules
+    );
 
-      if (authRule?.rules) {
-        this.context.loader.setFieldLoader(object.name, field.name, {
-          targetName: field.type.getTypeName(),
-          authRules: rules,
-        });
-      }
-    }
-
-    // const target = this.context.document.getNode(field.type.getTypeName());
-
-    // if (target instanceof UnionNode) {
-    //   for (const type of target.types ?? []) {
-    //     const unionType = this.context.document.getNode(type.getTypeName());
-
-    //     if (
-    //       (unionType instanceof ObjectNode || unionType instanceof InterfaceNode) &&
-    //       unionType.hasDirective("auth")
-    //     ) {
-    //       const authRule = unionType
-    //         .getDirective("auth")
-    //         ?.getArgumentsJSON<{ rules: AuthorizationRule[] }>();
-
-    //       if (authRule?.rules) {
-    //         //
-    //       }
-    //     }
-    //   }
-    // }
-
-    // if (
-    //   (target instanceof ObjectNode || target instanceof InterfaceNode) &&
-    //   target.hasDirective("auth")
-    // ) {
-    //   const authRule = target
-    //     .getDirective("auth")
-    //     ?.getArgumentsJSON<{ rules: AuthorizationRule[] }>();
-
-    //   if (authRule?.rules) {
-    //     rules.push(...authRule.rules);
-    //   }
-    // }
+    this.context.loader.setFieldLoader(object.name, field.name, {
+      targetName: field.type.getTypeName(),
+      authRules: rules,
+    });
   }
 
   public before() {
@@ -154,18 +115,8 @@ export class AuthPlugin extends TransformerPluginBase {
   }
 
   public normalize(definition: ObjectNode): void {
-    if (definition.interfaces?.length) {
-      for (const iface of definition.interfaces) {
-        const ifaceNode = this.context.document.getNode(iface.name) as InterfaceNode;
-
-        if (!ifaceNode) {
-          throw new Error(`Interface ${iface.name} not found`);
-        }
-
-        // TODO allow users to set directive on interfaces that can be inherited by the models.
-      }
-    } else if (!definition.hasDirective("auth") && definition.hasDirective("model")) {
-      this._setDefaultDirective(definition);
+    if (definition.hasDirective("model") && definition.hasDirective("auth")) {
+      this._stashModelRules(definition);
     }
   }
 
@@ -175,7 +126,7 @@ export class AuthPlugin extends TransformerPluginBase {
     }
 
     for (const field of definition.fields) {
-      this._setFieldAuthRules(definition, field);
+      this._setFieldLoaderRules(definition, field);
     }
   }
 
