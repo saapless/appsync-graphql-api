@@ -29,7 +29,7 @@ export class AuthorizationManager extends ContextManagerBase {
     return this._defaultAuthorizationRules;
   }
 
-  public setModelReuls(model: string, rules: AuthorizationRule[]) {
+  public setModelRules(model: string, rules: AuthorizationRule[]) {
     this._modelAuthRules.set(model, rules);
   }
 
@@ -38,31 +38,16 @@ export class AuthorizationManager extends ContextManagerBase {
     targetType: string,
     definedRules?: AuthorizationRule[]
   ) {
-    // TODO: Implement logic to get authorization rules based on the operation and defined rules
-    // 1. Defined rules take priority over all other ones
-    // 2. If no defined rules are present, check for object level rules based on operation;
-    // 3. If no object rules defined, return default rule based on operation;
-
     if (definedRules) {
       return definedRules;
     }
 
-    if (
-      operation === "get" ||
-      operation === "list" ||
-      operation === "sync" ||
-      operation === "subscribe"
-    ) {
-      return this._defaultAuthorizationRules;
-    } else if (
-      operation === "create" ||
-      operation === "update" ||
-      operation === "delete" ||
-      operation === "upsert"
-    ) {
-      return this._defaultAuthorizationRules;
-    } else {
-      return this._defaultAuthorizationRules;
-    }
+    const modelRules = this._modelAuthRules.get(targetType) ?? this._defaultAuthorizationRules;
+
+    const operationRules = modelRules.filter(
+      (rule) => !rule.operations || rule.operations.includes(operation)
+    );
+
+    return operationRules;
   }
 }

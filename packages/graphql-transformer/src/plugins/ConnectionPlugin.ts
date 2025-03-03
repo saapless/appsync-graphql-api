@@ -499,6 +499,48 @@ export class ConnectionPlugin extends TransformerPluginBase {
         ])
       );
     }
+
+    this.context.resolvers.setLoader(edgeName, "node", {
+      targetName: connection.target.name,
+      action: {
+        type: "getItem",
+        key: { id: { ref: "source.targetId" } },
+      },
+      checkEarlyReturn: true,
+      returnType: "result",
+    });
+
+    this.context.resolvers.setLoader("Mutation", createFieldName, {
+      targetName: edgeName,
+      isEdge: true,
+      action: { type: "putItem", key: {} },
+      returnType: "result",
+    });
+
+    this.context.resolvers.setLoader("Mutation", deleteFieldName, {
+      targetName: edgeName,
+      isEdge: true,
+      action: { type: "removeItem", key: {} },
+      returnType: "result",
+    });
+  }
+
+  private _createNodeConnection(
+    parent: ObjectNode | InterfaceNode,
+    field: FieldNode,
+    connection: FieldConnection
+  ) {
+    this.context.resolvers.setLoader(parent.name, field.name, {
+      typeName: parent.name,
+      fieldName: field.name,
+      targetName: connection.target.name,
+      returnType: "result",
+      action: {
+        type: "getItem",
+        key: { id: connection.key },
+        index: connection.index ?? undefined,
+      },
+    });
   }
 
   private _createEdgesConnection(
@@ -508,8 +550,47 @@ export class ConnectionPlugin extends TransformerPluginBase {
   ) {
     this._createConnectionTypes(field, connection);
 
-    if (this._needsEdgeRecord(connection)) {
+    if (connection.relation === "oneToMany" && !this._needsEdgeRecord(connection)) {
+      this.context.resolvers.setLoader(parent.name, field.name, {
+        targetName: connection.target.name,
+        action: {
+          type: "queryItems",
+          key: { sourceId: connection.key },
+          index: connection.index ?? undefined,
+        },
+        returnType: "connection",
+      });
+    } else {
       this._createEdgeMutations(connection);
+
+      const { target } = connection;
+      const connectionTypeName = pascalCase(target.name, "connection");
+      const edgeTypeName = pascalCase(target.name, "edge");
+
+      this.context.resolvers.setLoader(parent.name, field.name, {
+        targetName: edgeTypeName,
+        isEdge: true,
+        action: {
+          type: "queryItems",
+          key: {
+            sourceId: connection.key,
+            _sk: { beginsWith: { eq: pascalCase(target.name, "Edge") } },
+          },
+          index: connection.index ?? undefined,
+        },
+        returnTargetName: target.name,
+        returnType: "connection",
+      });
+
+      this.context.resolvers.setLoader(connectionTypeName, "edges", {
+        targetName: target.name,
+        action: {
+          type: "batchGetItems",
+          key: { keys: { ref: "source.keys" } },
+        },
+        checkEarlyReturn: true,
+        returnType: "edges",
+      });
     }
   }
 
@@ -626,11 +707,15 @@ export class ConnectionPlugin extends TransformerPluginBase {
     for (const field of definition.fields) {
       const connection = this._getFieldConnection(field);
 
-      if (!connection || connection.relation === RelationType.ONE_TO_ONE) {
+      if (!connection) {
         continue;
       }
 
-      this._createEdgesConnection(definition, field, connection);
+      if (connection.relation === RelationType.ONE_TO_ONE) {
+        this._createNodeConnection(definition, field, connection);
+      } else {
+        this._createEdgesConnection(definition, field, connection);
+      }
     }
   }
 
