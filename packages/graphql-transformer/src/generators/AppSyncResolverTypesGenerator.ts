@@ -2,9 +2,8 @@ import path from "node:path";
 import ts from "typescript";
 import { TransformerContext } from "../context";
 import { ObjectNode } from "../definition";
-import { FieldLoaderDescriptor, pascalCase, prettyPrintFile } from "../utils";
+import { FieldLoaderDescriptor, pascalCase, prettyPrintFile, printDefinitions } from "../utils";
 import { GeneratorPluginBase } from "./GeneratorBase";
-import { printDefinitions } from "./utils";
 
 export class AppSyncResolverTypesGenerator extends GeneratorPluginBase {
   private readonly _definitions: ts.Node[];

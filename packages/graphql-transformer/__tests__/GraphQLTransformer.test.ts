@@ -20,6 +20,7 @@ const schema = /* GraphQL */ `
     email: AWSEmail
     picture: AWSURL
     status: UserStatus @readOnly
+    createdAt: String
   }
 
   type Task @model(operations: [upsert, delete]) {
@@ -118,7 +119,7 @@ describe("GraphQLTransformer", () => {
     });
 
     it("adds default plugins list", () => {
-      expect(transformer.plugins).toHaveLength(5);
+      expect(transformer.plugins).toHaveLength(8);
     });
   });
 

@@ -1,5 +1,6 @@
 import { TransformerContext } from "../context";
 import { DefinitionNode } from "../definition";
+import { TransformerOutput } from "../transformer";
 
 export interface IPluginFactory {
   create(context: TransformerContext): TransformerPluginBase;
@@ -46,4 +47,14 @@ export abstract class TransformerPluginBase extends PluginBase {
    * Clean up definition
    */
   public cleanup?(definition: DefinitionNode): void;
+
+  /**
+   * Generates resources based on the transformation
+   */
+  public generate?(): void;
+
+  /**
+   * Adds any additional resources to output;
+   */
+  public output?(output: TransformerOutput): void;
 }

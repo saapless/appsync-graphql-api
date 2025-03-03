@@ -4,6 +4,7 @@ import { UtilitiesPlugin } from "../src/plugins/UtilitiesPlugin";
 
 describe("UtilitiesPlugin", () => {
   const context = new TransformerContext({
+    outputDirectory: "__test__",
     document: DocumentNode.fromSource(/* GraphQL */ `
       type Model {
         id: ID!

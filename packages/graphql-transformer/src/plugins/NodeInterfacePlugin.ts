@@ -113,7 +113,6 @@ export class NodeInterfacePlugin extends TransformerPluginBase {
   }
 
   execute(definition: ObjectNode): void {
-    console.log("NodeInterfacePlugin: execute node", definition.name);
     const nodeInterface = this.context.document.getNode("Node") as InterfaceNode;
 
     if (!nodeInterface) {

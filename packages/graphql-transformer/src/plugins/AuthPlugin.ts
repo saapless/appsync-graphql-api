@@ -1,9 +1,7 @@
 import { TransformerContext } from "../context";
 import {
-  DefinitionNode,
   DirectiveDefinitionNode,
   EnumNode,
-  FieldNode,
   InputObjectNode,
   InputValueNode,
   InterfaceNode,
@@ -11,49 +9,16 @@ import {
   NonNullTypeNode,
   ObjectNode,
 } from "../definition";
-import { AuthorizationRule } from "../utils";
 import { TransformerPluginBase } from "./PluginBase";
 
 /**
- * Directives:
- * * `@auth(rules: [AuthRule!])`
- *
- * Actions:
- * * Handle `@auth` rules or default auth config;
- * * Handle build in aws auth rules;
- * * Add auth stages to resolvers;
+ * Adds authorization directive to the schema.
+ * @category Transformer
  */
 
 export class AuthPlugin extends TransformerPluginBase {
   constructor(context: TransformerContext) {
     super("AuthPlugin", context);
-  }
-
-  private _stashModelRules(model: ObjectNode) {
-    const directiveArgs = model
-      .getDirective("auth")
-      ?.getArgumentsJSON<{ rules: AuthorizationRule[] }>();
-
-    if (directiveArgs?.rules?.length) {
-      this.context.auth.setModelReuls(model.name, directiveArgs.rules);
-    }
-  }
-
-  private _setFieldLoaderRules(object: ObjectNode, field: FieldNode) {
-    const definedRules = field
-      .getDirective("auth")
-      ?.getArgumentsJSON<{ rules: AuthorizationRule[] }>();
-
-    const rules = this.context.auth.getAuthRules(
-      "get",
-      field.type.getTypeName(),
-      definedRules?.rules
-    );
-
-    this.context.resolvers.setLoader(object.name, field.name, {
-      targetName: field.type.getTypeName(),
-      authRules: rules,
-    });
   }
 
   public before() {
@@ -96,11 +61,7 @@ export class AuthPlugin extends TransformerPluginBase {
       );
   }
 
-  public match(definition: DefinitionNode) {
-    if (definition instanceof ObjectNode) {
-      return true;
-    }
-
+  public match() {
     return false;
   }
 
@@ -113,21 +74,7 @@ export class AuthPlugin extends TransformerPluginBase {
       .removeNode("AuthRule");
   }
 
-  public normalize(definition: ObjectNode): void {
-    if (definition.hasDirective("model") && definition.hasDirective("auth")) {
-      this._stashModelRules(definition);
-    }
-  }
-
-  public execute(definition: ObjectNode) {
-    if (!definition.fields?.length) {
-      return;
-    }
-
-    for (const field of definition.fields) {
-      this._setFieldLoaderRules(definition, field);
-    }
-  }
+  public execute() {}
 
   public cleanup(definition: ObjectNode | InterfaceNode): void {
     if (definition.hasDirective("auth")) {

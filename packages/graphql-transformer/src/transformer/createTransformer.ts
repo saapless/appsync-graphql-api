@@ -4,12 +4,14 @@ import {
   UtilitiesPlugin,
   ModelPlugin,
   ConnectionPlugin,
+  AuthPlugin,
+  SchemaGenerator,
+  SchemaTypesGenerator,
 } from "../plugins";
-import { type IGeneratorFactory, SchemaGenerator, SchemaTypesGenerator } from "../generators";
 import { GraphQLTransformer, GraphQLTransformerOptions } from "./GraphQLTransformer";
 
 export function createTransformer(options: Partial<GraphQLTransformerOptions>) {
-  const { definition, plugins = [], generators = [], ...rest } = options;
+  const { definition, outDir, plugins = [], ...rest } = options;
 
   if (!definition) {
     throw new Error("Definition is required");
@@ -20,21 +22,17 @@ export function createTransformer(options: Partial<GraphQLTransformerOptions>) {
     NodeInterfacePlugin,
     ModelPlugin,
     ConnectionPlugin,
-    ...plugins,
-  ];
-
-  const mergedGenerators: IGeneratorFactory[] = [
+    AuthPlugin,
     SchemaGenerator,
     SchemaTypesGenerator,
-    ...generators,
+    ...plugins,
   ];
 
   return new GraphQLTransformer({
     definition: definition,
     plugins: mergedPlugins,
-    generators: mergedGenerators,
     mode: options.mode ?? "production",
-    outDir: options.outDir ?? "__generated__",
+    outDir: outDir ?? "__generated__",
     ...rest,
   });
 }

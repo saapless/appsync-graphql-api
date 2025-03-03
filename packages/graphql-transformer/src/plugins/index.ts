@@ -7,3 +7,6 @@ export { DataLoaderPlugin } from "./DataLoaderPlugin";
 export { ModelPlugin } from "./ModelPlugin";
 export { NodeInterfacePlugin } from "./NodeInterfacePlugin";
 export { UtilitiesPlugin } from "./UtilitiesPlugin";
+
+export { SchemaGenerator } from "./SchemaGenerator";
+export { SchemaTypesGenerator } from "./SchemaTypesGenerator";

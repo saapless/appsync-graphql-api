@@ -12,6 +12,7 @@ describe("NodeInterfacePlugin", () => {
         }
       `;
       const context = new TransformerContext({
+        outputDirectory: "__test__",
         document: DocumentNode.fromSource(schema),
       });
 
@@ -29,6 +30,7 @@ describe("NodeInterfacePlugin", () => {
     `;
 
     const context = new TransformerContext({
+      outputDirectory: "__test__",
       document: DocumentNode.fromSource(schema),
     });
 

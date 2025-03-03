@@ -10,6 +10,7 @@ const schema = /* GraphQL */ `
 `;
 
 const context = new TransformerContext({
+  outputDirectory: "__test__",
   document: DocumentNode.fromSource(schema),
 });
 const plugin = AWSTypesPlugin.create(context);

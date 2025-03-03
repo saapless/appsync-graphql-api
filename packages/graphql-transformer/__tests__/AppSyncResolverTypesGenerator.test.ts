@@ -18,6 +18,7 @@ const { AppSyncResolverTypesGenerator } = await import(
 );
 
 const context = new TransformerContext({
+  outputDirectory: "__test__",
   document: DocumentNode.fromSource(/* GraphQL */ `
     type User {
       id: ID!
@@ -82,6 +83,10 @@ describe("ResolverTypesGenerator", () => {
       },
       returnType: "result",
     });
+  });
+
+  afterAll(() => {
+    jest.resetAllMocks();
   });
 
   it("generates resolver context types", async () => {

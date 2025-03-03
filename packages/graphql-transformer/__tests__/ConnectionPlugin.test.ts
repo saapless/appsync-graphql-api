@@ -44,6 +44,7 @@ const schema = /* GraphQL */ `
 
 describe("ConnectionPlugin", () => {
   const context = new TransformerContext({
+    outputDirectory: "__test__",
     document: DocumentNode.fromSource(schema),
   });
 

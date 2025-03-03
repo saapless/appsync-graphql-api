@@ -24,6 +24,7 @@ const schema = /* GraphQL */ `
 
 describe("AuthPlugin", () => {
   const context = new TransformerContext({
+    outputDirectory: "__test__",
     document: DocumentNode.fromSource(schema),
   });
 
@@ -42,29 +43,6 @@ describe("AuthPlugin", () => {
       expect(context.document.getNode("AuthProvider")).toBeInstanceOf(EnumNode);
       expect(context.document.getNode("AuthClaim")).toBeInstanceOf(InputObjectNode);
     });
-  });
-
-  describe("on normalize node", () => {
-    beforeAll(() => {
-      plugin.normalize(context.document.getNode("Post") as ObjectNode);
-    });
-
-    it.skip(`added default auth to node`, () => {
-      const postNode = context.document.getNode("Post") as ObjectNode;
-      expect(postNode.hasDirective("auth")).toBeTruthy();
-    });
-  });
-
-  describe(`on execute node`, () => {
-    beforeAll(() => {
-      plugin.execute(context.document.getNode("Post") as ObjectNode);
-      plugin.execute(context.document.getNode("User") as ObjectNode);
-    });
-
-    it.todo(`merged auth directives`);
-    it.todo(`added AUTH stage to operation resolvers`);
-    it.todo(`added AUTH stage to field resolvers`);
-    it.todo(`added AUTH stage to node operation`);
   });
 
   describe("on cleaup node", () => {

@@ -2,13 +2,11 @@ import { DocumentNode } from "../definition";
 import { TransformerContext, TransformerContextConfig } from "../context";
 import { IPluginFactory, TransformerPluginBase } from "../plugins";
 import { SchemaValidationError } from "../utils/errors";
-import { ensureOutputDirectory } from "../utils/output";
-import { GeneratorPluginBase, IGeneratorFactory } from "../generators/GeneratorBase";
 
-export interface GraphQLTransformerOptions extends Omit<TransformerContextConfig, "document"> {
+export interface GraphQLTransformerOptions
+  extends Omit<TransformerContextConfig, "document" | "outputDirectory"> {
   definition: string;
   plugins: IPluginFactory[];
-  generators: IGeneratorFactory[];
   // Absolute path for dev outputs
   outDir: string;
   mode: "development" | "production";
@@ -19,33 +17,23 @@ export type TransformerOutput<T extends Record<string, unknown> = Record<string,
 } & T;
 
 export class GraphQLTransformer<TOutput extends Record<string, unknown> = Record<string, unknown>> {
-  private readonly _mode: "development" | "production";
-  private readonly _outDir: string;
-
   readonly context: TransformerContext;
   readonly plugins: TransformerPluginBase[];
-  readonly generators: GeneratorPluginBase[];
 
   constructor(options: GraphQLTransformerOptions) {
-    const { definition, outDir, plugins, generators, mode, ...contextOptions } = options;
+    const { definition, outDir, plugins, ...contextOptions } = options;
 
-    this._mode = mode;
-    this._outDir = outDir;
     this.context = new TransformerContext({
       document: DocumentNode.fromSource(definition),
+      outputDirectory: outDir,
       ...contextOptions,
     });
 
     this.plugins = this._initPlugins(plugins, this.context);
-    this.generators = this._initGenerators(generators, this.context);
   }
 
   private _initPlugins(plugins: IPluginFactory[], context: TransformerContext) {
     return plugins.map((factory) => factory.create(context));
-  }
-
-  private _initGenerators(generators: IGeneratorFactory[], context: TransformerContext) {
-    return generators.map((factory) => factory.create(context));
   }
 
   public transform(): TransformerOutput<TOutput> {
@@ -83,23 +71,11 @@ export class GraphQLTransformer<TOutput extends Record<string, unknown> = Record
     /**
      * We clean up internal declaration first because we don't want to polute the schema types
      * with internal, processing only types that can confuse users.
+     * TODO: mark internal types with `@internal` directive to avoid confusion.
      */
 
     for (const plugin of this.plugins) {
       plugin.after();
-    }
-
-    const outputPath = ensureOutputDirectory(this._outDir);
-
-    /**
-     * This stage is for generators that need access to the full transformed schema.
-     * For example, resolver generators, or backend schema types generators.
-     */
-
-    for (const generator of this.generators) {
-      if (typeof generator.beforeCleanup === "function") {
-        generator.beforeCleanup(outputPath);
-      }
     }
 
     for (const definition of this.context.document.definitions.values()) {
@@ -110,9 +86,9 @@ export class GraphQLTransformer<TOutput extends Record<string, unknown> = Record
       }
     }
 
-    for (const generator of this.generators) {
+    for (const generator of this.plugins) {
       if (typeof generator.generate === "function") {
-        generator.generate(outputPath);
+        generator.generate();
       }
     }
 
@@ -120,9 +96,9 @@ export class GraphQLTransformer<TOutput extends Record<string, unknown> = Record
       schema: this.context.document.print(),
     };
 
-    for (const generator of this.generators) {
-      if (typeof generator.generateOutput === "function") {
-        generator.generateOutput(output);
+    for (const generator of this.plugins) {
+      if (typeof generator.output === "function") {
+        generator.output(output);
       }
     }
 
