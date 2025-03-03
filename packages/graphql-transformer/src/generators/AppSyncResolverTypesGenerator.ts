@@ -1,12 +1,18 @@
+import path from "node:path";
 import ts from "typescript";
 import { TransformerContext } from "../context";
-import { FieldLoaderDescriptor, pascalCase } from "../utils";
 import { ObjectNode } from "../definition";
-import { GeneratorBase } from "./GeneratorBase";
+import { FieldLoaderDescriptor, pascalCase, prettyPrintFile } from "../utils";
+import { GeneratorPluginBase } from "./GeneratorBase";
+import { printDefinitions } from "./utils";
 
-export class ResolverTypesGenerator extends GeneratorBase {
+export class AppSyncResolverTypesGenerator extends GeneratorPluginBase {
+  private readonly _definitions: ts.Node[];
+
   constructor(context: TransformerContext) {
-    super(context);
+    super("ResolverTypesGenerator", context);
+
+    this._definitions = [];
   }
 
   private _ddbDefaults() {
@@ -322,7 +328,7 @@ export class ResolverTypesGenerator extends GeneratorBase {
   }
 
   private _args(loader: FieldLoaderDescriptor) {
-    const node = this._context.document.getNode(loader.typeName);
+    const node = this.context.document.getNode(loader.typeName);
 
     if (node instanceof ObjectNode && Boolean(node.getField(loader.fieldName)?.arguments?.length)) {
       return ts.factory.createTypeReferenceNode(
@@ -418,20 +424,14 @@ export class ResolverTypesGenerator extends GeneratorBase {
     );
   }
 
-  // private _function(loader: PipelineFunctionLoaderDescriptor) {}
-
-  public generate(filename: string): string {
+  public generate(outDir: string) {
     this._defaults();
 
-    for (const fieldLoader of this._context.loader.getAllFieldLoaders()) {
+    for (const fieldLoader of this.context.resolvers.getAllLoaders()) {
       this._field(fieldLoader);
     }
 
-    // TODO: enable if needed
-    // for (const pipelineFunction of this._context.loader.getAllFunctionLoaders()) {
-    //   this._function(pipelineFunction);
-    // }
-
-    return this._printDefinitions(filename);
+    const result = printDefinitions(this._definitions, "resolver-types.ts");
+    return prettyPrintFile(path.resolve(outDir, "resolver-types.ts"), result);
   }
 }

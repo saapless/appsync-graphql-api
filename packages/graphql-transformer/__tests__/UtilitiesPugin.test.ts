@@ -1,4 +1,3 @@
-import { TEST_DS_CONFIG } from "../__fixtures__/constants";
 import { TransformerContext } from "../src/context";
 import { DirectiveDefinitionNode, DocumentNode, ObjectNode } from "../src/definition";
 import { UtilitiesPlugin } from "../src/plugins/UtilitiesPlugin";
@@ -15,7 +14,6 @@ describe("UtilitiesPlugin", () => {
         server: String @serverOnly
       }
     `),
-    dataSourceConfig: TEST_DS_CONFIG,
   });
 
   const plugin = UtilitiesPlugin.create(context);

@@ -3,7 +3,7 @@ import { fileURLToPath } from "node:url";
 import { createTransformer, GraphQLTransformer } from "../src/transformer";
 import { FieldNode, NamedTypeNode, ObjectNode } from "../src/definition";
 import { SchemaValidationError } from "../src/utils/errors";
-import { TEST_DS_CONFIG } from "../__fixtures__/constants";
+import { AWSTypesPlugin } from "../src/plugins";
 
 const schema = /* GraphQL */ `
   enum UserStatus {
@@ -104,11 +104,7 @@ describe("GraphQLTransformer", () => {
     definition: schema,
     mode: "development",
     outDir: resolve(dirname(fileURLToPath(import.meta.url)), "../__generated__"),
-    dataSourceConfig: TEST_DS_CONFIG,
-    authorizationConfig: {
-      defaultAuthorizationMode: "USER_POOL",
-      defaultAuthorizationRules: [{ allow: "owner" }],
-    },
+    plugins: [AWSTypesPlugin],
   });
 
   describe("createTransformer factory", () => {
@@ -122,7 +118,7 @@ describe("GraphQLTransformer", () => {
     });
 
     it("adds default plugins list", () => {
-      expect(transformer.plugins).toHaveLength(6);
+      expect(transformer.plugins).toHaveLength(5);
     });
   });
 
@@ -130,7 +126,6 @@ describe("GraphQLTransformer", () => {
     it("throws SchemaValidationError", () => {
       const transformer = createTransformer({
         definition: schema.replace("type Viewer", "type Viewer2"),
-        dataSourceConfig: TEST_DS_CONFIG,
       });
 
       expect(() => transformer.transform()).toThrow(SchemaValidationError);

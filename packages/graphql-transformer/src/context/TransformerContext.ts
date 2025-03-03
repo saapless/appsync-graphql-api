@@ -1,31 +1,33 @@
 import { DocumentNode } from "../definition";
-import { ResolverManager, ResolverManagerConfig } from "../resolver/ResolverManager";
-import { AuthorizationManagerConfig, AuthorizationManager } from "./AuthorizationManager";
-import { DataSourceManager, DataSourceManagerConfig } from "./DataSourceManager";
+import { AuthorizationManager } from "./AuthorizationManager";
 import { OperationsManager, OperationsManagerConfig } from "./OperationsManager";
-import { ResolverLoader } from "./ResolverLoader";
+import { ResolverManager } from "./ResolverManager";
 
-export interface TransformerContextConfig extends ResolverManagerConfig {
+export interface TransformerContextConfig {
   document: DocumentNode;
-  dataSourceConfig: DataSourceManagerConfig;
-  authorizationConfig?: AuthorizationManagerConfig;
   modelOperationsConfig?: OperationsManagerConfig;
 }
 
 export class TransformerContext {
   public readonly document: DocumentNode;
-  public readonly resolvers: ResolverManager;
-  public readonly loader: ResolverLoader;
-  public readonly auth: AuthorizationManager;
-  public readonly dataSources: DataSourceManager;
   public readonly operations: OperationsManager;
+  public readonly resolvers: ResolverManager;
+  public readonly auth: AuthorizationManager;
+  public readonly stash: Map<string, unknown>;
 
   constructor(config: TransformerContextConfig) {
     this.document = config.document;
-    this.dataSources = new DataSourceManager(this, config.dataSourceConfig);
     this.operations = new OperationsManager(this, config.modelOperationsConfig);
-    this.auth = new AuthorizationManager(this, config.authorizationConfig ?? {});
-    this.resolvers = new ResolverManager(this, config);
-    this.loader = new ResolverLoader();
+    this.resolvers = new ResolverManager(this);
+    this.auth = new AuthorizationManager(this, {});
+    this.stash = new Map();
+  }
+
+  public getOrSetStash<TValue>(key: string, value: TValue): TValue {
+    if (!this.stash.has(key)) {
+      this.stash.set(key, value);
+    }
+
+    return this.stash.get(key) as TValue;
   }
 }

@@ -170,3 +170,88 @@ export function parseKey(key: Key) {
     }, [] as ts.ObjectLiteralElementLike[])
   );
 }
+
+export function addImport(definitions: ts.Node[], from: string, specifier: ts.ImportSpecifier) {
+  const index = definitions.findIndex(
+    (d) =>
+      ts.isImportDeclaration(d) &&
+      ts.isStringLiteral(d.moduleSpecifier) &&
+      d.moduleSpecifier.text === from
+  );
+
+  // eslint-disable-next-line security/detect-object-injection
+  const current = index > -1 ? (definitions[index] as ts.ImportDeclaration) : undefined;
+
+  if (current) {
+    const result = ts.transform(current, [
+      () => (node) => {
+        let importClause = node.importClause;
+
+        if (!importClause) {
+          importClause = ts.factory.createImportClause(
+            false,
+            undefined,
+            ts.factory.createNamedImports([specifier])
+          );
+        }
+
+        if (!importClause.namedBindings) {
+          importClause = ts.factory.updateImportClause(
+            importClause,
+            importClause.isTypeOnly,
+            importClause.name,
+            ts.factory.createNamedImports([specifier])
+          );
+        } else if (ts.isNamedImports(importClause.namedBindings)) {
+          if (
+            !importClause.namedBindings.elements.some(
+              (i) => i.name.escapedText === specifier.name.escapedText
+            )
+          ) {
+            importClause = ts.factory.updateImportClause(
+              importClause,
+              importClause!.isTypeOnly,
+              importClause!.name,
+              ts.factory.createNamedImports([...importClause.namedBindings.elements, specifier])
+            );
+          }
+        }
+
+        return ts.factory.updateImportDeclaration(
+          current,
+          current.modifiers,
+          importClause,
+          current.moduleSpecifier,
+          current.attributes
+        );
+      },
+    ]);
+
+    definitions.splice(index, 1, result.transformed[0]);
+  } else {
+    definitions.push(
+      ts.factory.createImportDeclaration(
+        undefined,
+        ts.factory.createImportClause(false, undefined, ts.factory.createNamedImports([specifier])),
+        ts.factory.createStringLiteral(from)
+      )
+    );
+  }
+}
+
+export function printDefinitions(definitions: ts.Node[], fileName: string) {
+  const file = ts.createSourceFile(fileName, "", ts.ScriptTarget.Latest, false, ts.ScriptKind.TS);
+  const printer = ts.createPrinter({ newLine: ts.NewLineKind.LineFeed });
+
+  return printer.printList(
+    ts.ListFormat.MultiLine,
+    ts.factory.createNodeArray(
+      definitions.sort((a, b) =>
+        a.kind === ts.SyntaxKind.ImportDeclaration && b.kind !== ts.SyntaxKind.ImportDeclaration
+          ? -1
+          : 1
+      )
+    ),
+    file
+  );
+}

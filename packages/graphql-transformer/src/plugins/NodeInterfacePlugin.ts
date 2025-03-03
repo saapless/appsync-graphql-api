@@ -12,13 +12,11 @@ import {
   ValueNode,
 } from "../definition";
 import { InvalidDefinitionError, TransformPluginExecutionError } from "../utils/errors";
-import { TransformerPluginBase } from "./TransformerPluginBase";
+import { TransformerPluginBase } from "./PluginBase";
 
 export class NodeInterfacePlugin extends TransformerPluginBase {
-  readonly name = "NodeInterfacePlugin";
-
   constructor(context: TransformerContext) {
-    super(context);
+    super("NodeInterfacePlugin", context);
   }
 
   /**
@@ -49,11 +47,11 @@ export class NodeInterfacePlugin extends TransformerPluginBase {
     }
 
     if (!node.hasField("createdAt")) {
-      node.addField(FieldNode.create("createdAt", NamedTypeNode.create("AWSDateTime")));
+      node.addField(FieldNode.create("createdAt", NamedTypeNode.create("String")));
     }
 
     if (!node.hasField("updatedAt")) {
-      node.addField(FieldNode.create("updatedAt", NamedTypeNode.create("AWSDateTime")));
+      node.addField(FieldNode.create("updatedAt", NamedTypeNode.create("String")));
     }
 
     // TODO: Enable with versioning;
@@ -115,6 +113,7 @@ export class NodeInterfacePlugin extends TransformerPluginBase {
   }
 
   execute(definition: ObjectNode): void {
+    console.log("NodeInterfacePlugin: execute node", definition.name);
     const nodeInterface = this.context.document.getNode("Node") as InterfaceNode;
 
     if (!nodeInterface) {

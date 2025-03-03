@@ -1,23 +1,23 @@
 import path from "node:path";
 import fs from "node:fs";
-import { TransformerContext } from "@saapless/graphql-transformer/context";
 import { InterfaceNode, ObjectNode } from "@saapless/graphql-transformer/definition";
-import { LoaderDescriptor } from "@saapless/graphql-transformer/utils";
-import { FieldResolver } from "./FieldResolver";
-import { FunctionResolver } from "./FunctionResolver";
-import { ResolverBase } from "./ResolverBase";
+import { FieldResolver, FunctionResolver, ResolverBase } from "../resolver";
+import { TransformerContext } from "./TransformerContext";
+import { ResolverLoader } from "./ResolverLoader";
 
 export type ResolverManagerConfig = {
   readonly customResolversSource?: string | string[];
 };
 
-export class ResolverManager {
+export class ResolverManager extends ResolverLoader {
   private readonly _fieldResolvers: Map<string, FieldResolver> = new Map();
   private readonly _pipelineFunctions: Map<string, FunctionResolver> = new Map();
   private readonly _customResolvers: Map<string, ResolverBase> = new Map();
   private readonly _context: TransformerContext;
 
   constructor(context: TransformerContext, config?: ResolverManagerConfig) {
+    super();
+
     this._context = context;
 
     if (config?.customResolversSource) {
@@ -63,7 +63,7 @@ export class ResolverManager {
     }
   }
 
-  private _getOrCreateFieldResolver(
+  public getOrCreateFieldResolver(
     type: string,
     field: string,
     dataSource: string,
@@ -80,7 +80,7 @@ export class ResolverManager {
     return resolver;
   }
 
-  private _getOrCreateFunctionResolver(name: string, dataSource: string): FunctionResolver {
+  public getOrCreateFunctionResolver(name: string, dataSource: string): FunctionResolver {
     let resolver = this._pipelineFunctions.get(name);
 
     if (!resolver) {
@@ -133,41 +133,27 @@ export class ResolverManager {
     return this._customResolvers.get(name);
   }
 
-  private _generateResolver(resolver: ResolverBase, loader: LoaderDescriptor) {
-    if (!resolver.isReadonly) {
-      const generator = this._context.dataSources.getDataSourceGenerator(resolver.dataSource!);
+  // private _generateResolver(resolver: ResolverBase, loader: LoaderDescriptor) {
+  //   if (!resolver.isReadonly) {
+  //     const generator = this._context.dataSources.getDataSourceGenerator(resolver.dataSource!);
 
-      const code = generator.generateTemplate(loader);
-      resolver.setCode(code);
-    }
-  }
+  //     const code = generator.generateTemplate(loader);
+  //     resolver.setCode(code);
+  //   }
+  // }
 
-  private _generateFieldResolvers() {
-    for (const loader of this._context.loader.getAllFieldLoaders()) {
-      const dataSourceName = loader.dataSource ?? this._context.dataSources.primaryDataSourceName;
+  // private _generateFieldResolvers() {
+  //   for (const loader of this.getAllLoaders()) {
+  //     const dataSourceName = loader.dataSource;
 
-      const resolver = this._getOrCreateFieldResolver(
-        loader.typeName,
-        loader.fieldName,
-        dataSourceName,
-        loader.pipeline
-      );
+  //     const resolver = this._getOrCreateFieldResolver(
+  //       loader.typeName,
+  //       loader.fieldName,
+  //       dataSourceName,
+  //       loader.pipeline
+  //     );
 
-      this._generateResolver(resolver, loader);
-    }
-  }
-
-  private _generatePipelineFunctions() {
-    for (const loader of this._context.loader.getAllFunctionLoaders()) {
-      const dataSourceName = loader.dataSource ?? this._context.dataSources.primaryDataSourceName;
-
-      const resolver = this._getOrCreateFunctionResolver(loader.name, dataSourceName);
-      this._generateResolver(resolver, loader);
-    }
-  }
-
-  public generate() {
-    this._generateFieldResolvers();
-    this._generatePipelineFunctions();
-  }
+  //     this._generateResolver(resolver, loader);
+  //   }
+  // }
 }

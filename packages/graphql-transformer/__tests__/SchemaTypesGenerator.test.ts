@@ -1,7 +1,10 @@
-import { TEST_DS_CONFIG } from "../__fixtures__/constants";
+import { dirname, resolve } from "node:path";
+import { fileURLToPath } from "node:url";
+import { readFile } from "node:fs/promises";
 import { TransformerContext } from "../src/context";
 import { DocumentNode } from "../src/definition";
-import { SchemaTypesGenerator } from "../src/generators";
+import { SchemaTypesGenerator } from "../src/generators/SchemaTypesGenerator";
+import { ensureOutputDirectory } from "../src/utils";
 
 const context = new TransformerContext({
   document: DocumentNode.fromSource(/* GraphQL */ `
@@ -30,14 +33,18 @@ const context = new TransformerContext({
       deleteUser(id: ID!): User
     }
   `),
-  dataSourceConfig: TEST_DS_CONFIG,
 });
 
-describe("SchemaTypesGenerator", () => {
-  it("genrates schema types", () => {
-    const generator = new SchemaTypesGenerator(context);
+const outDir = ensureOutputDirectory(
+  resolve(dirname(fileURLToPath(import.meta.url)), "../__generated__")
+);
 
-    const types = generator.generate("schema-types.ts");
-    expect(types).toMatchSnapshot();
+describe("SchemaTypesGenerator", () => {
+  it("genrates schema types", async () => {
+    const generator = new SchemaTypesGenerator(context);
+    generator.beforeCleanup(outDir);
+
+    const file = await readFile(resolve(outDir, "schema-types.ts"), "utf-8");
+    expect(file).toMatchSnapshot();
   });
 });

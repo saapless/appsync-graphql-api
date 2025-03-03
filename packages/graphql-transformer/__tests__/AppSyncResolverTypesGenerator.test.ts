@@ -1,7 +1,21 @@
-import { TEST_DS_CONFIG } from "../__fixtures__/constants";
+import { jest } from "@jest/globals";
 import { TransformerContext } from "../src/context";
 import { DocumentNode } from "../src/definition";
-import { ResolverTypesGenerator } from "../src/generators/ResolverTypesGenerator";
+
+let outputContent = "";
+jest.unstable_mockModule("node:fs", () => {
+  return {
+    default: {
+      writeFileSync: jest.fn().mockImplementation((path, content) => {
+        outputContent = content as string;
+      }),
+    },
+  };
+});
+
+const { AppSyncResolverTypesGenerator } = await import(
+  "../src/generators/AppSyncResolverTypesGenerator"
+);
 
 const context = new TransformerContext({
   document: DocumentNode.fromSource(/* GraphQL */ `
@@ -30,12 +44,11 @@ const context = new TransformerContext({
       deleteUser(id: ID!): User
     }
   `),
-  dataSourceConfig: TEST_DS_CONFIG,
 });
 
 describe("ResolverTypesGenerator", () => {
   beforeAll(() => {
-    context.loader.setFieldLoader("Query", "me", {
+    context.resolvers.setLoader("Query", "me", {
       targetName: "User",
       action: {
         type: "getItem",
@@ -45,7 +58,7 @@ describe("ResolverTypesGenerator", () => {
       },
       returnType: "result",
     });
-    context.loader.setFieldLoader("Mutation", "createUser", {
+    context.resolvers.setLoader("Mutation", "createUser", {
       targetName: "User",
       action: {
         type: "putItem",
@@ -53,7 +66,7 @@ describe("ResolverTypesGenerator", () => {
       },
       returnType: "result",
     });
-    context.loader.setFieldLoader("Mutation", "updateUser", {
+    context.resolvers.setLoader("Mutation", "updateUser", {
       targetName: "User",
       action: {
         type: "updateItem",
@@ -61,7 +74,7 @@ describe("ResolverTypesGenerator", () => {
       },
       returnType: "result",
     });
-    context.loader.setFieldLoader("Mutation", "deleteUser", {
+    context.resolvers.setLoader("Mutation", "deleteUser", {
       targetName: "User",
       action: {
         type: "removeItem",
@@ -71,10 +84,10 @@ describe("ResolverTypesGenerator", () => {
     });
   });
 
-  it("generates resolver context types", () => {
-    const generator = new ResolverTypesGenerator(context);
+  it("generates resolver context types", async () => {
+    const generator = new AppSyncResolverTypesGenerator(context);
 
-    const types = generator.generate("resolver-types.ts");
-    expect(types).toMatchSnapshot();
+    generator.generate("__test__");
+    expect(outputContent).toMatchSnapshot();
   });
 });

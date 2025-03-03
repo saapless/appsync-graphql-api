@@ -1,4 +1,6 @@
-import * as ts from "typescript";
+import path from "node:path";
+import ts from "typescript";
+import { Kind } from "graphql";
 import {
   EnumNode,
   FieldNode,
@@ -13,11 +15,16 @@ import {
 } from "../definition";
 import { pascalCase } from "../utils/strings";
 import { TransformerContext } from "../context";
-import { GeneratorBase } from "./GeneratorBase";
+import { prettyPrintFile } from "../utils";
+import { GeneratorPluginBase } from "./GeneratorBase";
+import { printDefinitions } from "./utils";
 
-export class SchemaTypesGenerator extends GeneratorBase {
+export class SchemaTypesGenerator extends GeneratorPluginBase {
+  private readonly _definitions: ts.Node[];
   constructor(context: TransformerContext) {
-    super(context);
+    super("SchemaTypesGenerator", context);
+
+    this._definitions = [];
   }
 
   private _utils() {
@@ -209,24 +216,24 @@ export class SchemaTypesGenerator extends GeneratorBase {
     );
   }
 
-  public generate(filename: string) {
+  public beforeCleanup(outDir: string) {
     this._utils();
 
-    for (const def of this._context.document.definitions.values()) {
+    for (const def of this.context.document.definitions.values()) {
       switch (def.kind) {
-        case "InterfaceTypeDefinition":
+        case Kind.INTERFACE_TYPE_DEFINITION:
           this._interface(def);
           break;
-        case "ObjectTypeDefinition":
+        case Kind.OBJECT_TYPE_DEFINITION:
           this._object(def);
           break;
-        case "InputObjectTypeDefinition":
+        case Kind.INPUT_OBJECT_TYPE_DEFINITION:
           this._input(def);
           break;
-        case "EnumTypeDefinition":
+        case Kind.ENUM_TYPE_DEFINITION:
           this._enum(def);
           break;
-        case "UnionTypeDefinition":
+        case Kind.UNION_TYPE_DEFINITION:
           this._union(def);
           break;
         default:
@@ -234,6 +241,11 @@ export class SchemaTypesGenerator extends GeneratorBase {
       }
     }
 
-    return this._printDefinitions(filename);
+    const result = printDefinitions(this._definitions, "schema-types.ts");
+    return prettyPrintFile(path.resolve(outDir, "schema-types.ts"), result);
+  }
+
+  public static create(context: TransformerContext) {
+    return new SchemaTypesGenerator(context);
   }
 }

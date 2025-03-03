@@ -1,4 +1,4 @@
-import fs, { writeFileSync } from "node:fs";
+import fs from "node:fs";
 import path from "node:path";
 import prettier from "@prettier/sync";
 import { buildSync } from "esbuild";
@@ -36,7 +36,7 @@ export function ensureOutputDirectory(loc: string) {
 }
 
 export function printFile(path: string, content: string) {
-  return writeFileSync(path, content, { encoding: "utf-8" });
+  return fs.writeFileSync(path, content, { encoding: "utf-8" });
 }
 
 export function prettyPrintFile(path: string, content: string) {

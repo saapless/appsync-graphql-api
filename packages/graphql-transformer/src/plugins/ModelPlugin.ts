@@ -18,7 +18,7 @@ import {
 import { TransformPluginExecutionError } from "../utils/errors";
 import { camelCase, pascalCase, pluralize } from "../utils/strings";
 import { LoaderActionType, WriteOperation } from "../utils/types";
-import { TransformerPluginBase } from "./TransformerPluginBase";
+import { TransformerPluginBase } from "./PluginBase";
 
 type ModelOperationType =
   | "create"
@@ -33,9 +33,8 @@ type ModelOperationType =
   | "read"; // Shorthand for "get & list";
 
 export class ModelPlugin extends TransformerPluginBase {
-  public readonly name = "ModelPlugin";
   constructor(context: TransformerContext) {
-    super(context);
+    super("ModelPlugin", context);
   }
 
   // #region Operations
@@ -237,7 +236,7 @@ export class ModelPlugin extends TransformerPluginBase {
       this._createMutationField(model, fieldName, inputName, verb);
     }
 
-    this.context.loader.setFieldLoader("Mutation", fieldName, {
+    this.context.resolvers.setLoader("Mutation", fieldName, {
       action: {
         type: this._getVerbAction(verb),
         key: { id: { ref: "args.input.id" } },

@@ -11,8 +11,8 @@ import {
   ObjectNode,
 } from "../definition";
 import { FieldResolver } from "../resolver";
-import { TransformPluginExecutionError } from "../utils/errors";
-import { TransformerPluginBase } from "./TransformerPluginBase";
+import { TransformPluginExecutionError } from "../utils";
+import { TransformerPluginBase } from "./PluginBase";
 
 type ResesolverDirectiveArgs = {
   name: string;
@@ -21,9 +21,8 @@ type ResesolverDirectiveArgs = {
 };
 
 export class DataLoaderPlugin extends TransformerPluginBase {
-  public readonly name = "DataLoaderPlugin";
   constructor(context: TransformerContext) {
-    super(context);
+    super("DataLoaderPlugin", context);
   }
 
   private _setFieldResolver(node: ObjectNode | InterfaceNode, field: FieldNode) {
@@ -62,7 +61,7 @@ export class DataLoaderPlugin extends TransformerPluginBase {
         node.name,
         field.name,
         currentResolver.source!,
-        dataSource ?? this.context.dataSources.primaryDataSourceName,
+        dataSource ?? "",
         args.pipeline
       )
     );

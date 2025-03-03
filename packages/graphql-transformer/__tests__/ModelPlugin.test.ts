@@ -1,4 +1,3 @@
-import { TEST_DS_CONFIG } from "../__fixtures__/constants";
 import { TransformerContext } from "../src/context";
 import { ModelPlugin } from "../src/plugins/ModelPlugin";
 import {
@@ -17,7 +16,6 @@ describe("ModelPlugin", () => {
         name: String!
       }
     `),
-    dataSourceConfig: TEST_DS_CONFIG,
   });
 
   const plugin = ModelPlugin.create(context);
@@ -72,9 +70,9 @@ describe("ModelPlugin", () => {
     });
 
     it("adds mutation loaders", () => {
-      expect(context.loader.hasFieldLoader("Mutation.createModel")).toBeTruthy();
-      expect(context.loader.hasFieldLoader("Mutation.updateModel")).toBeTruthy();
-      expect(context.loader.hasFieldLoader("Mutation.deleteModel")).toBeTruthy();
+      expect(context.resolvers.hasLoader("Mutation.createModel")).toBeTruthy();
+      expect(context.resolvers.hasLoader("Mutation.updateModel")).toBeTruthy();
+      expect(context.resolvers.hasLoader("Mutation.deleteModel")).toBeTruthy();
     });
   });
 

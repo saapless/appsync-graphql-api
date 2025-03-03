@@ -1,3 +1,4 @@
+import { Message } from "esbuild";
 import { GraphQLError } from "graphql";
 
 export class InvalidDefinitionError extends Error {
@@ -25,5 +26,12 @@ export class SchemaValidationError extends Error {
   constructor(errors: Readonly<GraphQLError[]>) {
     super(`Schema validation failed.\n\n${errors.map((error) => error.toString()).join("\n\n")}`);
     this.name = "SchemaValidationError";
+  }
+}
+
+export class ResolverBuildError extends Error {
+  constructor(errors: Message[]) {
+    super(`Resolver build failed.\n\n${errors.map((error) => error.text).join("\n\n")}`);
+    this.name = "ResolverBuildError";
   }
 }

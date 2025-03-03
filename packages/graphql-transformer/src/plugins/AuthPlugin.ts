@@ -11,8 +11,8 @@ import {
   NonNullTypeNode,
   ObjectNode,
 } from "../definition";
-import { AuthorizationRule } from "../utils/types";
-import { TransformerPluginBase } from "./TransformerPluginBase";
+import { AuthorizationRule } from "../utils";
+import { TransformerPluginBase } from "./PluginBase";
 
 /**
  * Directives:
@@ -25,9 +25,8 @@ import { TransformerPluginBase } from "./TransformerPluginBase";
  */
 
 export class AuthPlugin extends TransformerPluginBase {
-  public readonly name = "AuthPlugin";
   constructor(context: TransformerContext) {
-    super(context);
+    super("AuthPlugin", context);
   }
 
   private _stashModelRules(model: ObjectNode) {
@@ -51,7 +50,7 @@ export class AuthPlugin extends TransformerPluginBase {
       definedRules?.rules
     );
 
-    this.context.loader.setFieldLoader(object.name, field.name, {
+    this.context.resolvers.setLoader(object.name, field.name, {
       targetName: field.type.getTypeName(),
       authRules: rules,
     });
