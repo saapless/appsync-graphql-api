@@ -28,15 +28,14 @@ export function cleanDir(loc: string) {
 export function ensureOutputDirectory(loc: string) {
   const dirPath = getOrCreateDir(loc);
 
-  // if (fs.readdirSync(dirPath).length) {
-  //   return cleanDir(dirPath);
-  // }
+  if (fs.readdirSync(dirPath).length) {
+    return cleanDir(dirPath);
+  }
 
   return dirPath;
 }
 
 export function printFile(path: string, content: string) {
-  console.log(`Writing file: ${path}`);
   return fs.writeFileSync(path, content, { encoding: "utf-8" });
 }
 

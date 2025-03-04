@@ -20,11 +20,15 @@ export class TransformerContext {
 
   constructor(config: TransformerContextConfig) {
     this.document = config.document;
-    this.outputDirectory = ensureOutputDirectory(config.outputDirectory);
+    this.outputDirectory = this.createOutputDirectory(config.outputDirectory);
     this.operations = new OperationsManager(this, config.modelOperationsConfig);
     this.resolvers = new ResolverManager(this);
     this.auth = new AuthorizationManager(this, {});
     this.stash = new Map();
+  }
+
+  public createOutputDirectory(path: string) {
+    return ensureOutputDirectory(path);
   }
 
   public getOrSetStash<TValue>(key: string, value: TValue): TValue {
