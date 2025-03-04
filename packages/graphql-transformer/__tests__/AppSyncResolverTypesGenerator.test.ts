@@ -14,7 +14,7 @@ jest.unstable_mockModule("node:fs", () => {
 });
 
 const { AppSyncResolverTypesGenerator } = await import(
-  "../src/generators/AppSyncResolverTypesGenerator"
+  "../src/plugins/AppSyncResolverTypesGenerator"
 );
 
 const context = new TransformerContext({
@@ -92,7 +92,7 @@ describe("ResolverTypesGenerator", () => {
   it("generates resolver context types", async () => {
     const generator = new AppSyncResolverTypesGenerator(context);
 
-    generator.generate("__test__");
+    generator.generate();
     expect(outputContent).toMatchSnapshot();
   });
 });

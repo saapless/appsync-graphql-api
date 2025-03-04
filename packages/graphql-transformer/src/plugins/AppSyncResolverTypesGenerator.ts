@@ -3,9 +3,9 @@ import ts from "typescript";
 import { TransformerContext } from "../context";
 import { ObjectNode } from "../definition";
 import { FieldLoaderDescriptor, pascalCase, prettyPrintFile, printDefinitions } from "../utils";
-import { GeneratorPluginBase } from "./GeneratorBase";
+import { TransformerPluginBase } from "./PluginBase";
 
-export class AppSyncResolverTypesGenerator extends GeneratorPluginBase {
+export class AppSyncResolverTypesGenerator extends TransformerPluginBase {
   private readonly _definitions: ts.Node[];
 
   constructor(context: TransformerContext) {
@@ -423,7 +423,13 @@ export class AppSyncResolverTypesGenerator extends GeneratorPluginBase {
     );
   }
 
-  public generate(outDir: string) {
+  public match(): boolean {
+    return false;
+  }
+
+  public execute() {}
+
+  public generate() {
     this._defaults();
 
     for (const fieldLoader of this.context.resolvers.getAllLoaders()) {
@@ -431,6 +437,10 @@ export class AppSyncResolverTypesGenerator extends GeneratorPluginBase {
     }
 
     const result = printDefinitions(this._definitions, "resolver-types.ts");
-    return prettyPrintFile(path.resolve(outDir, "resolver-types.ts"), result);
+    return prettyPrintFile(path.resolve(this.context.outputDirectory, "resolver-types.ts"), result);
+  }
+
+  public static create(context: TransformerContext) {
+    return new AppSyncResolverTypesGenerator(context);
   }
 }

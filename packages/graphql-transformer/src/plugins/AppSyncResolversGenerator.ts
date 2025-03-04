@@ -2,7 +2,7 @@ import { TransformerContext } from "../context";
 import { buildPaths, ResolverBuildError, TransformPluginExecutionError } from "../utils";
 import { TransformerOutput } from "../transformer";
 import { FieldResolver, FunctionResolver, ResolverBase } from "../resolver";
-import { GeneratorPluginBase } from "./GeneratorBase";
+import { TransformerPluginBase } from "./PluginBase";
 
 export type FieldResolverOutput = {
   typeName: string;
@@ -18,7 +18,7 @@ export type PipelineFunctionOutput = {
   code: string;
 };
 
-export class ResolversGenerator extends GeneratorPluginBase {
+export class AppSyncResolversGenerator extends TransformerPluginBase {
   constructor(context: TransformerContext) {
     super("ResolversGenerator", context);
   }
@@ -63,7 +63,13 @@ export class ResolversGenerator extends GeneratorPluginBase {
     return buildResult;
   }
 
-  public generateOutput(output: TransformerOutput) {
+  public match(): boolean {
+    return false;
+  }
+
+  public execute(): void {}
+
+  public output(output: TransformerOutput) {
     if (Object.hasOwn(output, "fieldResolvers") || Object.hasOwn(output, "pipelineFunctions")) {
       throw new TransformPluginExecutionError(
         this.name,
@@ -128,5 +134,9 @@ export class ResolversGenerator extends GeneratorPluginBase {
         // Generate resolver code here
       }
     }
+  }
+
+  public static create(context: TransformerContext) {
+    return new AppSyncResolversGenerator(context);
   }
 }
