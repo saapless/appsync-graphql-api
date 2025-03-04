@@ -1,0 +1,27 @@
+name: Bug Report
+description: Report a bug in the project
+title: "[BUG] - "
+labels:
+  - bug
+assignees: []
+body:
+  - type: dropdown
+    id: affected_package
+    attributes:
+      label: "Affected Package"
+      description: "Select the package affected by this bug"
+      options:
+        - "appsync-realtime-client"
+        - "appsync-utils"
+        - "appsync-graphql-construct"
+        - "graphql-transformer"
+    validations:
+      required: true
+  - type: textarea
+    id: bug_description
+    attributes:
+      label: "Bug Description"
+      description: "Please describe the issue, including steps to reproduce, expected behavior, and any error messages."
+      placeholder: "Describe the bug here..."
+    validations:
+      required: true
