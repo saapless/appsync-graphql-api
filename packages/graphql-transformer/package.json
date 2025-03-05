@@ -72,5 +72,13 @@
   "devDependencies": {
     "@aws-appsync/utils": "^1.11.0",
     "@saapless/appsync-utils": "0.1.0"
+  },
+  "peerDependencies": {
+    "dexie": ">=4"
+  },
+  "peerDependenciesMeta": {
+    "dexie": {
+      "optional": true
+    }
   }
 }

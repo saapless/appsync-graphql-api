@@ -17,7 +17,7 @@ import {
   UnionNode,
 } from "../definition";
 import { addImport, prettyPrintFile, printDefinitions } from "../utils";
-import { ScalarType } from "../constants";
+import { ScalarType, UtilityDirective } from "../constants";
 import { TransformerPluginBase } from "./PluginBase";
 
 type DependencyNode = {
@@ -238,8 +238,17 @@ export class ExecutableSchemaGenerator extends TransformerPluginBase {
 
     const dependencies = this._depsMap.get(definition.name)!.dependencies;
 
-    const fields: ts.ObjectLiteralElementLike[] =
-      definition.fields?.map((field) => this._createObjectField(definition, field)) ?? [];
+    const fields: ts.ObjectLiteralElementLike[] = [];
+
+    for (const field of definition.fields ?? []) {
+      if (
+        !field.hasDirective(UtilityDirective.SERVER_ONLY) &&
+        !field.hasDirective(UtilityDirective.FILTER_ONLY) &&
+        !field.hasDirective(UtilityDirective.WRITE_ONLY)
+      ) {
+        fields.push(this._createObjectField(definition, field));
+      }
+    }
 
     const ifaces: ts.Expression[] =
       definition.interfaces?.map((iface) => {
@@ -544,7 +553,7 @@ export class ExecutableSchemaGenerator extends TransformerPluginBase {
       case Kind.INPUT_OBJECT_TYPE_DEFINITION:
       case Kind.ENUM_TYPE_DEFINITION:
       case Kind.SCALAR_TYPE_DEFINITION:
-        return definition.hasDirective("internal") ? false : true;
+        return definition.hasDirective(UtilityDirective.INTERNAL) ? false : true;
       default:
         return false;
     }

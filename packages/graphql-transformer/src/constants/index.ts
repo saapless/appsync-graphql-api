@@ -13,6 +13,7 @@ export const UtilityDirective = Object.freeze({
   READ_ONLY: "readOnly",
   WRITE_ONLY: "writeOnly",
   FILTER_ONLY: "filterOnly",
+  INTERNAL: "internal",
 });
 
 export const ScalarType = Object.freeze({

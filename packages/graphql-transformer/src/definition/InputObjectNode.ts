@@ -108,7 +108,11 @@ export class InputObjectNode {
     );
   }
 
-  static create(name: string, fields: InputValueNode[] = []): InputObjectNode {
-    return new InputObjectNode(name, fields);
+  static create(
+    name: string,
+    fields: InputValueNode[] = [],
+    directives: DirectiveNode[] = []
+  ): InputObjectNode {
+    return new InputObjectNode(name, fields, directives);
   }
 }

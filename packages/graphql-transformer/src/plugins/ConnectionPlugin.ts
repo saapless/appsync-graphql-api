@@ -597,28 +597,42 @@ export class ConnectionPlugin extends TransformerPluginBase {
   public before() {
     this.context.document
       .addNode(
-        InputObjectNode.create("KeyValueInput", [
-          InputValueNode.create("ref", NamedTypeNode.create("String")),
-          InputValueNode.create("eq", NamedTypeNode.create("String")),
-        ])
+        InputObjectNode.create(
+          "KeyValueInput",
+          [
+            InputValueNode.create("ref", NamedTypeNode.create("String")),
+            InputValueNode.create("eq", NamedTypeNode.create("String")),
+          ],
+          [DirectiveNode.create(UtilityDirective.INTERNAL)]
+        )
       )
       .addNode(
-        InputObjectNode.create("SortKeyInput", [
-          InputValueNode.create("ref", NamedTypeNode.create("String")),
-          InputValueNode.create("eq", NamedTypeNode.create("String")),
-          InputValueNode.create("ne", NamedTypeNode.create("KeyValueInput")),
-          InputValueNode.create("le", NamedTypeNode.create("KeyValueInput")),
-          InputValueNode.create("lt", NamedTypeNode.create("KeyValueInput")),
-          InputValueNode.create("ge", NamedTypeNode.create("KeyValueInput")),
-          InputValueNode.create("gt", NamedTypeNode.create("KeyValueInput")),
-          InputValueNode.create(
-            "between",
-            ListTypeNode.create(NonNullTypeNode.create("KeyValueInput"))
-          ),
-          InputValueNode.create("beginsWith", NamedTypeNode.create("KeyValueInput")),
-        ])
+        InputObjectNode.create(
+          "SortKeyInput",
+          [
+            InputValueNode.create("ref", NamedTypeNode.create("String")),
+            InputValueNode.create("eq", NamedTypeNode.create("String")),
+            InputValueNode.create("ne", NamedTypeNode.create("KeyValueInput")),
+            InputValueNode.create("le", NamedTypeNode.create("KeyValueInput")),
+            InputValueNode.create("lt", NamedTypeNode.create("KeyValueInput")),
+            InputValueNode.create("ge", NamedTypeNode.create("KeyValueInput")),
+            InputValueNode.create("gt", NamedTypeNode.create("KeyValueInput")),
+            InputValueNode.create(
+              "between",
+              ListTypeNode.create(NonNullTypeNode.create("KeyValueInput"))
+            ),
+            InputValueNode.create("beginsWith", NamedTypeNode.create("KeyValueInput")),
+          ],
+          [DirectiveNode.create(UtilityDirective.INTERNAL)]
+        )
       )
-      .addNode(EnumNode.create("ConnectionRelationType", ["oneToMay", "manyToMany"]))
+      .addNode(
+        EnumNode.create(
+          "ConnectionRelationType",
+          ["oneToMay", "manyToMany"],
+          [DirectiveNode.create(UtilityDirective.INTERNAL)]
+        )
+      )
       .addNode(
         DirectiveDefinitionNode.create("hasOne", "FIELD_DEFINITION", [
           InputValueNode.create("key", "KeyValueInput"),

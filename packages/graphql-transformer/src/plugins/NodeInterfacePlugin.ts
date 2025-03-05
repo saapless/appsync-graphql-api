@@ -75,13 +75,14 @@ export class NodeInterfacePlugin extends TransformerPluginBase {
       );
     }
 
-    if (!node.hasField("_sk")) {
-      node.addField(
-        FieldNode.create("_sk", NonNullTypeNode.create("String"), null, [
-          DirectiveNode.create("serverOnly"),
-        ])
-      );
-    }
+    // TODO Handle this in DynamoDB resolvers only.
+    // if (!node.hasField("_sk")) {
+    //   node.addField(
+    //     FieldNode.create("_sk", NonNullTypeNode.create("String"), null, [
+    //       DirectiveNode.create("serverOnly"),
+    //     ])
+    //   );
+    // }
 
     // Ensure Query.node field is defined
     const queryNode = this.context.document.getQueryNode();

@@ -17,6 +17,7 @@ import {
 import { pascalCase } from "../utils/strings";
 import { TransformerContext } from "../context";
 import { prettyPrintFile, printDefinitions } from "../utils";
+import { UtilityDirective } from "../constants";
 import { TransformerPluginBase } from "./PluginBase";
 
 export class SchemaTypesGenerator extends TransformerPluginBase {
@@ -227,7 +228,7 @@ export class SchemaTypesGenerator extends TransformerPluginBase {
       case Kind.INPUT_OBJECT_TYPE_DEFINITION:
       case Kind.ENUM_TYPE_DEFINITION:
       case Kind.UNION_TYPE_DEFINITION:
-        return true;
+        return definition.hasDirective(UtilityDirective.INTERNAL) ? false : true;
       default:
         return false;
     }

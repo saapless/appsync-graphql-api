@@ -99,10 +99,11 @@ export class EnumNode {
     };
   }
 
-  static create(name: string, values: string[]) {
+  static create(name: string, values: string[], directives?: DirectiveNode[]) {
     return new EnumNode(
       name,
-      values.map((value) => EnumValueNode.create(value))
+      values.map((value) => EnumValueNode.create(value)),
+      directives
     );
   }
 

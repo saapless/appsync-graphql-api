@@ -1,7 +1,9 @@
+import { UtilityDirective } from "../constants";
 import { TransformerContext } from "../context";
 import {
   DefinitionNode,
   DirectiveDefinitionNode,
+  DirectiveNode,
   EnumNode,
   FieldNode,
   InputObjectNode,
@@ -53,29 +55,49 @@ export class AuthPlugin extends TransformerPluginBase {
 
   public before() {
     this.context.document
-      .addNode(EnumNode.create("AuthAllowStrategy", ["public", "owner"]))
-      .addNode(EnumNode.create("AuthProvider", ["iam", "oidc", "userPools", "lambda"]))
       .addNode(
-        InputObjectNode.create("AuthClaim", [
-          InputValueNode.create("key", "String"),
-          InputValueNode.create("ref", "String"),
-          InputValueNode.create("eq", "String"),
-          InputValueNode.create("in", ListTypeNode.create(NonNullTypeNode.create("String"))),
-          InputValueNode.create("and", ListTypeNode.create(NonNullTypeNode.create("AuthClaim"))),
-          InputValueNode.create("or", ListTypeNode.create(NonNullTypeNode.create("AuthClaim"))),
-          InputValueNode.create("not", "AuthClaim"),
-        ])
+        EnumNode.create(
+          "AuthAllowStrategy",
+          ["public", "owner"],
+          [DirectiveNode.create(UtilityDirective.INTERNAL)]
+        )
       )
       .addNode(
-        InputObjectNode.create("AuthRule", [
-          InputValueNode.create("allow", "AuthAllowStrategy"),
-          InputValueNode.create(
-            "operations",
-            ListTypeNode.create(NonNullTypeNode.create("ModelOperation"))
-          ),
-          InputValueNode.create("provider", "AuthProvider"),
-          InputValueNode.create("claim", "AuthClaim"),
-        ])
+        EnumNode.create(
+          "AuthProvider",
+          ["iam", "oidc", "userPools", "lambda"],
+          [DirectiveNode.create(UtilityDirective.INTERNAL)]
+        )
+      )
+      .addNode(
+        InputObjectNode.create(
+          "AuthClaim",
+          [
+            InputValueNode.create("key", "String"),
+            InputValueNode.create("ref", "String"),
+            InputValueNode.create("eq", "String"),
+            InputValueNode.create("in", ListTypeNode.create(NonNullTypeNode.create("String"))),
+            InputValueNode.create("and", ListTypeNode.create(NonNullTypeNode.create("AuthClaim"))),
+            InputValueNode.create("or", ListTypeNode.create(NonNullTypeNode.create("AuthClaim"))),
+            InputValueNode.create("not", "AuthClaim"),
+          ],
+          [DirectiveNode.create(UtilityDirective.INTERNAL)]
+        )
+      )
+      .addNode(
+        InputObjectNode.create(
+          "AuthRule",
+          [
+            InputValueNode.create("allow", "AuthAllowStrategy"),
+            InputValueNode.create(
+              "operations",
+              ListTypeNode.create(NonNullTypeNode.create("ModelOperation"))
+            ),
+            InputValueNode.create("provider", "AuthProvider"),
+            InputValueNode.create("claim", "AuthClaim"),
+          ],
+          [DirectiveNode.create(UtilityDirective.INTERNAL)]
+        )
       )
       .addNode(
         DirectiveDefinitionNode.create(

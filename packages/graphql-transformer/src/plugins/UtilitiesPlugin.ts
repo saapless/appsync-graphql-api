@@ -14,7 +14,17 @@ export class UtilitiesPlugin extends TransformerPluginBase {
       .addNode(DirectiveDefinitionNode.create(UtilityDirective.WRITE_ONLY, ["FIELD_DEFINITION"]))
       .addNode(DirectiveDefinitionNode.create(UtilityDirective.SERVER_ONLY, ["FIELD_DEFINITION"]))
       .addNode(DirectiveDefinitionNode.create(UtilityDirective.CLIENT_ONLY, ["FIELD_DEFINITION"]))
-      .addNode(DirectiveDefinitionNode.create(UtilityDirective.FILTER_ONLY, ["FIELD_DEFINITION"]));
+      .addNode(DirectiveDefinitionNode.create(UtilityDirective.FILTER_ONLY, ["FIELD_DEFINITION"]))
+      .addNode(
+        DirectiveDefinitionNode.create(UtilityDirective.INTERNAL, [
+          "FIELD_DEFINITION",
+          "INPUT_FIELD_DEFINITION",
+          "INTERFACE",
+          "OBJECT",
+          "INPUT_OBJECT",
+          "ENUM",
+        ])
+      );
   }
 
   public match(definition: DefinitionNode) {
@@ -57,7 +67,8 @@ export class UtilitiesPlugin extends TransformerPluginBase {
       .removeNode(UtilityDirective.WRITE_ONLY)
       .removeNode(UtilityDirective.SERVER_ONLY)
       .removeNode(UtilityDirective.CLIENT_ONLY)
-      .removeNode(UtilityDirective.FILTER_ONLY);
+      .removeNode(UtilityDirective.FILTER_ONLY)
+      .removeNode(UtilityDirective.INTERNAL);
   }
 
   static create(context: TransformerContext): UtilitiesPlugin {

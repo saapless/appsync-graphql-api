@@ -1,4 +1,4 @@
-import { ScalarType } from "../constants";
+import { ScalarType, UtilityDirective } from "../constants";
 import { ModelOperation, type ModelOperationType } from "../constants/model";
 import { TransformerContext } from "../context";
 import {
@@ -244,7 +244,11 @@ export class ModelPlugin extends TransformerPluginBase {
 
   public before() {
     this.context.document
-      .addNode(EnumNode.create("ModelOperation", Object.values(ModelOperation)))
+      .addNode(
+        EnumNode.create("ModelOperation", Object.values(ModelOperation), [
+          DirectiveNode.create(UtilityDirective.INTERNAL),
+        ])
+      )
       .addNode(
         DirectiveDefinitionNode.create(
           "model",
