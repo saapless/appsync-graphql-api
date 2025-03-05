@@ -675,9 +675,10 @@ export class ConnectionPlugin extends TransformerPluginBase {
 
       if (
         connection.relation === RelationType.ONE_TO_ONE &&
-        connection.key.ref?.startsWith("source")
+        connection.key.ref?.startsWith("source.")
       ) {
-        this._setConnectionKey(definition, connection.key.ref);
+        const key = connection.key.ref.split(".")[1];
+        this._setConnectionKey(definition, key);
       }
 
       if (connection.relation === RelationType.ONE_TO_MANY) {

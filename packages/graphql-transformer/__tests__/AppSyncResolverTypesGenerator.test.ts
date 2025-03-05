@@ -47,7 +47,7 @@ const context = new TransformerContext({
   `),
 });
 
-describe("ResolverTypesGenerator", () => {
+describe("AppSyncResolverTypesGenerator", () => {
   beforeAll(() => {
     context.resolvers.setLoader("Query", "me", {
       targetName: "User",

@@ -10,3 +10,4 @@ export { UtilitiesPlugin } from "./UtilitiesPlugin";
 
 export { SchemaGenerator } from "./SchemaGenerator";
 export { SchemaTypesGenerator } from "./SchemaTypesGenerator";
+export { ExecutableSchemaGenerator } from "./ExecutableSchemaGenerator";

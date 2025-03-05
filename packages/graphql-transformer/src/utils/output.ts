@@ -59,3 +59,7 @@ export function buildPaths(paths: string[], outDir: string) {
     external: ["@aws-appsync/utils"],
   });
 }
+
+export function dirname(metaUrl: string) {
+  return path.dirname(new URL(metaUrl).pathname);
+}
