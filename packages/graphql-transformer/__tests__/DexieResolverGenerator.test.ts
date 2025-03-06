@@ -1,7 +1,8 @@
 import { TestContext } from "../__fixtures__/TestContext";
+import { ResolverDescriptor } from "../src/context";
 import { DocumentNode } from "../src/definition";
 import { DexieResolverGenerator } from "../src/generators/DexieResolverGenerator";
-import { FieldLoaderDescriptor, printDefinitions } from "../src/utils";
+import { printDefinitions } from "../src/utils";
 
 const context = new TestContext({
   document: DocumentNode.fromSource(/* GraphQL */ `
@@ -84,21 +85,20 @@ const context = new TestContext({
   outputDirectory: "__test__",
 });
 
-const generator = new DexieResolverGenerator(context);
+const generator = new DexieResolverGenerator(context, []);
 
 describe("DexieResolverGenerator", () => {
   it("generates getItem resolver", () => {
     const descriptor = {
-      dataSource: "test",
       typeName: "Query",
       fieldName: "getTask",
-      action: {
-        type: "getItem",
-        key: { id: { ref: "args.id" } },
+      operation: {
+        type: "get",
+        key: { ref: "args.id" },
       },
       targetName: "Task",
       returnType: "result",
-    } satisfies FieldLoaderDescriptor;
+    } satisfies ResolverDescriptor;
 
     const result = generator.generate(descriptor);
     expect(printDefinitions([result], "Query.getTask.ts")).toMatchSnapshot();
@@ -106,16 +106,15 @@ describe("DexieResolverGenerator", () => {
 
   it("generates getItem resolver with nested key", () => {
     const descriptor = {
-      dataSource: "test",
       typeName: "Query",
       fieldName: "getTask",
-      action: {
-        type: "getItem",
-        key: { id: { ref: "args.id" }, __typename: { eq: "Task" } },
+      operation: {
+        type: "get",
+        key: [{ ref: "args.id" }, { eq: "Task" }],
       },
       targetName: "Task",
       returnType: "result",
-    } satisfies FieldLoaderDescriptor;
+    } satisfies ResolverDescriptor;
 
     const result = generator.generate(descriptor);
     expect(printDefinitions([result], "Query.getTask.ts")).toMatchSnapshot();
@@ -123,16 +122,15 @@ describe("DexieResolverGenerator", () => {
 
   it("generates batchGetItems resolver", () => {
     const descriptor = {
-      dataSource: "test",
       typeName: "Label",
       fieldName: "edges",
-      action: {
-        type: "batchGetItems",
-        key: { id: { ref: "source.keys" } },
+      operation: {
+        type: "batchGet",
+        key: { ref: "source.keys" },
       },
       targetName: "Label",
       returnType: "edges",
-    } satisfies FieldLoaderDescriptor;
+    } satisfies ResolverDescriptor;
 
     const result = generator.generate(descriptor);
     expect(printDefinitions([result], "Query.listTasks.ts")).toMatchSnapshot();
@@ -140,17 +138,16 @@ describe("DexieResolverGenerator", () => {
 
   it("generates queryItems resolver", () => {
     const descriptor = {
-      dataSource: "test",
       typeName: "Query",
       fieldName: "listTasks",
-      action: {
-        type: "queryItems",
-        key: { id: { eq: "Task" } },
-        index: "__typename",
+      operation: {
+        type: "query",
+        key: { eq: "Task" },
+        index: "typename",
       },
       targetName: "Task",
       returnType: "connection",
-    } satisfies FieldLoaderDescriptor;
+    } satisfies ResolverDescriptor;
 
     const result = generator.generate(descriptor);
     expect(printDefinitions([result], "Query.listTasks.ts")).toMatchSnapshot();
@@ -158,16 +155,15 @@ describe("DexieResolverGenerator", () => {
 
   it("generates createItem resolver", () => {
     const descriptor = {
-      dataSource: "test",
       typeName: "Mutation",
       fieldName: "createTask",
-      action: {
-        type: "putItem",
-        key: { id: { ref: "args.input.id" } },
+      operation: {
+        type: "create",
+        key: { ref: "args.input.id" },
       },
       targetName: "Task",
       returnType: "result",
-    } satisfies FieldLoaderDescriptor;
+    } satisfies ResolverDescriptor;
 
     const result = generator.generate(descriptor);
     expect(printDefinitions([result], "Mutation.createTask.ts")).toMatchSnapshot();
@@ -175,16 +171,15 @@ describe("DexieResolverGenerator", () => {
 
   it("generates updateItem resolver", () => {
     const descriptor = {
-      dataSource: "test",
       typeName: "Mutation",
       fieldName: "updateTask",
-      action: {
-        type: "updateItem",
-        key: { id: { ref: "args.input.id" } },
+      operation: {
+        type: "update",
+        key: { ref: "args.input.id" },
       },
       targetName: "Task",
       returnType: "result",
-    } satisfies FieldLoaderDescriptor;
+    } satisfies ResolverDescriptor;
 
     const result = generator.generate(descriptor);
     expect(printDefinitions([result], "Mutation.updateTask.ts")).toMatchSnapshot();
@@ -192,16 +187,15 @@ describe("DexieResolverGenerator", () => {
 
   it("generates deleteItem resolver", () => {
     const descriptor = {
-      dataSource: "test",
       typeName: "Mutation",
       fieldName: "deleteTask",
-      action: {
-        type: "removeItem",
-        key: { id: { ref: "args.id" } },
+      operation: {
+        type: "delete",
+        key: { ref: "args.id" },
       },
       targetName: "Task",
       returnType: "result",
-    } satisfies FieldLoaderDescriptor;
+    } satisfies ResolverDescriptor;
 
     const result = generator.generate(descriptor);
     expect(printDefinitions([result], "Mutation.deleteTask.ts")).toMatchSnapshot();

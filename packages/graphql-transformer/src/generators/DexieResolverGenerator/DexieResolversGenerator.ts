@@ -1,7 +1,7 @@
 import ts from "typescript";
-import { TransformerContext } from "../../context";
+import { ResolverDescriptor, TransformerContext } from "../../context";
 import { ObjectNode } from "../../definition";
-import { FieldLoaderDescriptor, TransformPluginExecutionError } from "../../utils";
+import { addImport, TransformPluginExecutionError } from "../../utils";
 import {
   filterQuery,
   formatResult,
@@ -16,13 +16,17 @@ import {
 } from "./utils";
 
 export class DexieResolverGenerator {
-  private readonly context: TransformerContext;
   public readonly name = "DexieResolverGenerator";
-  constructor(context: TransformerContext) {
+
+  private readonly context: TransformerContext;
+  private readonly _ast: ts.Node[] = [];
+
+  constructor(context: TransformerContext, ast: ts.Node[]) {
     this.context = context;
+    this._ast = ast;
   }
 
-  private _getArgs(descriptor: FieldLoaderDescriptor) {
+  private _getArgs(descriptor: ResolverDescriptor) {
     const isRootField = descriptor.typeName === "Query" || descriptor.typeName === "Mutation";
     const hasFieldArgs = (
       this.context.document.getNode(descriptor.typeName) as ObjectNode
@@ -64,85 +68,103 @@ export class DexieResolverGenerator {
     );
   }
 
-  private _getItem(descriptor: FieldLoaderDescriptor): ts.Block {
+  private _getItem(descriptor: ResolverDescriptor): ts.Block {
     return ts.factory.createBlock(
-      [initGetItem(), ts.factory.createReturnStatement(formatResult(descriptor))],
+      [
+        initGetItem(descriptor),
+        ts.factory.createReturnStatement(formatResult(descriptor, this._ast)),
+      ],
       true
     );
   }
 
-  private _batchGetItems(descriptor: FieldLoaderDescriptor): ts.Block {
+  private _batchGetItems(descriptor: ResolverDescriptor): ts.Block {
     return ts.factory.createBlock(
-      [initBulkGet(), ts.factory.createReturnStatement(formatResult(descriptor))],
+      [initBulkGet(), ts.factory.createReturnStatement(formatResult(descriptor, this._ast))],
       true
     );
   }
 
-  private _queryItems(descriptor: FieldLoaderDescriptor): ts.Block {
+  private _queryItems(descriptor: ResolverDescriptor): ts.Block {
+    addImport(
+      this._ast,
+      "@saapless/graphql-utils",
+      ts.factory.createImportSpecifier(
+        false,
+        undefined,
+        ts.factory.createIdentifier("filterExpression")
+      )
+    );
     const block = [
       initQuery(descriptor),
       filterQuery(),
       sortQuery(),
       getQueryResult(),
-      ts.factory.createReturnStatement(formatResult(descriptor)),
+      ts.factory.createReturnStatement(formatResult(descriptor, this._ast)),
     ];
 
     return ts.factory.createBlock(block, true);
   }
 
-  private _createItem(descriptor: FieldLoaderDescriptor): ts.Block {
+  private _createItem(descriptor: ResolverDescriptor): ts.Block {
     return ts.factory.createBlock(
-      [...initCreateItem(descriptor), ts.factory.createReturnStatement(formatResult(descriptor))],
+      [
+        ...initCreateItem(descriptor),
+        ts.factory.createReturnStatement(formatResult(descriptor, this._ast)),
+      ],
       true
     );
   }
 
-  private _updateItem(descriptor: FieldLoaderDescriptor): ts.Block {
+  private _updateItem(descriptor: ResolverDescriptor): ts.Block {
     return ts.factory.createBlock(
-      [...initUpdateItem(), ts.factory.createReturnStatement(formatResult(descriptor))],
+      [...initUpdateItem(), ts.factory.createReturnStatement(formatResult(descriptor, this._ast))],
       true
     );
   }
 
-  private _upsertItem(descriptor: FieldLoaderDescriptor): ts.Block {
+  private _upsertItem(descriptor: ResolverDescriptor): ts.Block {
     return ts.factory.createBlock(
-      [ts.factory.createReturnStatement(formatResult(descriptor))],
+      [ts.factory.createReturnStatement(formatResult(descriptor, this._ast))],
       true
     );
   }
 
-  private _deleteItem(descriptor: FieldLoaderDescriptor): ts.Block {
+  private _deleteItem(descriptor: ResolverDescriptor): ts.Block {
     return ts.factory.createBlock(
-      [...initDeleteItem(), ts.factory.createReturnStatement(formatResult(descriptor, "record"))],
+      [
+        ...initDeleteItem(),
+        ts.factory.createReturnStatement(formatResult(descriptor, this._ast, "record")),
+      ],
       true
     );
   }
 
-  private _getBody(descriptor: FieldLoaderDescriptor): ts.Block {
-    switch (descriptor.action.type) {
-      case "getItem":
+  private _getBody(descriptor: ResolverDescriptor): ts.Block {
+    switch (descriptor.operation.type) {
+      case "get":
         return this._getItem(descriptor);
-      case "batchGetItems":
+      case "batchGet":
         return this._batchGetItems(descriptor);
-      case "queryItems":
+      case "query":
         return this._queryItems(descriptor);
-      case "putItem":
+      case "create":
         return this._createItem(descriptor);
-      case "updateItem":
+      case "update":
         return this._updateItem(descriptor);
-      case "upsertItem":
+      case "upsert":
         return this._upsertItem(descriptor);
-      case "removeItem":
+      case "delete":
         return this._deleteItem(descriptor);
       default:
         throw new TransformPluginExecutionError(
           this.name,
-          `Unknown action type: ${descriptor.action.type}`
+          `Unknown action type: ${descriptor.operation.type}`
         );
     }
   }
 
-  public generate(descriptor: FieldLoaderDescriptor): ts.ArrowFunction {
+  public generate(descriptor: ResolverDescriptor): ts.ArrowFunction {
     const params = this._getArgs(descriptor);
     const body = this._getBody(descriptor);
     return this._getArrowFunction(params, body);

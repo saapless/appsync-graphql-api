@@ -19,7 +19,7 @@ import {
 } from "../definition";
 import { TransformPluginExecutionError } from "../utils/errors";
 import { camelCase, pascalCase, pluralize } from "../utils/strings";
-import { LoaderActionType, WriteOperation } from "../utils/types";
+import { WriteOperation } from "../utils/types";
 import { TransformerPluginBase } from "./PluginBase";
 
 export type ModelDirectiveArgs = {
@@ -45,19 +45,6 @@ export class ModelPlugin extends TransformerPluginBase {
 
     const args = directive.getArgumentsJSON<ModelDirectiveArgs>();
     return this.context.operations.getModelOperations(args.operations);
-  }
-
-  private _getVerbAction(verb: WriteOperation): LoaderActionType {
-    switch (verb) {
-      case "create":
-        return "putItem";
-      case "update":
-        return "updateItem";
-      case "delete":
-        return "removeItem";
-      case "upsert":
-        return "upsertItem";
-    }
   }
 
   private _createGetQuery(model: ObjectNode) {
@@ -231,9 +218,9 @@ export class ModelPlugin extends TransformerPluginBase {
     }
 
     this.context.resolvers.setLoader("Mutation", fieldName, {
-      action: {
-        type: this._getVerbAction(verb),
-        key: { id: { ref: "args.input.id" } },
+      operation: {
+        type: verb,
+        key: { ref: "args.input.id" },
       },
       targetName: model.name,
       returnType: "result",

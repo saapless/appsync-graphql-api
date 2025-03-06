@@ -37,7 +37,7 @@ export class ExecutableSchemaGenerator extends TransformerPluginBase {
     this._ast = [];
     this._depsMap = new Map();
     this._typeIds = [];
-    this._resoverGenerator = new DexieResolverGenerator(context);
+    this._resoverGenerator = new DexieResolverGenerator(context, this._ast);
   }
 
   private _setAst(identifier: string, ast: ts.Node) {

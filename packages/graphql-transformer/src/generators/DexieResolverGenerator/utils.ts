@@ -1,5 +1,6 @@
 import ts from "typescript";
-import { FieldLoaderDescriptor } from "../../utils";
+import { addImport } from "../../utils";
+import { KeyValue, ResolverDescriptor } from "../../context";
 
 export function getWhereMethod(clause: string) {
   switch (clause) {
@@ -25,7 +26,21 @@ export function getWhereMethod(clause: string) {
   }
 }
 
-export function initQuery(descriptor: FieldLoaderDescriptor) {
+export function keyValue<T extends string | number>(obj: KeyValue<T>) {
+  if (obj.ref) {
+    return ts.factory.createIdentifier(obj.ref);
+  }
+
+  if (obj.eq) {
+    return typeof obj.eq === "string"
+      ? ts.factory.createStringLiteral(obj.eq)
+      : ts.factory.createNumericLiteral(obj.eq);
+  }
+
+  throw new Error("Invalid key value");
+}
+
+export function initQuery(descriptor: ResolverDescriptor) {
   return ts.factory.createVariableStatement(
     undefined,
     ts.factory.createVariableDeclarationList(
@@ -45,7 +60,7 @@ export function initQuery(descriptor: FieldLoaderDescriptor) {
                   ts.factory.createIdentifier("where")
                 ),
                 undefined,
-                [ts.factory.createStringLiteral(descriptor.action.index ?? "id")]
+                [ts.factory.createStringLiteral(descriptor.operation.index ?? ":id")]
               ),
               ts.factory.createIdentifier("eq")
             ),
@@ -158,7 +173,7 @@ export function getQueryResult() {
   );
 }
 
-export function initCreateItem(descriptor: FieldLoaderDescriptor) {
+export function initCreateItem(descriptor: ResolverDescriptor) {
   return [
     ts.factory.createVariableStatement(
       undefined,
@@ -316,7 +331,7 @@ export function initCreateItem(descriptor: FieldLoaderDescriptor) {
   ];
 }
 
-export function initGetItem() {
+export function initGetItem(descriptor: ResolverDescriptor) {
   return ts.factory.createVariableStatement(
     undefined,
     ts.factory.createVariableDeclarationList(
@@ -332,7 +347,13 @@ export function initGetItem() {
                 ts.factory.createIdentifier("get")
               ),
               undefined,
-              [ts.factory.createIdentifier("id")]
+              [
+                keyValue(
+                  Array.isArray(descriptor.operation.key)
+                    ? descriptor.operation.key[0]
+                    : descriptor.operation.key
+                ),
+              ]
             )
           )
         ),
@@ -578,7 +599,7 @@ export function initDeleteItem() {
   ];
 }
 
-export function formatResult(descriptor: FieldLoaderDescriptor, identifier?: string) {
+export function formatResult(descriptor: ResolverDescriptor, ast: ts.Node[], identifier?: string) {
   const props: ts.ObjectLiteralElementLike[] = [];
 
   if (descriptor.isEdge) {
@@ -602,12 +623,22 @@ export function formatResult(descriptor: FieldLoaderDescriptor, identifier?: str
   }
 
   switch (descriptor.returnType) {
-    case "connection":
+    case "connection": {
+      addImport(
+        ast,
+        "@saapless/graphql-utils",
+        ts.factory.createImportSpecifier(
+          false,
+          undefined,
+          ts.factory.createIdentifier("formatConnection")
+        )
+      );
       return ts.factory.createCallExpression(
         ts.factory.createIdentifier("formatConnection"),
         undefined,
         [ts.factory.createObjectLiteralExpression(props)]
       );
+    }
     case "result":
     default:
       return ts.factory.createIdentifier(identifier ?? "result");
