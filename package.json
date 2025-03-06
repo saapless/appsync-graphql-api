@@ -23,13 +23,16 @@
     "lint": "turbo lint",
     "test": "turbo test",
     "test:watch": "turbo test:watch",
-    "prepare": "husky"
+    "prepare": "husky",
+    "changeset": "changeset",
+    "publish": "changeset publish"
   },
   "dependencies": {
     "esbuild": "^0.24.2",
     "graphql": "^16.9.0"
   },
   "devDependencies": {
+    "@changesets/cli": "^2.28.1",
     "@commitlint/cli": "^19.5.0",
     "@commitlint/config-conventional": "^19.5.0",
     "@eslint/eslintrc": "^3.1.0",

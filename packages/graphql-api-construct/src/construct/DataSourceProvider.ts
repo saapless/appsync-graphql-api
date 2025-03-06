@@ -1,5 +1,4 @@
 import { Construct } from "constructs";
-import { DataSourceManagerConfig } from "@saapless/graphql-transformer";
 import { AwsIamConfig, BaseDataSource, IGraphqlApi } from "aws-cdk-lib/aws-appsync";
 import { ITable } from "aws-cdk-lib/aws-dynamodb";
 import { IEventBus } from "aws-cdk-lib/aws-events";
@@ -73,6 +72,24 @@ export type DataSourceOptions = NoneDataSourceOptions | DynamoDBDataSourceOption
 // | LambdaDataSourceOptions
 // | BedrockDataSourceOptions;
 
+export type NoneDataSorce = {
+  type: "NONE";
+};
+
+export type DynamoDBDataSource = {
+  type: "DYNAMO_DB";
+  config: {
+    tableName: string;
+  };
+};
+
+export type TransformerDataSourceConfig = NoneDataSorce | DynamoDBDataSource;
+
+export interface DataSourceManagerConfig {
+  primaryDataSourceName: string;
+  dataSources: Record<string, TransformerDataSourceConfig>;
+}
+
 export interface DataSourceConfig {
   primaryDataSource?: DynamoDBDataSourceOptions;
   additionalDataSources?: DataSourceOptions[];
@@ -137,7 +154,7 @@ export class DataSourceProvider extends Construct {
 
         return agg;
       },
-      {} as DataSourceManagerConfig["dataSources"]
+      {} as Record<string, TransformerDataSourceConfig>
     );
     return {
       primaryDataSourceName: this._primaryDataSourceName,
