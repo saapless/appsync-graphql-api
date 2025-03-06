@@ -1,6 +1,6 @@
 {
   "name": "@saapless/graphql-utils",
-  "version": "0.0.1",
+  "version": "0.0.2",
   "description": "Utilities for GraphQL JS resolvers",
   "author": "Saapless",
   "license": "MIT",
