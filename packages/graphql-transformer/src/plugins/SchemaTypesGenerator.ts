@@ -1,5 +1,7 @@
-import * as ts from "typescript";
+import ts from "typescript";
+import { Kind } from "graphql";
 import {
+  DefinitionNode,
   EnumNode,
   FieldNode,
   InputObjectNode,
@@ -13,11 +15,16 @@ import {
 } from "../definition";
 import { pascalCase } from "../utils/strings";
 import { TransformerContext } from "../context";
-import { GeneratorBase } from "./GeneratorBase";
+import { printDefinitions } from "../utils";
+import { UtilityDirective } from "../constants";
+import { TransformerPluginBase } from "./PluginBase";
 
-export class SchemaTypesGenerator extends GeneratorBase {
+export class SchemaTypesGenerator extends TransformerPluginBase {
+  private readonly _definitions: ts.Node[];
   constructor(context: TransformerContext) {
-    super(context);
+    super("SchemaTypesGenerator", context);
+
+    this._definitions = [];
   }
 
   private _utils() {
@@ -209,31 +216,51 @@ export class SchemaTypesGenerator extends GeneratorBase {
     );
   }
 
-  public generate(filename: string) {
+  public before(): void {
     this._utils();
+  }
 
-    for (const def of this._context.document.definitions.values()) {
-      switch (def.kind) {
-        case "InterfaceTypeDefinition":
-          this._interface(def);
-          break;
-        case "ObjectTypeDefinition":
-          this._object(def);
-          break;
-        case "InputObjectTypeDefinition":
-          this._input(def);
-          break;
-        case "EnumTypeDefinition":
-          this._enum(def);
-          break;
-        case "UnionTypeDefinition":
-          this._union(def);
-          break;
-        default:
-          continue;
-      }
+  public match(definition: DefinitionNode) {
+    switch (definition.kind) {
+      case Kind.INTERFACE_TYPE_DEFINITION:
+      case Kind.OBJECT_TYPE_DEFINITION:
+      case Kind.INPUT_OBJECT_TYPE_DEFINITION:
+      case Kind.ENUM_TYPE_DEFINITION:
+      case Kind.UNION_TYPE_DEFINITION:
+        return definition.hasDirective(UtilityDirective.INTERNAL) ? false : true;
+      default:
+        return false;
     }
+  }
 
-    return this._printDefinitions(filename);
+  public execute(definition: DefinitionNode) {
+    switch (definition.kind) {
+      case Kind.INTERFACE_TYPE_DEFINITION:
+        this._interface(definition as InterfaceNode);
+        break;
+      case Kind.OBJECT_TYPE_DEFINITION:
+        this._object(definition as ObjectNode);
+        break;
+      case Kind.INPUT_OBJECT_TYPE_DEFINITION:
+        this._input(definition as InputObjectNode);
+        break;
+      case Kind.ENUM_TYPE_DEFINITION:
+        this._enum(definition as EnumNode);
+        break;
+      case Kind.UNION_TYPE_DEFINITION:
+        this._union(definition as UnionNode);
+        break;
+      default:
+        return;
+    }
+  }
+
+  public generate() {
+    const result = printDefinitions(this._definitions, "schema-types.ts");
+    return this.context.printScript("schema-types.ts", result);
+  }
+
+  public static create(context: TransformerContext) {
+    return new SchemaTypesGenerator(context);
   }
 }

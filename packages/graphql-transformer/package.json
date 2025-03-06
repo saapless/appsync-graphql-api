@@ -1,16 +1,63 @@
 {
   "name": "@saapless/graphql-transformer",
   "version": "0.0.1",
-  "description": "AppSync GraphQL Transformer",
-  "author": "Saapless",
   "sideEffects": false,
+  "type": "module",
+  "description": "AppSync GraphQL Transformer",
+  "keywords": [
+    "GraphQL"
+  ],
+  "author": "Saapless <dev@saapless.com>",
   "publishConfig": {
     "access": "public"
   },
-  "type": "module",
   "license": "MIT",
+  "homepage": "https://www.saapless.com",
+  "repository": {
+    "type": "git",
+    "url": "git+https://github.com/saapless/appsync-graphql-api.git",
+    "directory": "packages/graphql-transformer"
+  },
+  "bugs": {
+    "url": "https://github.com/saapless/appsync-graphql-api/issues"
+  },
   "main": "dist/index.js",
   "types": "dist/index.d.ts",
+  "files": [
+    "dist",
+    "README.md",
+    "../../LICENSE"
+  ],
+  "exports": {
+    ".": {
+      "default": "./dist/index.js",
+      "types": "./dist/index.d.ts"
+    },
+    "./constants": {
+      "default": "./dist/constants/index.js",
+      "types": "./dist/constants/index.d.ts"
+    },
+    "./context": {
+      "default": "./dist/context/index.js",
+      "types": "./dist/context/index.d.ts"
+    },
+    "./definition": {
+      "default": "./dist/definition/index.js",
+      "types": "./dist/definition/index.d.ts"
+    },
+    "./plugins": {
+      "default": "./dist/plugins/index.js",
+      "types": "./dist/plugins/index.d.ts"
+    },
+    "./transformer": {
+      "default": "./dist/transformer/index.js",
+      "types": "./dist/transformer/index.d.ts"
+    },
+    "./utils": {
+      "default": "./dist/utils/index.js",
+      "types": "./dist/utils/index.d.ts"
+    }
+  },
   "scripts": {
     "build": "tsc",
     "dev": "tsc --watch",
@@ -24,6 +71,14 @@
   },
   "devDependencies": {
     "@aws-appsync/utils": "^1.11.0",
-    "@saapless/appsync-utils": "*"
+    "@saapless/appsync-utils": "0.0.1"
+  },
+  "peerDependencies": {
+    "dexie": ">=4"
+  },
+  "peerDependenciesMeta": {
+    "dexie": {
+      "optional": true
+    }
   }
 }

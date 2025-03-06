@@ -1,9 +1,10 @@
-import { TEST_DS_CONFIG } from "../__fixtures__/constants";
-import { TransformerContext } from "../src/context";
+import { jest } from "@jest/globals";
 import { DocumentNode } from "../src/definition";
-import { ResolverTypesGenerator } from "../src/generators/ResolverTypesGenerator";
+import { TestContext } from "../__fixtures__/TestContext";
+import { AppSyncResolverTypesGenerator } from "../src/plugins/AppSyncResolverTypesGenerator";
 
-const context = new TransformerContext({
+const context = new TestContext({
+  outputDirectory: "__test__",
   document: DocumentNode.fromSource(/* GraphQL */ `
     type User {
       id: ID!
@@ -30,12 +31,11 @@ const context = new TransformerContext({
       deleteUser(id: ID!): User
     }
   `),
-  dataSourceConfig: TEST_DS_CONFIG,
 });
 
-describe("ResolverTypesGenerator", () => {
+describe("AppSyncResolverTypesGenerator", () => {
   beforeAll(() => {
-    context.loader.setFieldLoader("Query", "me", {
+    context.resolvers.setLoader("Query", "me", {
       targetName: "User",
       action: {
         type: "getItem",
@@ -45,7 +45,7 @@ describe("ResolverTypesGenerator", () => {
       },
       returnType: "result",
     });
-    context.loader.setFieldLoader("Mutation", "createUser", {
+    context.resolvers.setLoader("Mutation", "createUser", {
       targetName: "User",
       action: {
         type: "putItem",
@@ -53,7 +53,7 @@ describe("ResolverTypesGenerator", () => {
       },
       returnType: "result",
     });
-    context.loader.setFieldLoader("Mutation", "updateUser", {
+    context.resolvers.setLoader("Mutation", "updateUser", {
       targetName: "User",
       action: {
         type: "updateItem",
@@ -61,7 +61,7 @@ describe("ResolverTypesGenerator", () => {
       },
       returnType: "result",
     });
-    context.loader.setFieldLoader("Mutation", "deleteUser", {
+    context.resolvers.setLoader("Mutation", "deleteUser", {
       targetName: "User",
       action: {
         type: "removeItem",
@@ -71,10 +71,14 @@ describe("ResolverTypesGenerator", () => {
     });
   });
 
-  it("generates resolver context types", () => {
-    const generator = new ResolverTypesGenerator(context);
+  afterAll(() => {
+    jest.resetAllMocks();
+  });
 
-    const types = generator.generate("resolver-types.ts");
-    expect(types).toMatchSnapshot();
+  it("generates resolver context types", async () => {
+    const generator = new AppSyncResolverTypesGenerator(context);
+
+    generator.generate();
+    expect(context.files.get("resolver-types.ts")).toMatchSnapshot();
   });
 });

@@ -1,7 +1,9 @@
+import { UtilityDirective } from "../constants";
 import { TransformerContext } from "../context";
 import {
   DefinitionNode,
   DirectiveDefinitionNode,
+  DirectiveNode,
   EnumNode,
   FieldNode,
   InputObjectNode,
@@ -11,23 +13,17 @@ import {
   NonNullTypeNode,
   ObjectNode,
 } from "../definition";
-import { AuthorizationRule } from "../utils/types";
-import { TransformerPluginBase } from "./TransformerPluginBase";
+import { AuthorizationRule } from "../utils";
+import { TransformerPluginBase } from "./PluginBase";
 
 /**
- * Directives:
- * * `@auth(rules: [AuthRule!])`
- *
- * Actions:
- * * Handle `@auth` rules or default auth config;
- * * Handle build in aws auth rules;
- * * Add auth stages to resolvers;
+ * Adds authorization directive to the schema.
+ * @category Transformer
  */
 
 export class AuthPlugin extends TransformerPluginBase {
-  public readonly name = "AuthPlugin";
   constructor(context: TransformerContext) {
-    super(context);
+    super("AuthPlugin", context);
   }
 
   private _stashModelRules(model: ObjectNode) {
@@ -36,7 +32,7 @@ export class AuthPlugin extends TransformerPluginBase {
       ?.getArgumentsJSON<{ rules: AuthorizationRule[] }>();
 
     if (directiveArgs?.rules?.length) {
-      this.context.auth.setModelReuls(model.name, directiveArgs.rules);
+      this.context.auth.setModelRules(model.name, directiveArgs.rules);
     }
   }
 
@@ -51,7 +47,7 @@ export class AuthPlugin extends TransformerPluginBase {
       definedRules?.rules
     );
 
-    this.context.loader.setFieldLoader(object.name, field.name, {
+    this.context.resolvers.setLoader(object.name, field.name, {
       targetName: field.type.getTypeName(),
       authRules: rules,
     });
@@ -59,29 +55,49 @@ export class AuthPlugin extends TransformerPluginBase {
 
   public before() {
     this.context.document
-      .addNode(EnumNode.create("AuthAllowStrategy", ["public", "owner"]))
-      .addNode(EnumNode.create("AuthProvider", ["iam", "oidc", "userPools", "lambda"]))
       .addNode(
-        InputObjectNode.create("AuthClaim", [
-          InputValueNode.create("key", "String"),
-          InputValueNode.create("ref", "String"),
-          InputValueNode.create("eq", "String"),
-          InputValueNode.create("in", ListTypeNode.create(NonNullTypeNode.create("String"))),
-          InputValueNode.create("and", ListTypeNode.create(NonNullTypeNode.create("AuthClaim"))),
-          InputValueNode.create("or", ListTypeNode.create(NonNullTypeNode.create("AuthClaim"))),
-          InputValueNode.create("not", "AuthClaim"),
-        ])
+        EnumNode.create(
+          "AuthAllowStrategy",
+          ["public", "owner"],
+          [DirectiveNode.create(UtilityDirective.INTERNAL)]
+        )
       )
       .addNode(
-        InputObjectNode.create("AuthRule", [
-          InputValueNode.create("allow", "AuthAllowStrategy"),
-          InputValueNode.create(
-            "operations",
-            ListTypeNode.create(NonNullTypeNode.create("ModelOperation"))
-          ),
-          InputValueNode.create("provider", "AuthProvider"),
-          InputValueNode.create("claim", "AuthClaim"),
-        ])
+        EnumNode.create(
+          "AuthProvider",
+          ["iam", "oidc", "userPools", "lambda"],
+          [DirectiveNode.create(UtilityDirective.INTERNAL)]
+        )
+      )
+      .addNode(
+        InputObjectNode.create(
+          "AuthClaim",
+          [
+            InputValueNode.create("key", "String"),
+            InputValueNode.create("ref", "String"),
+            InputValueNode.create("eq", "String"),
+            InputValueNode.create("in", ListTypeNode.create(NonNullTypeNode.create("String"))),
+            InputValueNode.create("and", ListTypeNode.create(NonNullTypeNode.create("AuthClaim"))),
+            InputValueNode.create("or", ListTypeNode.create(NonNullTypeNode.create("AuthClaim"))),
+            InputValueNode.create("not", "AuthClaim"),
+          ],
+          [DirectiveNode.create(UtilityDirective.INTERNAL)]
+        )
+      )
+      .addNode(
+        InputObjectNode.create(
+          "AuthRule",
+          [
+            InputValueNode.create("allow", "AuthAllowStrategy"),
+            InputValueNode.create(
+              "operations",
+              ListTypeNode.create(NonNullTypeNode.create("ModelOperation"))
+            ),
+            InputValueNode.create("provider", "AuthProvider"),
+            InputValueNode.create("claim", "AuthClaim"),
+          ],
+          [DirectiveNode.create(UtilityDirective.INTERNAL)]
+        )
       )
       .addNode(
         DirectiveDefinitionNode.create(
@@ -97,7 +113,7 @@ export class AuthPlugin extends TransformerPluginBase {
       );
   }
 
-  public match(definition: DefinitionNode) {
+  public match(definition: DefinitionNode): boolean {
     if (definition instanceof ObjectNode) {
       return true;
     }
@@ -121,11 +137,7 @@ export class AuthPlugin extends TransformerPluginBase {
   }
 
   public execute(definition: ObjectNode) {
-    if (!definition.fields?.length) {
-      return;
-    }
-
-    for (const field of definition.fields) {
+    for (const field of definition.fields ?? []) {
       this._setFieldLoaderRules(definition, field);
     }
   }

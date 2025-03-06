@@ -137,3 +137,6 @@ cdk.out
 
 # artifacts
 __generated__
+
+# local
+local

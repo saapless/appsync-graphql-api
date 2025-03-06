@@ -1,6 +1,6 @@
 {
   "name": "appsync-realtime-client",
-  "version": "0.0.1",
+  "version": "0.0.0",
   "description": "GraphQL over Websocket client for AWS AppSync. Based on graphql-transport-ws.",
   "publishConfig": {
     "access": "public"

@@ -1,7 +1,6 @@
-import { TEST_DS_CONFIG } from "../__fixtures__/constants";
 import { DirectiveDefinitionNode, DocumentNode, ScalarNode } from "../src/definition";
-import { TransformerContext } from "../src/context";
 import { AWSTypesPlugin } from "../src/plugins/AWSTypesPlugin";
+import { TestContext } from "../__fixtures__/TestContext";
 
 const schema = /* GraphQL */ `
   type User {
@@ -10,9 +9,9 @@ const schema = /* GraphQL */ `
   }
 `;
 
-const context = new TransformerContext({
+const context = new TestContext({
+  outputDirectory: "__test__",
   document: DocumentNode.fromSource(schema),
-  dataSourceConfig: TEST_DS_CONFIG,
 });
 const plugin = AWSTypesPlugin.create(context);
 

@@ -1,6 +1,6 @@
 // Jest Snapshot v1, https://goo.gl/fbAQLP
 
-exports[`ResolverTypesGenerator generates resolver context types 1`] = `
+exports[`AppSyncResolverTypesGenerator generates resolver context types 1`] = `
 "import { type Context, type DynamoDBProjectionExpression } from "@aws-appsync/utils";
 import type * as Schema from "./schema-types";
 export type Key = {

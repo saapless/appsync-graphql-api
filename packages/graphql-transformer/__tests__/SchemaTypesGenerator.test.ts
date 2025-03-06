@@ -1,9 +1,11 @@
-import { TEST_DS_CONFIG } from "../__fixtures__/constants";
-import { TransformerContext } from "../src/context";
+import { jest } from "@jest/globals";
 import { DocumentNode } from "../src/definition";
-import { SchemaTypesGenerator } from "../src/generators";
+import { TestContext } from "../__fixtures__/TestContext";
 
-const context = new TransformerContext({
+const { SchemaTypesGenerator } = await import("../src/plugins/SchemaTypesGenerator");
+
+const context = new TestContext({
+  outputDirectory: "__test__",
   document: DocumentNode.fromSource(/* GraphQL */ `
     type User {
       id: ID!
@@ -30,14 +32,16 @@ const context = new TransformerContext({
       deleteUser(id: ID!): User
     }
   `),
-  dataSourceConfig: TEST_DS_CONFIG,
 });
 
 describe("SchemaTypesGenerator", () => {
-  it("genrates schema types", () => {
-    const generator = new SchemaTypesGenerator(context);
+  afterAll(() => {
+    jest.resetAllMocks();
+  });
 
-    const types = generator.generate("schema-types.ts");
-    expect(types).toMatchSnapshot();
+  it("generates schema types", async () => {
+    const generator = new SchemaTypesGenerator(context);
+    generator.generate();
+    expect(context.files.get("schema-types.ts")).toMatchSnapshot();
   });
 });

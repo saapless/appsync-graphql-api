@@ -1,12 +1,16 @@
 import ts from "typescript";
 import { TransformerContext } from "../context";
-import { FieldLoaderDescriptor, pascalCase } from "../utils";
 import { ObjectNode } from "../definition";
-import { GeneratorBase } from "./GeneratorBase";
+import { FieldLoaderDescriptor, pascalCase, printDefinitions } from "../utils";
+import { TransformerPluginBase } from "./PluginBase";
 
-export class ResolverTypesGenerator extends GeneratorBase {
+export class AppSyncResolverTypesGenerator extends TransformerPluginBase {
+  private readonly _definitions: ts.Node[];
+
   constructor(context: TransformerContext) {
-    super(context);
+    super("ResolverTypesGenerator", context);
+
+    this._definitions = [];
   }
 
   private _ddbDefaults() {
@@ -322,7 +326,7 @@ export class ResolverTypesGenerator extends GeneratorBase {
   }
 
   private _args(loader: FieldLoaderDescriptor) {
-    const node = this._context.document.getNode(loader.typeName);
+    const node = this.context.document.getNode(loader.typeName);
 
     if (node instanceof ObjectNode && Boolean(node.getField(loader.fieldName)?.arguments?.length)) {
       return ts.factory.createTypeReferenceNode(
@@ -418,20 +422,24 @@ export class ResolverTypesGenerator extends GeneratorBase {
     );
   }
 
-  // private _function(loader: PipelineFunctionLoaderDescriptor) {}
+  public match(): boolean {
+    return false;
+  }
 
-  public generate(filename: string): string {
+  public execute() {}
+
+  public generate() {
     this._defaults();
 
-    for (const fieldLoader of this._context.loader.getAllFieldLoaders()) {
+    for (const fieldLoader of this.context.resolvers.getAllLoaders()) {
       this._field(fieldLoader);
     }
 
-    // TODO: enable if needed
-    // for (const pipelineFunction of this._context.loader.getAllFunctionLoaders()) {
-    //   this._function(pipelineFunction);
-    // }
+    const result = printDefinitions(this._definitions, "resolver-types.ts");
+    return this.context.printScript("resolver-types.ts", result);
+  }
 
-    return this._printDefinitions(filename);
+  public static create(context: TransformerContext) {
+    return new AppSyncResolverTypesGenerator(context);
   }
 }

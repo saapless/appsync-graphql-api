@@ -1,5 +1,4 @@
-import { TEST_DS_CONFIG } from "../__fixtures__/constants";
-import { TransformerContext } from "../src/context";
+import { TestContext } from "../__fixtures__/TestContext";
 import { DocumentNode, InterfaceNode, ObjectNode } from "../src/definition";
 import { NodeInterfacePlugin } from "../src/plugins/NodeInterfacePlugin";
 import { InvalidDefinitionError } from "../src/utils/errors";
@@ -12,11 +11,13 @@ describe("NodeInterfacePlugin", () => {
           id: ID!
         }
       `;
-      const context = new TransformerContext({
+      const context = new TestContext({
+        outputDirectory: "__test__",
         document: DocumentNode.fromSource(schema),
-        dataSourceConfig: TEST_DS_CONFIG,
       });
+
       const plugin = new NodeInterfacePlugin(context);
+
       it("it throws InvalidDefinitionError", () => {
         expect(() => plugin.before()).toThrow(InvalidDefinitionError);
       });
@@ -28,10 +29,11 @@ describe("NodeInterfacePlugin", () => {
       }
     `;
 
-    const context = new TransformerContext({
+    const context = new TestContext({
+      outputDirectory: "__test__",
       document: DocumentNode.fromSource(schema),
-      dataSourceConfig: TEST_DS_CONFIG,
     });
+
     const plugin = new NodeInterfacePlugin(context);
     plugin.before();
 

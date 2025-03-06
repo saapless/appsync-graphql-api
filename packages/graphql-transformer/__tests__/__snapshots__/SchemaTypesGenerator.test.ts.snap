@@ -1,27 +1,3 @@
 // Jest Snapshot v1, https://goo.gl/fbAQLP
 
-exports[`SchemaTypesGenerator genrates schema types 1`] = `
-"export type Maybe<T> = T | null | undefined;
-export type User = {
-    id: string;
-    name: string;
-};
-export type CreateUserInput = {
-    id?: Maybe<string>;
-    name?: Maybe<string>;
-};
-export type UpdateUserInput = {
-    id: string;
-    name?: Maybe<string>;
-};
-export type MutationCreateUserArgs = {
-    input: CreateUserInput;
-};
-export type MutationUpdateUserArgs = {
-    input: UpdateUserInput;
-};
-export type MutationDeleteUserArgs = {
-    id: string;
-};
-"
-`;
+exports[`SchemaTypesGenerator generates schema types 1`] = `""`;

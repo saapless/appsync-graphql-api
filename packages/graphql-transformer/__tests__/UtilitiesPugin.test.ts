@@ -1,10 +1,10 @@
-import { TEST_DS_CONFIG } from "../__fixtures__/constants";
-import { TransformerContext } from "../src/context";
+import { TestContext } from "../__fixtures__/TestContext";
 import { DirectiveDefinitionNode, DocumentNode, ObjectNode } from "../src/definition";
 import { UtilitiesPlugin } from "../src/plugins/UtilitiesPlugin";
 
 describe("UtilitiesPlugin", () => {
-  const context = new TransformerContext({
+  const context = new TestContext({
+    outputDirectory: "__test__",
     document: DocumentNode.fromSource(/* GraphQL */ `
       type Model {
         id: ID!
@@ -15,7 +15,6 @@ describe("UtilitiesPlugin", () => {
         server: String @serverOnly
       }
     `),
-    dataSourceConfig: TEST_DS_CONFIG,
   });
 
   const plugin = UtilitiesPlugin.create(context);

@@ -1,9 +1,21 @@
-import { dirname, resolve } from "node:path";
-import { fileURLToPath } from "node:url";
-import { createTransformer, GraphQLTransformer } from "../src/transformer";
+import { jest } from "@jest/globals";
 import { FieldNode, NamedTypeNode, ObjectNode } from "../src/definition";
 import { SchemaValidationError } from "../src/utils/errors";
-import { TEST_DS_CONFIG } from "../__fixtures__/constants";
+import { AWSTypesPlugin, SchemaGenerator, SchemaTypesGenerator } from "../src/plugins";
+import { createTransformer, GraphQLTransformer } from "../src";
+import { TransformerContext } from "../src/context";
+
+jest.spyOn(TransformerContext.prototype, "createOutputDirectory").mockImplementation((path) => {
+  return path;
+});
+
+jest.spyOn(SchemaTypesGenerator.prototype, "generate").mockImplementation(() => {
+  return "/* Schema Types */";
+});
+
+jest.spyOn(SchemaGenerator.prototype, "generate").mockImplementation(() => {
+  return "/* Schema Types */";
+});
 
 const schema = /* GraphQL */ `
   enum UserStatus {
@@ -20,6 +32,7 @@ const schema = /* GraphQL */ `
     email: AWSEmail
     picture: AWSURL
     status: UserStatus @readOnly
+    createdAt: String
   }
 
   type Task @model(operations: [upsert, delete]) {
@@ -103,12 +116,8 @@ describe("GraphQLTransformer", () => {
   const transformer = createTransformer({
     definition: schema,
     mode: "development",
-    outDir: resolve(dirname(fileURLToPath(import.meta.url)), "../__generated__"),
-    dataSourceConfig: TEST_DS_CONFIG,
-    authorizationConfig: {
-      defaultAuthorizationMode: "USER_POOL",
-      defaultAuthorizationRules: [{ allow: "owner" }],
-    },
+    outDir: "__testing__",
+    plugins: [AWSTypesPlugin],
   });
 
   describe("createTransformer factory", () => {
@@ -122,7 +131,7 @@ describe("GraphQLTransformer", () => {
     });
 
     it("adds default plugins list", () => {
-      expect(transformer.plugins).toHaveLength(6);
+      expect(transformer.plugins).toHaveLength(8);
     });
   });
 
@@ -130,7 +139,6 @@ describe("GraphQLTransformer", () => {
     it("throws SchemaValidationError", () => {
       const transformer = createTransformer({
         definition: schema.replace("type Viewer", "type Viewer2"),
-        dataSourceConfig: TEST_DS_CONFIG,
       });
 
       expect(() => transformer.transform()).toThrow(SchemaValidationError);
@@ -151,6 +159,10 @@ describe("GraphQLTransformer", () => {
       expect(viewerType.getField("user")).toBeInstanceOf(FieldNode);
       expect(viewerType.getField("tasks")).toBeInstanceOf(FieldNode);
     });
+
+    // it("generates resources", () => {
+    //   expect(output.mockedFiles.size).toBe(2);
+    // });
 
     describe("NodeInterfacePlugin trnsformations", () => {
       it("adds valid `node` field to Query", () => {

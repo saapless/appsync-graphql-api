@@ -6,7 +6,7 @@ import {
   NonNullTypeNode,
   ScalarNode,
 } from "../definition";
-import { TransformerPluginBase } from "./TransformerPluginBase";
+import { TransformerPluginBase } from "./PluginBase";
 
 /**
  * This plugin deals with AWS specific scalars and directives.
@@ -14,9 +14,8 @@ import { TransformerPluginBase } from "./TransformerPluginBase";
  */
 
 export class AWSTypesPlugin extends TransformerPluginBase {
-  public readonly name: string = "AWSTypesPlugin";
   constructor(context: TransformerContext) {
-    super(context);
+    super("AWSTypesPlugin", context);
   }
 
   public before(): void {
@@ -76,9 +75,7 @@ export class AWSTypesPlugin extends TransformerPluginBase {
     return false;
   }
 
-  public execute() {
-    return;
-  }
+  public execute() {}
 
   public after(): void {
     this.context.document

@@ -1,3 +1,4 @@
+import { ConnectionDirective, RelationType, ScalarType, UtilityDirective } from "../constants";
 import { TransformerContext } from "../context";
 import {
   DefinitionNode,
@@ -16,11 +17,13 @@ import {
 } from "../definition";
 import { TransformPluginExecutionError } from "../utils/errors";
 import { camelCase, pascalCase } from "../utils/strings";
-import { KeyOperator, KeyValue, RelationType } from "../utils/types";
-import { TransformerPluginBase } from "./TransformerPluginBase";
+import { KeyOperator, KeyValue } from "../utils/types";
+import { TransformerPluginBase } from "./PluginBase";
+
+type Relation = (typeof RelationType)[keyof typeof RelationType];
 
 export type DirectiveArgs = {
-  relation?: RelationType;
+  relation?: Relation;
   key?: KeyValue<string>;
   sortKey?: (KeyValue<string> & KeyOperator<string>) | null;
   index?: string | null;
@@ -31,9 +34,8 @@ export type FieldConnection = Required<DirectiveArgs> & {
 };
 
 export class ConnectionPlugin extends TransformerPluginBase {
-  public readonly name = "ConnectionPlugin";
   constructor(context: TransformerContext) {
-    super(context);
+    super("ConnectionPlugin", context);
   }
 
   // #region Model Resources
@@ -160,7 +162,10 @@ export class ConnectionPlugin extends TransformerPluginBase {
   private _getConnectionTarget(field: FieldNode) {
     const fieldType = this.context.document.getNode(field.type.getTypeName());
 
-    if (field.hasDirective("hasOne") || field.hasDirective("hasMany")) {
+    if (
+      field.hasDirective(ConnectionDirective.HAS_ONE) ||
+      field.hasDirective(ConnectionDirective.HAS_MANY)
+    ) {
       return fieldType;
     }
 
@@ -183,10 +188,10 @@ export class ConnectionPlugin extends TransformerPluginBase {
       );
     }
 
-    let directive = field.getDirective("hasOne");
+    let directive = field.getDirective(ConnectionDirective.HAS_ONE);
 
     if (directive) {
-      if (field.hasDirective("hasMany")) {
+      if (field.hasDirective(ConnectionDirective.HAS_MANY)) {
         throw new TransformPluginExecutionError(
           this.name,
           `Multiple connection directive detected for field: ${field.name}`
@@ -196,7 +201,7 @@ export class ConnectionPlugin extends TransformerPluginBase {
       const args = directive.getArgumentsJSON<DirectiveArgs>();
 
       return {
-        relation: "oneToOne",
+        relation: RelationType.ONE_TO_ONE,
         target: target,
         key: args.key ?? { ref: `source.${camelCase(target.name, "id")}` },
         sortKey: args.sortKey ?? null,
@@ -204,13 +209,13 @@ export class ConnectionPlugin extends TransformerPluginBase {
       };
     }
 
-    directive = field.getDirective("hasMany");
+    directive = field.getDirective(ConnectionDirective.HAS_MANY);
 
     if (directive) {
       const args = directive.getArgumentsJSON<DirectiveArgs>();
 
       return {
-        relation: args.relation ?? "oneToMany",
+        relation: args.relation ?? RelationType.ONE_TO_MANY,
         target: target,
         key: args.key ?? { ref: "source.id" },
         sortKey: args.sortKey ?? null,
@@ -256,7 +261,9 @@ export class ConnectionPlugin extends TransformerPluginBase {
     if (!node.hasField(key)) {
       node.addField(
         FieldNode.create(key, NamedTypeNode.create("ID"), null, [
-          isPrivate ? DirectiveNode.create("serverOnly") : DirectiveNode.create("writeOnly"),
+          isPrivate
+            ? DirectiveNode.create(UtilityDirective.SERVER_ONLY)
+            : DirectiveNode.create(UtilityDirective.WRITE_ONLY),
         ])
       );
     }
@@ -293,35 +300,35 @@ export class ConnectionPlugin extends TransformerPluginBase {
 
       for (const field of target.fields ?? []) {
         if (
-          field.hasDirective("writeOnly") ||
-          field.hasDirective("serverOnly") ||
-          field.hasDirective("clientOnly")
+          field.hasDirective(UtilityDirective.WRITE_ONLY) ||
+          field.hasDirective(UtilityDirective.SERVER_ONLY) ||
+          field.hasDirective(UtilityDirective.CLIENT_ONLY)
         ) {
           continue;
         }
 
         switch (field.type.getTypeName()) {
-          case "ID":
+          case ScalarType.ID:
             filterInput.addField(
               InputValueNode.create(field.name, NamedTypeNode.create(`IDFilterInput`))
             );
             continue;
-          case "Int":
+          case ScalarType.INT:
             filterInput.addField(
               InputValueNode.create(field.name, NamedTypeNode.create("IntFilterInput"))
             );
             continue;
-          case "Float":
+          case ScalarType.FLOAT:
             filterInput.addField(
               InputValueNode.create(field.name, NamedTypeNode.create("FloatFilterInput"))
             );
             continue;
-          case "Boolean":
+          case ScalarType.BOOLEAN:
             filterInput.addField(
               InputValueNode.create(field.name, NamedTypeNode.create("BooleanFilterInput"))
             );
             continue;
-          case "String":
+          case ScalarType.STRING:
           case "AWSDate":
           case "AWSDateTime":
           case "AWSTime":
@@ -371,9 +378,9 @@ export class ConnectionPlugin extends TransformerPluginBase {
   }
 
   private _needsEdgeRecord(connection: FieldConnection) {
-    if (connection.relation === "manyToMany") return true;
+    if (connection.relation === RelationType.MANY_TO_MANY) return true;
     if (
-      connection.relation === "oneToMany" &&
+      connection.relation === RelationType.ONE_TO_MANY &&
       (connection.target instanceof UnionNode || connection.target instanceof InterfaceNode)
     )
       return true;
@@ -406,10 +413,10 @@ export class ConnectionPlugin extends TransformerPluginBase {
       if (!edgeType) {
         edgeType = ObjectNode.create(`${target.name}Edge`, [
           FieldNode.create("cursor", NamedTypeNode.create("String"), null, [
-            DirectiveNode.create("clientOnly"),
+            DirectiveNode.create(UtilityDirective.CLIENT_ONLY),
           ]),
           FieldNode.create("node", NamedTypeNode.create(target.name), null, [
-            DirectiveNode.create("clientOnly"),
+            DirectiveNode.create(UtilityDirective.CLIENT_ONLY),
           ]),
         ]);
 
@@ -419,38 +426,38 @@ export class ConnectionPlugin extends TransformerPluginBase {
       if (this._needsEdgeRecord(connection)) {
         connectionType.addField(
           FieldNode.create("keys", ListTypeNode.create("Node"), null, [
-            DirectiveNode.create("serverOnly"),
+            DirectiveNode.create(UtilityDirective.SERVER_ONLY),
           ])
         );
         edgeType
           .addField(
             FieldNode.create("id", NonNullTypeNode.create("ID"), null, [
-              DirectiveNode.create("serverOnly"),
+              DirectiveNode.create(UtilityDirective.SERVER_ONLY),
             ])
           )
           .addField(
             FieldNode.create("_sk", NonNullTypeNode.create("ID"), null, [
-              DirectiveNode.create("serverOnly"),
+              DirectiveNode.create(UtilityDirective.SERVER_ONLY),
             ])
           )
           .addField(
             FieldNode.create("sourceId", NonNullTypeNode.create("ID"), null, [
-              DirectiveNode.create("writeOnly"),
+              DirectiveNode.create(UtilityDirective.WRITE_ONLY),
             ])
           )
           .addField(
             FieldNode.create("targetId", NonNullTypeNode.create("ID"), null, [
-              DirectiveNode.create("writeOnly"),
+              DirectiveNode.create(UtilityDirective.WRITE_ONLY),
             ])
           )
           .addField(
             FieldNode.create("createdAt", NonNullTypeNode.create("AWSDateTime"), null, [
-              DirectiveNode.create("filterOnly"),
+              DirectiveNode.create(UtilityDirective.FILTER_ONLY),
             ])
           )
           .addField(
             FieldNode.create("updatedAt", NonNullTypeNode.create("AWSDateTime"), null, [
-              DirectiveNode.create("filterOnly"),
+              DirectiveNode.create(UtilityDirective.FILTER_ONLY),
             ])
           );
       }
@@ -493,9 +500,8 @@ export class ConnectionPlugin extends TransformerPluginBase {
       );
     }
 
-    this.context.loader.setFieldLoader(edgeName, "node", {
+    this.context.resolvers.setLoader(edgeName, "node", {
       targetName: connection.target.name,
-      dataSource: this.context.dataSources.primaryDataSourceName,
       action: {
         type: "getItem",
         key: { id: { ref: "source.targetId" } },
@@ -504,14 +510,14 @@ export class ConnectionPlugin extends TransformerPluginBase {
       returnType: "result",
     });
 
-    this.context.loader.setFieldLoader("Mutation", createFieldName, {
+    this.context.resolvers.setLoader("Mutation", createFieldName, {
       targetName: edgeName,
       isEdge: true,
       action: { type: "putItem", key: {} },
       returnType: "result",
     });
 
-    this.context.loader.setFieldLoader("Mutation", deleteFieldName, {
+    this.context.resolvers.setLoader("Mutation", deleteFieldName, {
       targetName: edgeName,
       isEdge: true,
       action: { type: "removeItem", key: {} },
@@ -524,7 +530,7 @@ export class ConnectionPlugin extends TransformerPluginBase {
     field: FieldNode,
     connection: FieldConnection
   ) {
-    this.context.loader.setFieldLoader(parent.name, field.name, {
+    this.context.resolvers.setLoader(parent.name, field.name, {
       typeName: parent.name,
       fieldName: field.name,
       targetName: connection.target.name,
@@ -545,7 +551,7 @@ export class ConnectionPlugin extends TransformerPluginBase {
     this._createConnectionTypes(field, connection);
 
     if (connection.relation === "oneToMany" && !this._needsEdgeRecord(connection)) {
-      this.context.loader.setFieldLoader(parent.name, field.name, {
+      this.context.resolvers.setLoader(parent.name, field.name, {
         targetName: connection.target.name,
         action: {
           type: "queryItems",
@@ -553,7 +559,6 @@ export class ConnectionPlugin extends TransformerPluginBase {
           index: connection.index ?? undefined,
         },
         returnType: "connection",
-        dataSource: this.context.dataSources.primaryDataSourceName,
       });
     } else {
       this._createEdgeMutations(connection);
@@ -562,9 +567,8 @@ export class ConnectionPlugin extends TransformerPluginBase {
       const connectionTypeName = pascalCase(target.name, "connection");
       const edgeTypeName = pascalCase(target.name, "edge");
 
-      this.context.loader.setFieldLoader(parent.name, field.name, {
+      this.context.resolvers.setLoader(parent.name, field.name, {
         targetName: edgeTypeName,
-        dataSource: this.context.dataSources.primaryDataSourceName,
         isEdge: true,
         action: {
           type: "queryItems",
@@ -578,9 +582,8 @@ export class ConnectionPlugin extends TransformerPluginBase {
         returnType: "connection",
       });
 
-      this.context.loader.setFieldLoader(connectionTypeName, "edges", {
+      this.context.resolvers.setLoader(connectionTypeName, "edges", {
         targetName: target.name,
-        dataSource: this.context.dataSources.primaryDataSourceName,
         action: {
           type: "batchGetItems",
           key: { keys: { ref: "source.keys" } },
@@ -594,28 +597,42 @@ export class ConnectionPlugin extends TransformerPluginBase {
   public before() {
     this.context.document
       .addNode(
-        InputObjectNode.create("KeyValueInput", [
-          InputValueNode.create("ref", NamedTypeNode.create("String")),
-          InputValueNode.create("eq", NamedTypeNode.create("String")),
-        ])
+        InputObjectNode.create(
+          "KeyValueInput",
+          [
+            InputValueNode.create("ref", NamedTypeNode.create("String")),
+            InputValueNode.create("eq", NamedTypeNode.create("String")),
+          ],
+          [DirectiveNode.create(UtilityDirective.INTERNAL)]
+        )
       )
       .addNode(
-        InputObjectNode.create("SortKeyInput", [
-          InputValueNode.create("ref", NamedTypeNode.create("String")),
-          InputValueNode.create("eq", NamedTypeNode.create("String")),
-          InputValueNode.create("ne", NamedTypeNode.create("KeyValueInput")),
-          InputValueNode.create("le", NamedTypeNode.create("KeyValueInput")),
-          InputValueNode.create("lt", NamedTypeNode.create("KeyValueInput")),
-          InputValueNode.create("ge", NamedTypeNode.create("KeyValueInput")),
-          InputValueNode.create("gt", NamedTypeNode.create("KeyValueInput")),
-          InputValueNode.create(
-            "between",
-            ListTypeNode.create(NonNullTypeNode.create("KeyValueInput"))
-          ),
-          InputValueNode.create("beginsWith", NamedTypeNode.create("KeyValueInput")),
-        ])
+        InputObjectNode.create(
+          "SortKeyInput",
+          [
+            InputValueNode.create("ref", NamedTypeNode.create("String")),
+            InputValueNode.create("eq", NamedTypeNode.create("String")),
+            InputValueNode.create("ne", NamedTypeNode.create("KeyValueInput")),
+            InputValueNode.create("le", NamedTypeNode.create("KeyValueInput")),
+            InputValueNode.create("lt", NamedTypeNode.create("KeyValueInput")),
+            InputValueNode.create("ge", NamedTypeNode.create("KeyValueInput")),
+            InputValueNode.create("gt", NamedTypeNode.create("KeyValueInput")),
+            InputValueNode.create(
+              "between",
+              ListTypeNode.create(NonNullTypeNode.create("KeyValueInput"))
+            ),
+            InputValueNode.create("beginsWith", NamedTypeNode.create("KeyValueInput")),
+          ],
+          [DirectiveNode.create(UtilityDirective.INTERNAL)]
+        )
       )
-      .addNode(EnumNode.create("ConnectionRelationType", ["oneToMay", "manyToMany"]))
+      .addNode(
+        EnumNode.create(
+          "ConnectionRelationType",
+          ["oneToMay", "manyToMany"],
+          [DirectiveNode.create(UtilityDirective.INTERNAL)]
+        )
+      )
       .addNode(
         DirectiveDefinitionNode.create("hasOne", "FIELD_DEFINITION", [
           InputValueNode.create("key", "KeyValueInput"),
@@ -670,11 +687,15 @@ export class ConnectionPlugin extends TransformerPluginBase {
         continue;
       }
 
-      if (connection.relation === "oneToOne" && connection.key.ref?.startsWith("source")) {
-        this._setConnectionKey(definition, connection.key.ref);
+      if (
+        connection.relation === RelationType.ONE_TO_ONE &&
+        connection.key.ref?.startsWith("source.")
+      ) {
+        const key = connection.key.ref.split(".")[1];
+        this._setConnectionKey(definition, key);
       }
 
-      if (connection.relation === "oneToMany") {
+      if (connection.relation === RelationType.ONE_TO_MANY) {
         if (connection.target instanceof UnionNode) {
           for (const type of connection.target.types ?? []) {
             const unionType = this.context.document.getNode(type.getTypeName());
@@ -694,7 +715,7 @@ export class ConnectionPlugin extends TransformerPluginBase {
     if (!definition.fields) {
       throw new TransformPluginExecutionError(
         this.name,
-        "Definition does not have any fields. Make sure you run match before calling execute()."
+        "Definition does not have any fields. Make sure you run `match` before calling `execute`."
       );
     }
 
@@ -705,31 +726,30 @@ export class ConnectionPlugin extends TransformerPluginBase {
         continue;
       }
 
-      if (connection.relation === "oneToOne") {
+      if (connection.relation === RelationType.ONE_TO_ONE) {
         this._createNodeConnection(definition, field, connection);
-        continue;
+      } else {
+        this._createEdgesConnection(definition, field, connection);
       }
-
-      this._createEdgesConnection(definition, field, connection);
     }
   }
 
   public cleanup(definition: ObjectNode | InterfaceNode): void {
     for (const field of definition.fields ?? []) {
-      if (field.hasDirective("hasOne")) {
-        field.removeDirective("hasOne");
+      if (field.hasDirective(ConnectionDirective.HAS_ONE)) {
+        field.removeDirective(ConnectionDirective.HAS_ONE);
       }
 
-      if (field.hasDirective("hasMany")) {
-        field.removeDirective("hasMany");
+      if (field.hasDirective(ConnectionDirective.HAS_MANY)) {
+        field.removeDirective(ConnectionDirective.HAS_MANY);
       }
     }
   }
 
   public after(): void {
     this.context.document
-      .removeNode("hasOne")
-      .removeNode("hasMany")
+      .removeNode(ConnectionDirective.HAS_ONE)
+      .removeNode(ConnectionDirective.HAS_MANY)
       .removeNode("KeyValueInput")
       .removeNode("SortKeyInput")
       .removeNode("ConnectionRelationType");

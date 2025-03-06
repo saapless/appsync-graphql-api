@@ -12,13 +12,11 @@ import {
   ValueNode,
 } from "../definition";
 import { InvalidDefinitionError, TransformPluginExecutionError } from "../utils/errors";
-import { TransformerPluginBase } from "./TransformerPluginBase";
+import { TransformerPluginBase } from "./PluginBase";
 
 export class NodeInterfacePlugin extends TransformerPluginBase {
-  readonly name = "NodeInterfacePlugin";
-
   constructor(context: TransformerContext) {
-    super(context);
+    super("NodeInterfacePlugin", context);
   }
 
   /**
@@ -49,11 +47,11 @@ export class NodeInterfacePlugin extends TransformerPluginBase {
     }
 
     if (!node.hasField("createdAt")) {
-      node.addField(FieldNode.create("createdAt", NamedTypeNode.create("AWSDateTime")));
+      node.addField(FieldNode.create("createdAt", NamedTypeNode.create("String")));
     }
 
     if (!node.hasField("updatedAt")) {
-      node.addField(FieldNode.create("updatedAt", NamedTypeNode.create("AWSDateTime")));
+      node.addField(FieldNode.create("updatedAt", NamedTypeNode.create("String")));
     }
 
     // TODO: Enable with versioning;
@@ -77,13 +75,14 @@ export class NodeInterfacePlugin extends TransformerPluginBase {
       );
     }
 
-    if (!node.hasField("_sk")) {
-      node.addField(
-        FieldNode.create("_sk", NonNullTypeNode.create("String"), null, [
-          DirectiveNode.create("serverOnly"),
-        ])
-      );
-    }
+    // TODO Handle this in DynamoDB resolvers only.
+    // if (!node.hasField("_sk")) {
+    //   node.addField(
+    //     FieldNode.create("_sk", NonNullTypeNode.create("String"), null, [
+    //       DirectiveNode.create("serverOnly"),
+    //     ])
+    //   );
+    // }
 
     // Ensure Query.node field is defined
     const queryNode = this.context.document.getQueryNode();

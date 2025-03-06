@@ -1,0 +1,15 @@
+// Jest Snapshot v1, https://goo.gl/fbAQLP
+
+exports[`DexieResolverGenerator getItem operations generate connected field resolver 1`] = `
+"async (source, __, ctx) => {
+    return ctx.db.get(ctx.source?.taskId);
+}
+"
+`;
+
+exports[`DexieResolverGenerator getItem operations generate root field resolver 1`] = `
+"async (_, args, ctx) => {
+    return ctx.db.get(ctx.args.id);
+}
+"
+`;

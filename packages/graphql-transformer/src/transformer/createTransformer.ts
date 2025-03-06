@@ -1,40 +1,38 @@
 import {
-  AWSTypesPlugin,
+  type IPluginFactory,
   NodeInterfacePlugin,
+  UtilitiesPlugin,
   ModelPlugin,
   ConnectionPlugin,
-  DataLoaderPlugin,
-  IPluginFactory,
+  AuthPlugin,
+  SchemaGenerator,
+  SchemaTypesGenerator,
 } from "../plugins";
-import { UtilitiesPlugin } from "../plugins/UtilitiesPlugin";
 import { GraphQLTransformer, GraphQLTransformerOptions } from "./GraphQLTransformer";
 
 export function createTransformer(options: Partial<GraphQLTransformerOptions>) {
-  const { definition, dataSourceConfig, ...rest } = options;
+  const { definition, outDir, plugins = [], ...rest } = options;
 
   if (!definition) {
     throw new Error("Definition is required");
   }
 
-  if (!dataSourceConfig) {
-    throw new Error("`dataSourceConfig` and `defaultDataSourceName` are required");
-  }
-
-  const plugins: IPluginFactory[] = [
-    AWSTypesPlugin,
+  const mergedPlugins: IPluginFactory[] = [
     UtilitiesPlugin,
     NodeInterfacePlugin,
     ModelPlugin,
     ConnectionPlugin,
-    DataLoaderPlugin,
+    AuthPlugin,
+    SchemaGenerator,
+    SchemaTypesGenerator,
+    ...plugins,
   ];
 
   return new GraphQLTransformer({
     definition: definition,
-    dataSourceConfig: dataSourceConfig,
-    plugins: plugins,
+    plugins: mergedPlugins,
     mode: options.mode ?? "production",
-    outDir: options.outDir ?? "__generated__",
+    outDir: outDir ?? "__generated__",
     ...rest,
   });
 }

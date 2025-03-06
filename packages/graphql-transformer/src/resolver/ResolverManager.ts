@@ -1,8 +1,8 @@
 import path from "node:path";
 import fs from "node:fs";
-import { TransformerContext } from "../context";
-import { InterfaceNode, ObjectNode } from "../definition";
-import { LoaderDescriptor } from "../utils/types";
+import { TransformerContext } from "@saapless/graphql-transformer/context";
+import { InterfaceNode, ObjectNode } from "@saapless/graphql-transformer/definition";
+import { LoaderDescriptor } from "@saapless/graphql-transformer/utils";
 import { FieldResolver } from "./FieldResolver";
 import { FunctionResolver } from "./FunctionResolver";
 import { ResolverBase } from "./ResolverBase";

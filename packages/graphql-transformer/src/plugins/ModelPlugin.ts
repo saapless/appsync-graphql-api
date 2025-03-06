@@ -1,3 +1,5 @@
+import { ScalarType, UtilityDirective } from "../constants";
+import { ModelOperation, type ModelOperationType } from "../constants/model";
 import { TransformerContext } from "../context";
 import {
   ArgumentNode,
@@ -18,24 +20,15 @@ import {
 import { TransformPluginExecutionError } from "../utils/errors";
 import { camelCase, pascalCase, pluralize } from "../utils/strings";
 import { LoaderActionType, WriteOperation } from "../utils/types";
-import { TransformerPluginBase } from "./TransformerPluginBase";
+import { TransformerPluginBase } from "./PluginBase";
 
-type ModelOperationType =
-  | "create"
-  | "update"
-  | "delete"
-  | "upsert"
-  | "write" // Shorthand for "create & update & delete"
-  | "get"
-  | "list"
-  | "sync"
-  | "subscribe"
-  | "read"; // Shorthand for "get & list";
+export type ModelDirectiveArgs = {
+  operations?: ModelOperationType[];
+};
 
 export class ModelPlugin extends TransformerPluginBase {
-  public readonly name = "ModelPlugin";
   constructor(context: TransformerContext) {
-    super(context);
+    super("ModelPlugin", context);
   }
 
   // #region Operations
@@ -50,7 +43,7 @@ export class ModelPlugin extends TransformerPluginBase {
       );
     }
 
-    const args = directive.getArgumentsJSON<{ operations?: ModelOperationType[] }>();
+    const args = directive.getArgumentsJSON<ModelDirectiveArgs>();
     return this.context.operations.getModelOperations(args.operations);
   }
 
@@ -106,6 +99,22 @@ export class ModelPlugin extends TransformerPluginBase {
     }
   }
 
+  private _shouldSkipFieldFromInput(field: FieldNode) {
+    return (
+      field.hasDirective("readOnly") ||
+      field.hasDirective("serverOnly") ||
+      field.hasDirective("clientOnly") ||
+      field.hasDirective("hasOne") ||
+      field.hasDirective("hasMany")
+    );
+  }
+
+  private _isScalarType(typeName: string) {
+    return Object.values(ScalarType).includes(
+      typeName as (typeof ScalarType)[keyof typeof ScalarType]
+    );
+  }
+
   /**
    * For each field in the model
    * 1. If has `@readOnly` or connection directives - skip
@@ -117,43 +126,32 @@ export class ModelPlugin extends TransformerPluginBase {
    *    4.3 If fields are `@readOnly` - skip;
    */
 
-  private _createMutationInput(model: ObjectNode, inputName: string, nonNullIdOrVersion = false) {
+  private _createMutationInput(
+    model: ObjectNode,
+    inputName: string,
+    requiredFields: string[] = []
+  ) {
     const input = InputObjectNode.create(inputName);
 
-    // Special case for delete. we only need id & _version here.
-    // TODO: Add this only if versioning enabled;
     if (inputName.startsWith("Delete")) {
-      input
-        .addField(InputValueNode.create("id", NonNullTypeNode.create(NamedTypeNode.create("ID"))))
-        .addField(InputValueNode.create("_version", NonNullTypeNode.create("Int")));
+      input.addField(
+        InputValueNode.create("id", NonNullTypeNode.create(NamedTypeNode.create("ID")))
+      );
     } else {
       for (const field of model.fields ?? []) {
-        if (
-          field.hasDirective("readOnly") ||
-          field.hasDirective("serverOnly") ||
-          field.hasDirective("clientOnly") ||
-          field.hasDirective("hasOne") ||
-          field.hasDirective("hasMany")
-        ) {
+        if (this._shouldSkipFieldFromInput(field)) {
           continue;
         }
 
         const fieldTypeName = field.type.getTypeName();
 
-        if (field.name === "id" || field.name === "_version") {
-          input.addField(
-            InputValueNode.create(
-              field.name,
-              nonNullIdOrVersion
-                ? NonNullTypeNode.create(fieldTypeName)
-                : NamedTypeNode.create(fieldTypeName)
-            )
-          );
+        if (requiredFields.includes(field.name)) {
+          input.addField(InputValueNode.create(field.name, NonNullTypeNode.create(fieldTypeName)));
           continue;
         }
 
         // Buildin scalars
-        if (["ID", "String", "Int", "Float", "Boolean"].includes(fieldTypeName)) {
+        if (this._isScalarType(fieldTypeName)) {
           input.addField(InputValueNode.create(field.name, NamedTypeNode.create(fieldTypeName)));
           continue;
         }
@@ -206,16 +204,11 @@ export class ModelPlugin extends TransformerPluginBase {
     }
   }
 
-  private _createMutationField(
-    model: ObjectNode,
-    fieldName: string,
-    inputName: string,
-    verb: WriteOperation
-  ) {
+  private _createMutationField(model: ObjectNode, fieldName: string, inputName: string) {
     const mutationNode = this.context.document.getMutationNode();
 
     if (!this.context.document.getNode(inputName)) {
-      this._createMutationInput(model, inputName, verb === "update");
+      this._createMutationInput(model, inputName, ["id"]);
     }
 
     if (!mutationNode.hasField(fieldName)) {
@@ -234,10 +227,10 @@ export class ModelPlugin extends TransformerPluginBase {
     if (verb === "delete") {
       this._createDeleteMutationField(model, fieldName);
     } else {
-      this._createMutationField(model, fieldName, inputName, verb);
+      this._createMutationField(model, fieldName, inputName);
     }
 
-    this.context.loader.setFieldLoader("Mutation", fieldName, {
+    this.context.resolvers.setLoader("Mutation", fieldName, {
       action: {
         type: this._getVerbAction(verb),
         key: { id: { ref: "args.input.id" } },
@@ -252,17 +245,8 @@ export class ModelPlugin extends TransformerPluginBase {
   public before() {
     this.context.document
       .addNode(
-        EnumNode.create("ModelOperation", [
-          "read",
-          "get",
-          "list",
-          "sync",
-          "subscribe",
-          "write",
-          "create",
-          "update",
-          "upsert",
-          "delete",
+        EnumNode.create("ModelOperation", Object.values(ModelOperation), [
+          DirectiveNode.create(UtilityDirective.INTERNAL),
         ])
       )
       .addNode(

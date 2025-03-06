@@ -1,5 +1,3 @@
-import { TEST_DS_CONFIG } from "../__fixtures__/constants";
-import { TransformerContext } from "../src/context";
 import { ModelPlugin } from "../src/plugins/ModelPlugin";
 import {
   DirectiveDefinitionNode,
@@ -8,16 +6,17 @@ import {
   InputObjectNode,
   ObjectNode,
 } from "../src/definition";
+import { TestContext } from "../__fixtures__/TestContext";
 
 describe("ModelPlugin", () => {
-  const context = new TransformerContext({
+  const context = new TestContext({
+    outputDirectory: "__test__",
     document: DocumentNode.fromSource(/* GraphQL */ `
       type Model @model {
         id: ID!
         name: String!
       }
     `),
-    dataSourceConfig: TEST_DS_CONFIG,
   });
 
   const plugin = ModelPlugin.create(context);
@@ -72,9 +71,9 @@ describe("ModelPlugin", () => {
     });
 
     it("adds mutation loaders", () => {
-      expect(context.loader.hasFieldLoader("Mutation.createModel")).toBeTruthy();
-      expect(context.loader.hasFieldLoader("Mutation.updateModel")).toBeTruthy();
-      expect(context.loader.hasFieldLoader("Mutation.deleteModel")).toBeTruthy();
+      expect(context.resolvers.hasLoader("Mutation", "createModel")).toBeTruthy();
+      expect(context.resolvers.hasLoader("Mutation", "updateModel")).toBeTruthy();
+      expect(context.resolvers.hasLoader("Mutation", "deleteModel")).toBeTruthy();
     });
   });
 
