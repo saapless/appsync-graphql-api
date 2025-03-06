@@ -1,7 +1,7 @@
 import ts from "typescript";
-import { TransformerContext } from "../context";
+import { TransformerContext, ResolverDescriptor } from "../context";
 import { ObjectNode } from "../definition";
-import { FieldLoaderDescriptor, pascalCase, printDefinitions } from "../utils";
+import { pascalCase, printDefinitions } from "../utils";
 import { TransformerPluginBase } from "./PluginBase";
 
 export class AppSyncResolverTypesGenerator extends TransformerPluginBase {
@@ -325,7 +325,7 @@ export class AppSyncResolverTypesGenerator extends TransformerPluginBase {
     this._ddbDefaults();
   }
 
-  private _args(loader: FieldLoaderDescriptor) {
+  private _args(loader: ResolverDescriptor) {
     const node = this.context.document.getNode(loader.typeName);
 
     if (node instanceof ObjectNode && Boolean(node.getField(loader.fieldName)?.arguments?.length)) {
@@ -340,7 +340,7 @@ export class AppSyncResolverTypesGenerator extends TransformerPluginBase {
     ]);
   }
 
-  private _source(loader: FieldLoaderDescriptor) {
+  private _source(loader: ResolverDescriptor) {
     if (loader.typeName === "Query" || loader.typeName === "Mutation") {
       return ts.factory.createTypeReferenceNode("undefined");
     }
@@ -348,19 +348,19 @@ export class AppSyncResolverTypesGenerator extends TransformerPluginBase {
     return ts.factory.createTypeReferenceNode(`Schema.${loader.typeName}`);
   }
 
-  private _result(loader: FieldLoaderDescriptor) {
-    switch (loader.action.type) {
-      case "getItem":
-      case "putItem":
-      case "updateItem":
-      case "upsertItem":
-      case "removeItem":
+  private _result(loader: ResolverDescriptor) {
+    switch (loader.operation.type) {
+      case "get":
+      case "create":
+      case "update":
+      case "upsert":
+      case "delete":
         return ts.factory.createTypeReferenceNode(`Schema.${loader.targetName}`);
-      case "queryItems":
+      case "query":
         return ts.factory.createTypeReferenceNode("DynamoDBQueryResult", [
           ts.factory.createTypeReferenceNode(`Schema.${loader.targetName}`),
         ]);
-      case "batchGetItems":
+      case "batchGet":
         return ts.factory.createTypeReferenceNode("DynamoDBBatchResult", [
           ts.factory.createTypeReferenceNode(`Schema.${loader.targetName}`),
         ]);
@@ -369,7 +369,7 @@ export class AppSyncResolverTypesGenerator extends TransformerPluginBase {
     }
   }
 
-  private _field(loader: FieldLoaderDescriptor) {
+  private _field(loader: ResolverDescriptor) {
     const args = this._args(loader);
     const source = this._source(loader);
     const result = this._result(loader);

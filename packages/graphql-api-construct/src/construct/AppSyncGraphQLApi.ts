@@ -13,14 +13,24 @@ import {
   LogConfig,
   Visibility,
 } from "aws-cdk-lib/aws-appsync";
-import {
-  createTransformer,
-  FieldResolverOutput,
-  PipelineFunctionOutput,
-  Operation,
-} from "@saapless/graphql-transformer";
+import { createTransformer, TransformerOutput } from "@saapless/graphql-transformer";
+import { Operation } from "@saapless/graphql-transformer/utils";
 import { GraphQLDefinition, GraphQLSchema } from "../utils";
 import { DataSourceProvider, DataSourceConfig } from "./DataSourceProvider";
+
+type FieldResolverOutput = {
+  typeName: string;
+  fieldName: string;
+  pipelineFunctions?: string[];
+  dataSource: string;
+  code: string;
+};
+
+type PipelineFunctionOutput = {
+  name: string;
+  dataSource: string;
+  code: string;
+};
 
 export type AppSyncGraphQLApiProps = {
   /**
@@ -92,10 +102,16 @@ export class AppSyncGraphQLApi extends Construct {
     const transformer = createTransformer({
       ...transformerConfig,
       definition: definition.toString(),
-      dataSourceConfig: this._dataSources.getConfig(),
     });
 
-    const { schema, fieldResolvers, pipelineFunctions } = transformer.transform();
+    const {
+      schema,
+      fieldResolvers = [],
+      pipelineFunctions = [],
+    } = transformer.transform() as TransformerOutput<{
+      fieldResolvers: [];
+      pipelineFunctions: [];
+    }>;
 
     this.api = new GraphqlApi(this, "GraphQLApi", {
       name: name,

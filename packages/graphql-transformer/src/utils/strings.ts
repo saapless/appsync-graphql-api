@@ -1,19 +1,56 @@
 const WORD_MATCH_EXP = /(?<=[A-Z])(?=[A-Z][a-z])|(?<=[^A-Z])(?=[A-Z])|(?<=[A-Za-z])(?=[^A-Za-z])/;
 
+function normalize(...strings: string[]): string[] {
+  return (
+    strings
+      // First, split on dashes, underscores, whitespace, etc.
+      .flatMap((s) => s.split(/[-_\s\b\W]/).filter(Boolean))
+      // Then split each segment by the camel/snake boundaries
+      .flatMap((segment) => {
+        const tokens = segment.split(WORD_MATCH_EXP);
+        if (tokens.length === 0) return [];
+        const result: string[] = [];
+        // Special case: if the segment starts with an uppercase sequence that’s split
+        // into two tokens (e.g. "WARzone" -> ["WA", "Rzone"])
+        if (
+          tokens.length > 1 &&
+          tokens[0] === tokens[0].toUpperCase() &&
+          /^[A-Z][a-z]/.test(tokens[1])
+        ) {
+          // Merge the first token and the first character of the second token
+          const merged = tokens[0] + tokens[1][0];
+          result.push(merged.toLowerCase());
+          // If there are more characters in tokens[1], add them as a separate (lowercased) token
+          if (tokens[1].length > 1) {
+            result.push(tokens[1].slice(1).toLowerCase());
+          }
+          // Process any remaining tokens.
+          for (let i = 2; i < tokens.length; i++) {
+            // For non-first tokens, if a token is entirely uppercase, keep it
+            result.push(
+              tokens[i] === tokens[i].toUpperCase() ? tokens[i] : tokens[i].toLowerCase()
+            );
+          }
+        } else {
+          // Standard processing:
+          // Always lower-case the first token.
+          result.push(tokens[0].toLowerCase());
+          // For subsequent tokens, if the token is all uppercase (like "QL" in "GraphQL")
+          // keep it; otherwise, lower-case it.
+          for (let i = 1; i < tokens.length; i++) {
+            result.push(
+              tokens[i] === tokens[i].toUpperCase() ? tokens[i] : tokens[i].toLowerCase()
+            );
+          }
+        }
+        return result;
+      })
+  );
+}
+
 export function capitalize(s: string): string {
   return s.charAt(0).toUpperCase() + s.slice(1);
 }
-
-function normalize(...string: string[]): string[] {
-  return string
-    .map((s) => s.split(/[-_\s\b\W]/))
-    .filter(Boolean)
-    .flat()
-    .map((s) => s.split(WORD_MATCH_EXP))
-    .flat()
-    .map((s) => s.toLowerCase());
-}
-
 export function pascalCase(...string: string[]): string {
   return normalize(...string)
     .map(capitalize)
@@ -80,7 +117,6 @@ export function pluralize(word: string) {
 
   return word.replace(rule[0], (...args) => {
     return rule[1].replace(/\$(\d{1,2})/g, (m, i) => {
-      // eslint-disable-next-line security/detect-object-injection
       return args[i] || "";
     });
   });

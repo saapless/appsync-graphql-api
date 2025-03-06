@@ -37,35 +37,33 @@ describe("AppSyncResolverTypesGenerator", () => {
   beforeAll(() => {
     context.resolvers.setLoader("Query", "me", {
       targetName: "User",
-      action: {
-        type: "getItem",
-        key: {
-          id: { ref: "identity.sub" },
-        },
+      operation: {
+        type: "get",
+        key: { ref: "identity.sub" },
       },
       returnType: "result",
     });
     context.resolvers.setLoader("Mutation", "createUser", {
       targetName: "User",
-      action: {
-        type: "putItem",
-        key: { id: { ref: "identity.sub" } },
+      operation: {
+        type: "create",
+        key: { ref: "identity.sub" },
       },
       returnType: "result",
     });
     context.resolvers.setLoader("Mutation", "updateUser", {
       targetName: "User",
-      action: {
-        type: "updateItem",
-        key: { id: { ref: "identity.sub" } },
+      operation: {
+        type: "update",
+        key: { ref: "identity.sub" },
       },
       returnType: "result",
     });
     context.resolvers.setLoader("Mutation", "deleteUser", {
       targetName: "User",
-      action: {
-        type: "removeItem",
-        key: { id: { ref: "args.id" } },
+      operation: {
+        type: "delete",
+        key: { ref: "args.id" },
       },
       returnType: "result",
     });

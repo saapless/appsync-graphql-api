@@ -41,16 +41,24 @@ export class AuthPlugin extends TransformerPluginBase {
       .getDirective("auth")
       ?.getArgumentsJSON<{ rules: AuthorizationRule[] }>();
 
-    const rules = this.context.auth.getAuthRules(
-      "get",
-      field.type.getTypeName(),
-      definedRules?.rules
-    );
+    const targetNode = this.context.document.getNode(field.type.getTypeName());
 
-    this.context.resolvers.setLoader(object.name, field.name, {
-      targetName: field.type.getTypeName(),
-      authRules: rules,
-    });
+    let isModelNode = false;
+
+    if (targetNode instanceof ObjectNode && targetNode.hasDirective("model")) {
+      isModelNode = true;
+    }
+
+    const rules = isModelNode
+      ? this.context.auth.getAuthRules("get", field.type.getTypeName(), definedRules?.rules)
+      : definedRules?.rules;
+
+    if (rules?.length) {
+      this.context.resolvers.setLoader(object.name, field.name, {
+        targetName: field.type.getTypeName(),
+        authRules: rules,
+      });
+    }
   }
 
   public before() {

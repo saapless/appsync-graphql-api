@@ -1,15 +1,86 @@
 // Jest Snapshot v1, https://goo.gl/fbAQLP
 
-exports[`DexieResolverGenerator getItem operations generate connected field resolver 1`] = `
-"async (source, __, ctx) => {
-    return ctx.db.get(ctx.source?.taskId);
+exports[`DexieResolverGenerator generates batchGetItems resolver 1`] = `
+"async (source, _, ctx) => {
+    const result = await db.friends.bulkGet(source.keys);
+    return result;
 }
 "
 `;
 
-exports[`DexieResolverGenerator getItem operations generate root field resolver 1`] = `
+exports[`DexieResolverGenerator generates createItem resolver 1`] = `
 "async (_, args, ctx) => {
-    return ctx.db.get(ctx.args.id);
+    const id = args.input.id ?? ctx.util.uuid();
+    const timestamp = new Date().toISOString();
+    const values = {
+        ...args.input,
+        id: id,
+        createdAt: args.input.createdAt ?? timestamp,
+        updatedAt: args.input.updatedAt ?? timestamp,
+        __typename: "Task"
+    };
+    await ctx.db.add(values);
+    const result = await ctx.db.get(id);
+    return result;
+}
+"
+`;
+
+exports[`DexieResolverGenerator generates deleteItem resolver 1`] = `
+"async (_, args, ctx) => {
+    const record = await ctx.db.get(args.id);
+    if (!record) {
+        throw new Error("Record does not exists");
+    }
+    await ctx.db.delete(record.id);
+    return record;
+}
+"
+`;
+
+exports[`DexieResolverGenerator generates getItem resolver 1`] = `
+"async (_, args, ctx) => {
+    const result = await ctx.db.get(args.id);
+    return result;
+}
+"
+`;
+
+exports[`DexieResolverGenerator generates getItem resolver with nested key 1`] = `
+"async (_, args, ctx) => {
+    const result = await ctx.db.get(args.id);
+    return result;
+}
+"
+`;
+
+exports[`DexieResolverGenerator generates queryItems resolver 1`] = `
+"async (_, __, ctx) => {
+    let query = ctx.db.where("typename").eq("Task");
+    if (args.filter) {
+        query = query.filter(filterExpression(args.filter));
+    }
+    if (args.sort === "DESC") {
+        query = query.reverse();
+    }
+    const result = await query.toArray();
+    return formatConnection({ items: result });
+}
+"
+`;
+
+exports[`DexieResolverGenerator generates updateItem resolver 1`] = `
+"async (_, args, ctx) => {
+    const id = args.input.id;
+    const updated = await ctx.db.update(id, {
+        ...args.input,
+        updatedAt: args.input.updatedAt ?? new Date().toISOString()
+    });
+    if (!updated) {
+        throw new Error("Record to update not found");
+    }
+    const result = await ctx.db.get(id);
+    return result;
 }
 "
 `;

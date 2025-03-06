@@ -1,5 +1,5 @@
 import { ConnectionDirective, RelationType, ScalarType, UtilityDirective } from "../constants";
-import { TransformerContext } from "../context";
+import { IndexType, TransformerContext } from "../context";
 import {
   DefinitionNode,
   DirectiveDefinitionNode,
@@ -502,9 +502,9 @@ export class ConnectionPlugin extends TransformerPluginBase {
 
     this.context.resolvers.setLoader(edgeName, "node", {
       targetName: connection.target.name,
-      action: {
-        type: "getItem",
-        key: { id: { ref: "source.targetId" } },
+      operation: {
+        type: "get",
+        key: { ref: "source.targetId" },
       },
       checkEarlyReturn: true,
       returnType: "result",
@@ -513,14 +513,14 @@ export class ConnectionPlugin extends TransformerPluginBase {
     this.context.resolvers.setLoader("Mutation", createFieldName, {
       targetName: edgeName,
       isEdge: true,
-      action: { type: "putItem", key: {} },
+      operation: { type: "create", key: {} },
       returnType: "result",
     });
 
     this.context.resolvers.setLoader("Mutation", deleteFieldName, {
       targetName: edgeName,
       isEdge: true,
-      action: { type: "removeItem", key: {} },
+      operation: { type: "delete", key: {} },
       returnType: "result",
     });
   }
@@ -535,10 +535,10 @@ export class ConnectionPlugin extends TransformerPluginBase {
       fieldName: field.name,
       targetName: connection.target.name,
       returnType: "result",
-      action: {
-        type: "getItem",
-        key: { id: connection.key },
-        index: connection.index ?? undefined,
+      operation: {
+        type: "get",
+        key: connection.key,
+        index: (connection.index as IndexType) ?? undefined,
       },
     });
   }
@@ -553,10 +553,10 @@ export class ConnectionPlugin extends TransformerPluginBase {
     if (connection.relation === "oneToMany" && !this._needsEdgeRecord(connection)) {
       this.context.resolvers.setLoader(parent.name, field.name, {
         targetName: connection.target.name,
-        action: {
-          type: "queryItems",
-          key: { sourceId: connection.key },
-          index: connection.index ?? undefined,
+        operation: {
+          type: "query",
+          key: connection.key,
+          index: (connection.index as IndexType) ?? undefined,
         },
         returnType: "connection",
       });
@@ -570,23 +570,19 @@ export class ConnectionPlugin extends TransformerPluginBase {
       this.context.resolvers.setLoader(parent.name, field.name, {
         targetName: edgeTypeName,
         isEdge: true,
-        action: {
-          type: "queryItems",
-          key: {
-            sourceId: connection.key,
-            _sk: { beginsWith: { eq: pascalCase(target.name, "Edge") } },
-          },
-          index: connection.index ?? undefined,
+        operation: {
+          type: "query",
+          key: [connection.key, { beginsWith: { eq: pascalCase(target.name, "Edge") } }],
+          index: (connection.index as IndexType) ?? undefined,
         },
-        returnTargetName: target.name,
         returnType: "connection",
       });
 
       this.context.resolvers.setLoader(connectionTypeName, "edges", {
         targetName: target.name,
-        action: {
-          type: "batchGetItems",
-          key: { keys: { ref: "source.keys" } },
+        operation: {
+          type: "batchGet",
+          key: { ref: "source.keys" },
         },
         checkEarlyReturn: true,
         returnType: "edges",

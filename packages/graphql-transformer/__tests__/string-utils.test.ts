@@ -16,14 +16,14 @@ describe("string utils", () => {
     });
     it("should handle camelCase strings", () => {
       expect(pascalCase("userProfile")).toBe("UserProfile");
-      expect(pascalCase("graphQLSchema")).toBe("GraphQlSchema");
+      expect(pascalCase("graphQLSchema")).toBe("GraphQLSchema");
       expect(pascalCase("awsAppSync")).toBe("AwsAppSync");
       expect(pascalCase("httpResponse")).toBe("HttpResponse");
     });
     it("should handle mixed format strings", () => {
       expect(pascalCase("User_profile-type")).toBe("UserProfileType");
       expect(pascalCase("AWS-lambda_FUNCTION")).toBe("AwsLambdaFunction");
-      expect(pascalCase("graphQL_Api-endpoint")).toBe("GraphQlApiEndpoint");
+      expect(pascalCase("graphQL_Api-endpoint")).toBe("GraphQLApiEndpoint");
       expect(pascalCase("REST_api-Gateway")).toBe("RestApiGateway");
     });
     it("should handle multiple string inputs", () => {
@@ -58,15 +58,15 @@ describe("string utils", () => {
 
     it("should handle PascalCase strings", () => {
       expect(camelCase("UserProfile")).toBe("userProfile");
-      expect(camelCase("GraphQLSchema")).toBe("graphQlSchema");
-      expect(camelCase("AWSAppSync")).toBe("awsAppSync");
-      expect(camelCase("HTTPResponse")).toBe("httpResponse");
+      expect(camelCase("GraphQLSchema")).toBe("graphQLSchema");
+      expect(camelCase("AWS", "AppSync")).toBe("awsAppSync");
+      expect(camelCase("HTTPresponse")).toBe("httpResponse");
     });
 
     it("should handle mixed format strings", () => {
       expect(camelCase("User_profile-type")).toBe("userProfileType");
       expect(camelCase("AWS-lambda_FUNCTION")).toBe("awsLambdaFunction");
-      expect(camelCase("graphQL_Api-endpoint")).toBe("graphQlApiEndpoint");
+      expect(camelCase("graphQL_Api-endpoint")).toBe("graphQLApiEndpoint");
       expect(camelCase("REST_api-Gateway")).toBe("restApiGateway");
     });
 

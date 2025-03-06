@@ -1,0 +1,20 @@
+{
+  "name": "@saapless/graphql-utils",
+  "version": "0.0.1",
+  "description": "Utilities for GraphQL JS resolvers",
+  "author": "Saapless",
+  "license": "MIT",
+  "sideEffects": false,
+  "publishConfig": {
+    "access": "public"
+  },
+  "main": "dist/index.js",
+  "types": "dist/index.d.ts",
+  "scripts": {
+    "build": "tsc",
+    "dev": "tsc --watch",
+    "test": "NODE_OPTIONS=\"--experimental-vm-modules\" jest",
+    "test:watch": "NODE_OPTIONS=\"--experimental-vm-modules\" jest --watch",
+    "lint": "eslint"
+  }
+}

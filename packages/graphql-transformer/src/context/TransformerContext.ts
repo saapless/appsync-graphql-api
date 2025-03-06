@@ -3,7 +3,7 @@ import { DocumentNode } from "../definition";
 import { ensureOutputDirectory, prettyPrintFile, printFile } from "../utils";
 import { AuthorizationManager } from "./AuthorizationManager";
 import { OperationsManager, OperationsManagerConfig } from "./OperationsManager";
-import { ResolverManager } from "./ResolverManager";
+import { ResolverLoader } from "./ResolverLoader";
 
 export interface TransformerContextConfig {
   document: DocumentNode;
@@ -15,7 +15,7 @@ export class TransformerContext {
   public readonly document: DocumentNode;
   public readonly outputDirectory: string;
   public readonly operations: OperationsManager;
-  public readonly resolvers: ResolverManager;
+  public readonly resolvers: ResolverLoader;
   public readonly auth: AuthorizationManager;
   public readonly stash: Map<string, unknown>;
 
@@ -23,7 +23,7 @@ export class TransformerContext {
     this.document = config.document;
     this.outputDirectory = this.createOutputDirectory(config.outputDirectory);
     this.operations = new OperationsManager(this, config.modelOperationsConfig);
-    this.resolvers = new ResolverManager(this);
+    this.resolvers = new ResolverLoader();
     this.auth = new AuthorizationManager(this, {});
     this.stash = new Map();
   }

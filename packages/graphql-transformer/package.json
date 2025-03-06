@@ -74,7 +74,8 @@
     "@saapless/appsync-utils": "0.0.1"
   },
   "peerDependencies": {
-    "dexie": ">=4"
+    "dexie": ">=4",
+    "@saapless/graphql-utils": "0.0.1"
   },
   "peerDependenciesMeta": {
     "dexie": {
