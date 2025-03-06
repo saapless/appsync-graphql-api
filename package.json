@@ -25,7 +25,7 @@
     "test:watch": "turbo test:watch",
     "prepare": "husky",
     "changeset": "changeset",
-    "publish": "changeset publish"
+    "release": "changeset publish"
   },
   "dependencies": {
     "esbuild": "^0.24.2",
