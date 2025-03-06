@@ -179,7 +179,6 @@ export function addImport(definitions: ts.Node[], from: string, specifier: ts.Im
       d.moduleSpecifier.text === from
   );
 
-  // eslint-disable-next-line security/detect-object-injection
   const current = index > -1 ? (definitions[index] as ts.ImportDeclaration) : undefined;
 
   if (current) {
