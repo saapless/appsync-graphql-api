@@ -17,6 +17,7 @@ import {
 } from "../definition";
 import { addImport, printDefinitions } from "../utils";
 import { ScalarType, UtilityDirective } from "../constants";
+import { DexieResolverGenerator } from "../generators";
 import { TransformerPluginBase } from "./PluginBase";
 
 type DependencyNode = {
@@ -28,6 +29,7 @@ export class ExecutableSchemaGenerator extends TransformerPluginBase {
   private readonly _ast: ts.Node[];
   private readonly _depsMap: Map<string, DependencyNode>;
   private readonly _typeIds: ts.Identifier[];
+  private readonly _resoverGenerator: DexieResolverGenerator;
 
   constructor(context: TransformerContext) {
     super("ExecutableSchemaGenerator", context);
@@ -35,6 +37,7 @@ export class ExecutableSchemaGenerator extends TransformerPluginBase {
     this._ast = [];
     this._depsMap = new Map();
     this._typeIds = [];
+    this._resoverGenerator = new DexieResolverGenerator(context);
   }
 
   private _setAst(identifier: string, ast: ts.Node) {
@@ -210,6 +213,15 @@ export class ExecutableSchemaGenerator extends TransformerPluginBase {
           ts.factory.createIdentifier("args"),
           ts.factory.createObjectLiteralExpression(args)
         )
+      );
+    }
+
+    const resolverDescriptor = this.context.resolvers.getLoader(object.name, field.name);
+    if (resolverDescriptor) {
+      const resolver = this._resoverGenerator.generate(resolverDescriptor);
+
+      props.push(
+        ts.factory.createPropertyAssignment(ts.factory.createIdentifier("resolve"), resolver)
       );
     }
 

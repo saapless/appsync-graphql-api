@@ -1,7 +1,19 @@
 import ts from "typescript";
 import { TransformerContext } from "../../context";
 import { ObjectNode } from "../../definition";
-import { FieldLoaderDescriptor, keyValue, TransformPluginExecutionError } from "../../utils";
+import { FieldLoaderDescriptor, TransformPluginExecutionError } from "../../utils";
+import {
+  filterQuery,
+  formatResult,
+  getQueryResult,
+  initBulkGet,
+  initCreateItem,
+  initDeleteItem,
+  initGetItem,
+  initQuery,
+  initUpdateItem,
+  sortQuery,
+} from "./utils";
 
 export class DexieResolverGenerator {
   private readonly context: TransformerContext;
@@ -53,59 +65,56 @@ export class DexieResolverGenerator {
   }
 
   private _getItem(descriptor: FieldLoaderDescriptor): ts.Block {
-    const action = ts.factory.createReturnStatement(
-      ts.factory.createCallExpression(
-        ts.factory.createPropertyAccessExpression(
-          ts.factory.createIdentifier("ctx.db"),
-          ts.factory.createIdentifier("get")
-        ),
-        undefined,
-        [keyValue(descriptor.action.key["id"])]
-      )
+    return ts.factory.createBlock(
+      [initGetItem(), ts.factory.createReturnStatement(formatResult(descriptor))],
+      true
     );
-
-    return ts.factory.createBlock([action], true);
   }
 
   private _batchGetItems(descriptor: FieldLoaderDescriptor): ts.Block {
-    throw new TransformPluginExecutionError(
-      this.name,
-      `${descriptor.action.type} not implemented yet`
+    return ts.factory.createBlock(
+      [initBulkGet(), ts.factory.createReturnStatement(formatResult(descriptor))],
+      true
     );
   }
 
   private _queryItems(descriptor: FieldLoaderDescriptor): ts.Block {
-    throw new TransformPluginExecutionError(
-      this.name,
-      `${descriptor.action.type} not implemented yet`
-    );
+    const block = [
+      initQuery(descriptor),
+      filterQuery(),
+      sortQuery(),
+      getQueryResult(),
+      ts.factory.createReturnStatement(formatResult(descriptor)),
+    ];
+
+    return ts.factory.createBlock(block, true);
   }
 
   private _createItem(descriptor: FieldLoaderDescriptor): ts.Block {
-    throw new TransformPluginExecutionError(
-      this.name,
-      `${descriptor.action.type} not implemented yet`
+    return ts.factory.createBlock(
+      [...initCreateItem(descriptor), ts.factory.createReturnStatement(formatResult(descriptor))],
+      true
     );
   }
 
   private _updateItem(descriptor: FieldLoaderDescriptor): ts.Block {
-    throw new TransformPluginExecutionError(
-      this.name,
-      `${descriptor.action.type} not implemented yet`
+    return ts.factory.createBlock(
+      [...initUpdateItem(), ts.factory.createReturnStatement(formatResult(descriptor))],
+      true
     );
   }
 
   private _upsertItem(descriptor: FieldLoaderDescriptor): ts.Block {
-    throw new TransformPluginExecutionError(
-      this.name,
-      `${descriptor.action.type} not implemented yet`
+    return ts.factory.createBlock(
+      [ts.factory.createReturnStatement(formatResult(descriptor))],
+      true
     );
   }
 
   private _deleteItem(descriptor: FieldLoaderDescriptor): ts.Block {
-    throw new TransformPluginExecutionError(
-      this.name,
-      `${descriptor.action.type} not implemented yet`
+    return ts.factory.createBlock(
+      [...initDeleteItem(), ts.factory.createReturnStatement(formatResult(descriptor, "record"))],
+      true
     );
   }
 
