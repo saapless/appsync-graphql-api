@@ -21,6 +21,7 @@ jobs:
       - run: npm run test
       - uses: changesets/action@v1
         with:
+          publish: "npm run release"
           commit: "chore(release): version packages"
         env:
           GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
