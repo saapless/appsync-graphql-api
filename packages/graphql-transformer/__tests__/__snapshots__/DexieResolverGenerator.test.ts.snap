@@ -1,7 +1,7 @@
 // Jest Snapshot v1, https://goo.gl/fbAQLP
 
 exports[`DexieResolverGenerator getItem operations generate connected field resolver 1`] = `
-"async (source, __, ctx) => {
+"async (source, _, ctx) => {
     return ctx.db.get(ctx.source?.taskId);
 }
 "

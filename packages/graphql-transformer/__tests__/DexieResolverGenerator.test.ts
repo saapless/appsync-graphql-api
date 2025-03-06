@@ -1,6 +1,6 @@
 import { TestContext } from "../__fixtures__/TestContext";
 import { DocumentNode } from "../src/definition";
-import { DexieResolverGenerator } from "../src/plugins/DexieResolversGenerator";
+import { DexieResolverGenerator } from "../src/generators/DexieResolverGenerator";
 import { FieldLoaderDescriptor, printDefinitions } from "../src/utils";
 
 const context = new TestContext({

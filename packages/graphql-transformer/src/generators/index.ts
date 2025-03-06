@@ -1,0 +1,1 @@
+export { DexieResolverGenerator } from "./DexieResolverGenerator";
