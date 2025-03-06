@@ -7,8 +7,12 @@ export class ResolverLoader {
     this._loaders = new Map();
   }
 
-  public hasLoader(name: string) {
-    return this._loaders.has(name);
+  public hasLoader(typeName: string, fieldName: string) {
+    return this._loaders.has(`${typeName}.${fieldName}`);
+  }
+
+  public getLoader(typeName: string, fieldName: string) {
+    return this._loaders.get(`${typeName}.${fieldName}`);
   }
 
   public setLoader(typeName: string, fieldName: string, loader: Partial<FieldLoaderDescriptor>) {

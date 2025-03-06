@@ -1,5 +1,6 @@
+import path from "node:path";
 import { DocumentNode } from "../definition";
-import { ensureOutputDirectory } from "../utils";
+import { ensureOutputDirectory, prettyPrintFile, printFile } from "../utils";
 import { AuthorizationManager } from "./AuthorizationManager";
 import { OperationsManager, OperationsManagerConfig } from "./OperationsManager";
 import { ResolverManager } from "./ResolverManager";
@@ -37,5 +38,13 @@ export class TransformerContext {
     }
 
     return this.stash.get(key) as TValue;
+  }
+
+  public printFile(filePath: string, content: string) {
+    return printFile(path.resolve(this.outputDirectory, filePath), content);
+  }
+
+  public printScript(filePath: string, content: string) {
+    return prettyPrintFile(path.resolve(this.outputDirectory, filePath), content);
   }
 }

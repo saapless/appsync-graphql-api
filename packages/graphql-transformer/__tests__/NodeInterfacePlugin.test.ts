@@ -1,4 +1,4 @@
-import { TransformerContext } from "../src/context";
+import { TestContext } from "../__fixtures__/TestContext";
 import { DocumentNode, InterfaceNode, ObjectNode } from "../src/definition";
 import { NodeInterfacePlugin } from "../src/plugins/NodeInterfacePlugin";
 import { InvalidDefinitionError } from "../src/utils/errors";
@@ -11,7 +11,7 @@ describe("NodeInterfacePlugin", () => {
           id: ID!
         }
       `;
-      const context = new TransformerContext({
+      const context = new TestContext({
         outputDirectory: "__test__",
         document: DocumentNode.fromSource(schema),
       });
@@ -29,7 +29,7 @@ describe("NodeInterfacePlugin", () => {
       }
     `;
 
-    const context = new TransformerContext({
+    const context = new TestContext({
       outputDirectory: "__test__",
       document: DocumentNode.fromSource(schema),
     });

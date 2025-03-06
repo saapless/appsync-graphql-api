@@ -1,23 +1,9 @@
 import { jest } from "@jest/globals";
-import { TransformerContext } from "../src/context";
 import { DocumentNode } from "../src/definition";
+import { TestContext } from "../__fixtures__/TestContext";
+import { AppSyncResolverTypesGenerator } from "../src/plugins/AppSyncResolverTypesGenerator";
 
-let outputContent = "";
-jest.unstable_mockModule("node:fs", () => {
-  return {
-    default: {
-      writeFileSync: jest.fn().mockImplementation((path, content) => {
-        outputContent = content as string;
-      }),
-    },
-  };
-});
-
-const { AppSyncResolverTypesGenerator } = await import(
-  "../src/plugins/AppSyncResolverTypesGenerator"
-);
-
-const context = new TransformerContext({
+const context = new TestContext({
   outputDirectory: "__test__",
   document: DocumentNode.fromSource(/* GraphQL */ `
     type User {
@@ -93,6 +79,6 @@ describe("AppSyncResolverTypesGenerator", () => {
     const generator = new AppSyncResolverTypesGenerator(context);
 
     generator.generate();
-    expect(outputContent).toMatchSnapshot();
+    expect(context.files.get("resolver-types.ts")).toMatchSnapshot();
   });
 });

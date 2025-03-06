@@ -29,7 +29,7 @@ const definition = /* GraphQL */ `
   }
 `;
 
-const output = path.resolve(dirname(import.meta.url), "../__generated__/dexie");
+const output = path.resolve(dirname(import.meta.url), "../__generated__");
 
 const transformer = createTransformer({
   definition,

@@ -1,4 +1,3 @@
-import path from "node:path";
 import { Kind } from "graphql";
 import ts from "typescript";
 import { TransformerContext } from "../context";
@@ -16,7 +15,7 @@ import {
   TypeNode,
   UnionNode,
 } from "../definition";
-import { addImport, prettyPrintFile, printDefinitions } from "../utils";
+import { addImport, printDefinitions } from "../utils";
 import { ScalarType, UtilityDirective } from "../constants";
 import { TransformerPluginBase } from "./PluginBase";
 
@@ -212,10 +211,6 @@ export class ExecutableSchemaGenerator extends TransformerPluginBase {
           ts.factory.createObjectLiteralExpression(args)
         )
       );
-    }
-
-    if (this.context.resolvers.hasLoader(`${object.name}.${field.name}`)) {
-      // create resolver here
     }
 
     return ts.factory.createPropertyAssignment(
@@ -596,10 +591,7 @@ export class ExecutableSchemaGenerator extends TransformerPluginBase {
     this._createSchema();
 
     const result = printDefinitions(this._ast, "executable-schema.ts");
-    return prettyPrintFile(
-      path.resolve(this.context.outputDirectory, "executable-schema.ts"),
-      result
-    );
+    return this.context.printScript("executable-schema.ts", result);
   }
 
   public static create(context: TransformerContext) {

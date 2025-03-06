@@ -1,4 +1,3 @@
-import { TransformerContext } from "../src/context";
 import { ModelPlugin } from "../src/plugins/ModelPlugin";
 import {
   DirectiveDefinitionNode,
@@ -7,9 +6,10 @@ import {
   InputObjectNode,
   ObjectNode,
 } from "../src/definition";
+import { TestContext } from "../__fixtures__/TestContext";
 
 describe("ModelPlugin", () => {
-  const context = new TransformerContext({
+  const context = new TestContext({
     outputDirectory: "__test__",
     document: DocumentNode.fromSource(/* GraphQL */ `
       type Model @model {
@@ -70,10 +70,10 @@ describe("ModelPlugin", () => {
       expect(context.document.getNode("UpdateModelInput")).toBeInstanceOf(InputObjectNode);
     });
 
-    it.skip("adds mutation loaders", () => {
-      expect(context.resolvers.hasLoader("Mutation.createModel")).toBeTruthy();
-      expect(context.resolvers.hasLoader("Mutation.updateModel")).toBeTruthy();
-      expect(context.resolvers.hasLoader("Mutation.deleteModel")).toBeTruthy();
+    it("adds mutation loaders", () => {
+      expect(context.resolvers.hasLoader("Mutation", "createModel")).toBeTruthy();
+      expect(context.resolvers.hasLoader("Mutation", "updateModel")).toBeTruthy();
+      expect(context.resolvers.hasLoader("Mutation", "deleteModel")).toBeTruthy();
     });
   });
 

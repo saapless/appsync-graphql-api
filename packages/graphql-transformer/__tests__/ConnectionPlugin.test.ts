@@ -1,4 +1,4 @@
-import { TransformerContext } from "../src/context";
+import { TestContext } from "../__fixtures__/TestContext";
 import {
   DirectiveDefinitionNode,
   DocumentNode,
@@ -43,7 +43,7 @@ const schema = /* GraphQL */ `
 `;
 
 describe("ConnectionPlugin", () => {
-  const context = new TransformerContext({
+  const context = new TestContext({
     outputDirectory: "__test__",
     document: DocumentNode.fromSource(schema),
   });
@@ -123,8 +123,8 @@ describe("ConnectionPlugin", () => {
       expect(resourcesField?.hasArgument("sort")).toBe(true);
     });
 
-    it.skip("creates field resolvers", () => {
-      expect(context.resolvers.hasLoader("Todo.resources")).toStrictEqual(true);
+    it("creates field resolvers", () => {
+      expect(context.resolvers.hasLoader("Todo", "resources")).toStrictEqual(true);
     });
   });
 

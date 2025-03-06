@@ -1,4 +1,4 @@
-import { TransformerContext } from "../src/context";
+import { TestContext } from "../__fixtures__/TestContext";
 import { AuthPlugin } from "../src/plugins/AuthPlugin";
 import {
   DirectiveDefinitionNode,
@@ -23,7 +23,7 @@ const schema = /* GraphQL */ `
 `;
 
 describe("AuthPlugin", () => {
-  const context = new TransformerContext({
+  const context = new TestContext({
     outputDirectory: "__test__",
     document: DocumentNode.fromSource(schema),
   });

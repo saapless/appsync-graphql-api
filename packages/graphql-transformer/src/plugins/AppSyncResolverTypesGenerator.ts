@@ -1,8 +1,7 @@
-import path from "node:path";
 import ts from "typescript";
 import { TransformerContext } from "../context";
 import { ObjectNode } from "../definition";
-import { FieldLoaderDescriptor, pascalCase, prettyPrintFile, printDefinitions } from "../utils";
+import { FieldLoaderDescriptor, pascalCase, printDefinitions } from "../utils";
 import { TransformerPluginBase } from "./PluginBase";
 
 export class AppSyncResolverTypesGenerator extends TransformerPluginBase {
@@ -437,7 +436,7 @@ export class AppSyncResolverTypesGenerator extends TransformerPluginBase {
     }
 
     const result = printDefinitions(this._definitions, "resolver-types.ts");
-    return prettyPrintFile(path.resolve(this.context.outputDirectory, "resolver-types.ts"), result);
+    return this.context.printScript("resolver-types.ts", result);
   }
 
   public static create(context: TransformerContext) {

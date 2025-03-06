@@ -1,6 +1,4 @@
-import path from "node:path";
 import { TransformerContext } from "../context";
-import { printFile } from "../utils";
 import { TransformerPluginBase } from "./PluginBase";
 
 export class SchemaGenerator extends TransformerPluginBase {
@@ -17,10 +15,7 @@ export class SchemaGenerator extends TransformerPluginBase {
   }
 
   public generate(): void {
-    printFile(
-      path.resolve(this.context.outputDirectory, "schema.graphql"),
-      this.context.document.print()
-    );
+    this.context.printFile("schema.graphql", this.context.document.print());
   }
 
   public static create(context: TransformerContext) {

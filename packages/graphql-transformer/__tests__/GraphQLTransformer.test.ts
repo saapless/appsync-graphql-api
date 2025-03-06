@@ -116,7 +116,7 @@ describe("GraphQLTransformer", () => {
   const transformer = createTransformer({
     definition: schema,
     mode: "development",
-    outDir: "__test__",
+    outDir: "__testing__",
     plugins: [AWSTypesPlugin],
   });
 

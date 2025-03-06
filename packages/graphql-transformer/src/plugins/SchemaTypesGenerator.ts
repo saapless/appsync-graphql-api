@@ -1,4 +1,3 @@
-import path from "node:path";
 import ts from "typescript";
 import { Kind } from "graphql";
 import {
@@ -16,7 +15,7 @@ import {
 } from "../definition";
 import { pascalCase } from "../utils/strings";
 import { TransformerContext } from "../context";
-import { prettyPrintFile, printDefinitions } from "../utils";
+import { printDefinitions } from "../utils";
 import { UtilityDirective } from "../constants";
 import { TransformerPluginBase } from "./PluginBase";
 
@@ -258,7 +257,7 @@ export class SchemaTypesGenerator extends TransformerPluginBase {
 
   public generate() {
     const result = printDefinitions(this._definitions, "schema-types.ts");
-    return prettyPrintFile(path.resolve(this.context.outputDirectory, "schema-types.ts"), result);
+    return this.context.printScript("schema-types.ts", result);
   }
 
   public static create(context: TransformerContext) {

@@ -1,3 +1,3 @@
 // Jest Snapshot v1, https://goo.gl/fbAQLP
 
-exports[`SchemaTypesGenerator genrates schema types 1`] = `""`;
+exports[`SchemaTypesGenerator generates schema types 1`] = `""`;
