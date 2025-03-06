@@ -1,6 +1,6 @@
 {
   "name": "appsync-graphql-api",
-  "version": "0.0.1",
+  "version": "0.0.0",
   "main": "turbo.json",
   "author": "Saapless",
   "sideEffects": false,

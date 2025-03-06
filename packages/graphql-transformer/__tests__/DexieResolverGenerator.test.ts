@@ -15,6 +15,8 @@ const context = new TestContext({
     type Label {
       id: ID!
       name: String!
+      taskId: string
+      task: Task
     }
 
     type LabelConnection {
@@ -100,7 +102,24 @@ describe("DexieResolverGenerator", () => {
       } satisfies FieldLoaderDescriptor;
 
       const result = generator.generate(descriptor);
-      expect(printDefinitions([result], "getItem.ts")).toMatchSnapshot();
+      expect(printDefinitions([result], "Query.getTask.ts")).toMatchSnapshot();
+    });
+
+    it("generate connected field resolver", () => {
+      const descriptor = {
+        dataSource: "test",
+        typeName: "Label",
+        fieldName: "Task",
+        action: {
+          type: "getItem",
+          key: { id: { ref: "source.taskId" } },
+        },
+        targetName: "Task",
+        returnType: "result",
+      } satisfies FieldLoaderDescriptor;
+
+      const result = generator.generate(descriptor);
+      expect(printDefinitions([result], "Label.task.ts")).toMatchSnapshot();
     });
   });
 });
