@@ -19,7 +19,7 @@ type ConnectionProps<T extends ConnectionType> = {
   items: T extends ConnectionType<infer I> ? I[] : never;
   prevToken?: string | null;
   nextToken?: string | null;
-};
+} & Record<string, unknown>;
 
 export function formatConnection<T extends ConnectionType>(props: ConnectionProps<T>) {
   const { items, prevToken, nextToken, ...rest } = props;
