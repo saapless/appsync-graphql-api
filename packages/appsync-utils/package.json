@@ -17,6 +17,9 @@
     "test:watch": "NODE_OPTIONS=\"--experimental-vm-modules\" jest --watch",
     "lint": "eslint"
   },
+  "files": [
+    "dist"
+  ],
   "devDependencies": {
     "@aws-appsync/eslint-plugin": "^2.0.1"
   },
