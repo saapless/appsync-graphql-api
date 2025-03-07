@@ -352,22 +352,7 @@ export class ExecutableSchemaGenerator extends TransformerPluginBase {
       )
     );
 
-    this._ast.push(
-      ts.factory.createVariableStatement(
-        undefined,
-        ts.factory.createVariableDeclarationList(
-          [
-            ts.factory.createVariableDeclaration(
-              ts.factory.createIdentifier(definition.name),
-              undefined,
-              undefined,
-              ts.factory.createIdentifier("GraphQLUnionType")
-            ),
-          ],
-          ts.NodeFlags.Let
-        )
-      )
-    );
+    this._declareType(definition.name, "GraphQLUnionType");
 
     const types: ts.Identifier[] = [];
 
@@ -560,6 +545,7 @@ export class ExecutableSchemaGenerator extends TransformerPluginBase {
       case Kind.INPUT_OBJECT_TYPE_DEFINITION:
       case Kind.ENUM_TYPE_DEFINITION:
       case Kind.SCALAR_TYPE_DEFINITION:
+      case Kind.UNION_TYPE_DEFINITION:
         return definition.hasDirective(UtilityDirective.INTERNAL) ? false : true;
       default:
         return false;

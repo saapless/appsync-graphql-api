@@ -5,4 +5,4 @@
 "@saapless/graphql-utils": patch
 ---
 
-chore: fix packange config
+chore: fix package config

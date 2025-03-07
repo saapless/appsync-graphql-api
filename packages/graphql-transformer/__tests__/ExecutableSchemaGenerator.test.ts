@@ -1,15 +1,15 @@
-import path from "node:path";
-import { createTransformer } from "../src";
-import { dirname } from "../src/utils";
-import { ExecutableSchemaGenerator } from "../src/plugins/ExecutableSchemaGenerator";
+import { beforeAll } from "@jest/globals";
+import { TestContext } from "../__fixtures__/TestContext";
+import { DocumentNode } from "../src/definition";
+import { ExecutableSchemaGenerator } from "../src/plugins";
 
-const definition = /* GraphQL */ `
-  type User @model {
+const schema = /* GraphQL */ `
+  type User {
     id: ID!
     name: String!
     email: String!
     role: UserRole!
-    tasks: Task @hasMany
+    tasks: Task
   }
 
   enum UserRole {
@@ -17,11 +17,11 @@ const definition = /* GraphQL */ `
     USER
   }
 
-  type Task @model {
+  type Task {
     id: ID!
     title: String!
     description: String!
-    user: User! @hasOne
+    user: User!
   }
 
   type Query {
@@ -29,21 +29,22 @@ const definition = /* GraphQL */ `
   }
 `;
 
-const output = path.resolve(dirname(import.meta.url), "../__generated__");
-
-const transformer = createTransformer({
-  definition,
-  outDir: output,
-  plugins: [ExecutableSchemaGenerator],
-  modelOperationsConfig: {
-    defaultModelOperations: ["write"],
-  },
+const context = new TestContext({
+  document: DocumentNode.fromSource(schema),
+  outputDirectory: "__test__",
 });
 
-describe("ExecutableSchemaGenerator", () => {
-  it("generates executable schema", () => {
-    const result = transformer.transform();
+const generator = new ExecutableSchemaGenerator(context);
 
-    expect(result.schema).toMatchSnapshot();
+describe("ExecutableSchemaGenerator", () => {
+  beforeAll(() => {
+    for (const node of context.document.definitions.values()) {
+      generator.execute(node);
+    }
+  });
+
+  it("generates executable schema", () => {
+    generator.generate();
+    expect(context.files.get("executable-schema.ts")).toMatchSnapshot();
   });
 });

@@ -376,8 +376,8 @@ export function initBulkGet() {
             ts.factory.createCallExpression(
               ts.factory.createPropertyAccessExpression(
                 ts.factory.createPropertyAccessExpression(
-                  ts.factory.createIdentifier("db"),
-                  ts.factory.createIdentifier("friends")
+                  ts.factory.createIdentifier("ctx.db"),
+                  ts.factory.createIdentifier("records")
                 ),
                 ts.factory.createIdentifier("bulkGet")
               ),

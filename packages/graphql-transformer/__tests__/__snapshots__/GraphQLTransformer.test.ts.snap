@@ -1,0 +1,406 @@
+// Jest Snapshot v1, https://goo.gl/fbAQLP
+
+exports[`GraphQLTransformer runs schema transformations return result 1`] = `
+{
+  "schema": "enum UserStatus {
+  ACTIVE
+  DISABLED
+  SUSPENDED
+}
+
+type User implements Node {
+  id: ID!
+  firstName: String
+  lastName: String
+  email: AWSEmail
+  picture: AWSURL
+  status: UserStatus
+  createdAt: String
+  updatedAt: String
+}
+
+type Task implements Node {
+  id: ID!
+  title: String
+  content: AWSJSON
+  schedule: Schedule
+  rrule: RRule
+  recurrenceId: ID
+  occurrenceId: String
+  labels(filter: LabelEdgeFilterInput, first: Int, after: String, sort: SortDirection): LabelConnection!
+  occurrences(filter: TaskFilterInput, first: Int, after: String, sort: SortDirection): TaskConnection!
+  subtasks(filter: TaskFilterInput, first: Int, after: String, sort: SortDirection): TaskConnection!
+  artifacts(filter: ArtifactEdgeFilterInput, first: Int, after: String, sort: SortDirection): ArtifactConnection!
+  createdAt: String
+  updatedAt: String
+}
+
+type RRule {
+  dtStart: AWSDateTime
+  until: AWSDateTime
+  ruleStr: String
+}
+
+type Schedule {
+  startDate: DateTimeZone
+  duration: String
+  dueDate: DateTimeZone
+}
+
+type DateTimeZone {
+  date: AWSDateTime
+  timezone: String
+}
+
+type Label implements Node {
+  id: ID!
+  name: String
+  color: String
+  createdAt: String
+  updatedAt: String
+}
+
+type File implements Node {
+  name: String
+  size: Int
+  url: AWSURL
+  mimeType: String
+  id: ID!
+  createdAt: String
+  updatedAt: String
+}
+
+type TimeTracker implements Node {
+  duration: String
+  logs: [TimeLog!]
+  id: ID!
+  createdAt: String
+  updatedAt: String
+}
+
+type TimeLog {
+  action: TimeLogAction!
+  timestamp: AWSTimestamp!
+}
+
+enum TimeLogAction {
+  START
+  PAUSE
+  END
+  LOG
+}
+
+union Artifact = File | TimeTracker
+
+type Viewer {
+  user: User
+  tasks(filter: TaskFilterInput, first: Int, after: String, sort: SortDirection): TaskConnection!
+  labels(filter: LabelFilterInput, first: Int, after: String, sort: SortDirection): LabelConnection!
+}
+
+type Query {
+  viewer: Viewer!
+  node(id: ID!): Node
+  getUser(id: ID!): User
+  listUsers(filter: UserFilterInput, first: Int, after: String, sort: SortDirection): UserConnection!
+}
+
+interface Node {
+  id: ID!
+}
+
+type PageInfo {
+  hasNextPage: Boolean
+  hasPreviousPage: Boolean
+  startCursor: String
+  endCursor: String
+}
+
+input SizeFilterInput {
+  ne: Int
+  eq: Int
+  le: Int
+  lt: Int
+  ge: Int
+  gt: Int
+  between: [Int!]
+}
+
+input StringFilterInput {
+  ne: String
+  eq: String
+  le: String
+  lt: String
+  ge: String
+  gt: String
+  in: [String!]
+  contains: String
+  notContains: String
+  between: [String!]
+  beginsWith: String
+  attributeExists: Boolean
+  size: SizeFilterInput
+}
+
+input IntFilterInput {
+  ne: Int
+  eq: Int
+  le: Int
+  lt: Int
+  ge: Int
+  gt: Int
+  in: [Int!]
+  between: [Int!]
+  attributeExists: Boolean
+}
+
+input FloatFilterInput {
+  ne: Float
+  eq: Float
+  le: Float
+  lt: Float
+  ge: Float
+  gt: Float
+  in: [Float!]
+  between: [Float!]
+  attributeExists: Boolean
+}
+
+input BooleanFilterInput {
+  ne: Boolean
+  eq: Boolean
+  attributeExists: Boolean
+}
+
+input IDFilterInput {
+  ne: ID
+  eq: ID
+  in: [ID!]
+  attributeExists: Boolean
+}
+
+input ListFilterInput {
+  contains: String
+  notContains: String
+  size: SizeFilterInput
+}
+
+enum SortDirection {
+  ASC
+  DESC
+}
+
+type Mutation {
+  createUser(input: CreateUserInput!): User
+  updateUser(input: UpdateUserInput!): User
+  deleteUser(id: ID!): User
+  upsertTask(input: UpsertTaskInput!): Task
+  deleteTask(id: ID!): Task
+  createLabelEdge(input: LabelEdgeInput!): LabelEdge
+  deleteLabelEdge(input: LabelEdgeInput!): LabelEdge
+  createArtifactEdge(input: ArtifactEdgeInput!): ArtifactEdge
+  deleteArtifactEdge(input: ArtifactEdgeInput!): ArtifactEdge
+  upsertLabel(input: UpsertLabelInput!): Label
+  deleteLabel(id: ID!): Label
+  upsertFile(input: UpsertFileInput!): File
+  deleteFile(id: ID!): File
+  upsertTimeTracker(input: UpsertTimeTrackerInput!): TimeTracker
+  deleteTimeTracker(id: ID!): TimeTracker
+}
+
+input CreateUserInput {
+  id: ID!
+  firstName: String
+  lastName: String
+  email: AWSEmail
+  picture: AWSURL
+  createdAt: String
+  updatedAt: String
+}
+
+input UpdateUserInput {
+  id: ID!
+  firstName: String
+  lastName: String
+  email: AWSEmail
+  picture: AWSURL
+  createdAt: String
+  updatedAt: String
+}
+
+input DateTimeZoneInput {
+  date: AWSDateTime
+  timezone: String
+}
+
+input ScheduleInput {
+  startDate: DateTimeZoneInput
+  duration: String
+  dueDate: DateTimeZoneInput
+}
+
+input RrUleInput {
+  dtStart: AWSDateTime
+  until: AWSDateTime
+  ruleStr: String
+}
+
+input UpsertTaskInput {
+  id: ID!
+  title: String
+  content: AWSJSON
+  schedule: ScheduleInput
+  rrule: RrUleInput
+  recurrenceId: ID
+  occurrenceId: String
+  sourceId: ID
+  createdAt: String
+  updatedAt: String
+}
+
+type LabelConnection {
+  edges: [LabelEdge!]!
+  pageInfo: PageInfo!
+}
+
+type LabelEdge {
+  cursor: String
+  node: Label
+}
+
+input LabelEdgeFilterInput {
+  createdAt: StringFilterInput
+  updatedAt: StringFilterInput
+  and: [LabelEdgeFilterInput]
+  or: [LabelEdgeFilterInput]
+  not: LabelEdgeFilterInput
+}
+
+input LabelEdgeInput {
+  sourceId: ID!
+  targetId: ID!
+}
+
+type TaskConnection {
+  edges: [TaskEdge!]!
+  pageInfo: PageInfo!
+}
+
+type TaskEdge {
+  cursor: String
+  node: Task
+}
+
+input TaskFilterInput {
+  id: IDFilterInput
+  title: StringFilterInput
+  content: StringFilterInput
+  recurrenceId: IDFilterInput
+  occurrenceId: StringFilterInput
+  createdAt: StringFilterInput
+  updatedAt: StringFilterInput
+  and: [TaskFilterInput]
+  or: [TaskFilterInput]
+  not: TaskFilterInput
+}
+
+type ArtifactConnection {
+  edges: [ArtifactEdge!]!
+  pageInfo: PageInfo!
+}
+
+type ArtifactEdge {
+  cursor: String
+  node: Artifact
+}
+
+input ArtifactEdgeFilterInput {
+  createdAt: StringFilterInput
+  updatedAt: StringFilterInput
+  and: [ArtifactEdgeFilterInput]
+  or: [ArtifactEdgeFilterInput]
+  not: ArtifactEdgeFilterInput
+}
+
+input ArtifactEdgeInput {
+  sourceId: ID!
+  targetId: ID!
+}
+
+input UpsertLabelInput {
+  id: ID!
+  name: String
+  color: String
+  sourceId: ID
+  createdAt: String
+  updatedAt: String
+}
+
+input UpsertFileInput {
+  name: String
+  size: Int
+  url: AWSURL
+  mimeType: String
+  sourceId: ID
+  id: ID!
+  createdAt: String
+  updatedAt: String
+}
+
+input TimeLogInput {
+  action: TimeLogAction
+  timestamp: AWSTimestamp
+}
+
+input UpsertTimeTrackerInput {
+  duration: String
+  logs: TimeLogInput
+  sourceId: ID
+  id: ID!
+  createdAt: String
+  updatedAt: String
+}
+
+input LabelFilterInput {
+  id: IDFilterInput
+  name: StringFilterInput
+  color: StringFilterInput
+  createdAt: StringFilterInput
+  updatedAt: StringFilterInput
+  and: [LabelFilterInput]
+  or: [LabelFilterInput]
+  not: LabelFilterInput
+}
+
+type UserConnection {
+  edges: [UserEdge!]!
+  pageInfo: PageInfo!
+}
+
+type UserEdge {
+  cursor: String
+  node: User
+}
+
+input UserStatusFilterInput {
+  eq: UserStatus
+  ne: UserStatus
+  in: [UserStatus!]
+  attributeExists: Boolean
+}
+
+input UserFilterInput {
+  id: IDFilterInput
+  firstName: StringFilterInput
+  lastName: StringFilterInput
+  email: StringFilterInput
+  picture: StringFilterInput
+  status: UserStatusFilterInput
+  createdAt: StringFilterInput
+  updatedAt: StringFilterInput
+  and: [UserFilterInput]
+  or: [UserFilterInput]
+  not: UserFilterInput
+}",
+}
+`;
