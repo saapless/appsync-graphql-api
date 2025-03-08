@@ -12,7 +12,11 @@ import {
   GraphQLEnumType,
   GraphQLSchema,
 } from "graphql";
-import { filterExpression, formatConnection } from "@saapless/graphql-utils";
+import {
+  filterExpression,
+  formatConnection,
+  formatEdges,
+} from "@saapless/graphql-utils";
 let User: GraphQLObjectType;
 let Workspace: GraphQLObjectType;
 let Task: GraphQLObjectType;
@@ -34,10 +38,17 @@ let ListFilterInput: GraphQLInputObjectType;
 let Mutation: GraphQLObjectType;
 let UpdateUserInput: GraphQLInputObjectType;
 let UpdateWorkspaceInput: GraphQLInputObjectType;
-let CreateTaskInput: GraphQLInputObjectType;
-let UpdateTaskInput: GraphQLInputObjectType;
 let LabelConnection: GraphQLObjectType;
 let LabelEdge: GraphQLObjectType;
+let LabelFilterInput: GraphQLInputObjectType;
+let PriorityConnection: GraphQLObjectType;
+let PriorityEdge: GraphQLObjectType;
+let PriorityFilterInput: GraphQLInputObjectType;
+let StatusConnection: GraphQLObjectType;
+let StatusEdge: GraphQLObjectType;
+let StatusFilterInput: GraphQLInputObjectType;
+let CreateTaskInput: GraphQLInputObjectType;
+let UpdateTaskInput: GraphQLInputObjectType;
 let LabelEdgeFilterInput: GraphQLInputObjectType;
 let LabelEdgeInput: GraphQLInputObjectType;
 let CreateStatusInput: GraphQLInputObjectType;
@@ -49,13 +60,6 @@ let UpdateLabelInput: GraphQLInputObjectType;
 let TaskConnection: GraphQLObjectType;
 let TaskEdge: GraphQLObjectType;
 let TaskFilterInput: GraphQLInputObjectType;
-let StatusConnection: GraphQLObjectType;
-let StatusEdge: GraphQLObjectType;
-let StatusFilterInput: GraphQLInputObjectType;
-let PriorityConnection: GraphQLObjectType;
-let PriorityEdge: GraphQLObjectType;
-let PriorityFilterInput: GraphQLInputObjectType;
-let LabelFilterInput: GraphQLInputObjectType;
 Node = new GraphQLInterfaceType({
   name: "Node",
   fields: () => ({
@@ -77,49 +81,9 @@ User = new GraphQLObjectType({
   }),
   interfaces: () => [Node],
 });
-Workspace = new GraphQLObjectType({
-  name: "Workspace",
-  fields: () => ({
-    name: { type: GraphQLString },
-    owner: {
-      type: User,
-      resolve: async (source, _, ctx) => {
-        const result = await ctx.db.get(source.userId);
-        return result;
-      },
-    },
-    id: { type: new GraphQLNonNull(GraphQLID) },
-    createdAt: { type: GraphQLString },
-    updatedAt: { type: GraphQLString },
-  }),
-  interfaces: () => [Node],
-});
 TagProperty = new GraphQLInterfaceType({
   name: "TagProperty",
   fields: () => ({ title: { type: GraphQLString } }),
-});
-Status = new GraphQLObjectType({
-  name: "Status",
-  fields: () => ({
-    title: { type: GraphQLString },
-    icon: { type: GraphQLString },
-    id: { type: new GraphQLNonNull(GraphQLID) },
-    createdAt: { type: GraphQLString },
-    updatedAt: { type: GraphQLString },
-  }),
-  interfaces: () => [TagProperty, Node],
-});
-Priority = new GraphQLObjectType({
-  name: "Priority",
-  fields: () => ({
-    title: { type: GraphQLString },
-    value: { type: new GraphQLNonNull(GraphQLInt) },
-    icon: { type: GraphQLString },
-    id: { type: new GraphQLNonNull(GraphQLID) },
-    createdAt: { type: GraphQLString },
-    updatedAt: { type: GraphQLString },
-  }),
-  interfaces: () => [TagProperty, Node],
 });
 Label = new GraphQLObjectType({
   name: "Label",
@@ -139,6 +103,9 @@ LabelEdge = new GraphQLObjectType({
     node: {
       type: Label,
       resolve: async (source, _, ctx) => {
+        if (source?.node) {
+          return source.node;
+        }
         const result = await ctx.db.get(source.targetId);
         return result;
       },
@@ -160,8 +127,11 @@ LabelConnection = new GraphQLObjectType({
     edges: {
       type: new GraphQLNonNull(new GraphQLList(new GraphQLNonNull(LabelEdge))),
       resolve: async (source, _, ctx) => {
-        const result = await ctx.db.records.bulkGet(source.keys);
-        return result;
+        if (source?.edges && source.edges.length) {
+          return source.edges;
+        }
+        const result = await ctx.db.bulkGet(source.keys);
+        return formatEdges(result);
       },
     },
     pageInfo: { type: new GraphQLNonNull(PageInfo) },
@@ -197,6 +167,210 @@ StringFilterInput = new GraphQLInputObjectType({
     size: { type: SizeFilterInput },
   }),
 });
+LabelFilterInput = new GraphQLInputObjectType({
+  name: "LabelFilterInput",
+  fields: () => ({
+    title: { type: StringFilterInput },
+    color: { type: StringFilterInput },
+    and: { type: new GraphQLList(LabelFilterInput) },
+    or: { type: new GraphQLList(LabelFilterInput) },
+    not: { type: LabelFilterInput },
+  }),
+});
+const SortDirection = new GraphQLEnumType({
+  name: "SortDirection",
+  values: { ASC: { value: "ASC" }, DESC: { value: "DESC" } },
+});
+Priority = new GraphQLObjectType({
+  name: "Priority",
+  fields: () => ({
+    title: { type: GraphQLString },
+    value: { type: new GraphQLNonNull(GraphQLInt) },
+    icon: { type: GraphQLString },
+    id: { type: new GraphQLNonNull(GraphQLID) },
+    createdAt: { type: GraphQLString },
+    updatedAt: { type: GraphQLString },
+  }),
+  interfaces: () => [TagProperty, Node],
+});
+PriorityEdge = new GraphQLObjectType({
+  name: "PriorityEdge",
+  fields: () => ({ cursor: { type: GraphQLString }, node: { type: Priority } }),
+});
+PriorityConnection = new GraphQLObjectType({
+  name: "PriorityConnection",
+  fields: () => ({
+    edges: {
+      type: new GraphQLNonNull(
+        new GraphQLList(new GraphQLNonNull(PriorityEdge)),
+      ),
+    },
+    pageInfo: { type: new GraphQLNonNull(PageInfo) },
+  }),
+});
+IntFilterInput = new GraphQLInputObjectType({
+  name: "IntFilterInput",
+  fields: () => ({
+    ne: { type: GraphQLInt },
+    eq: { type: GraphQLInt },
+    le: { type: GraphQLInt },
+    lt: { type: GraphQLInt },
+    ge: { type: GraphQLInt },
+    gt: { type: GraphQLInt },
+    in: { type: new GraphQLList(new GraphQLNonNull(GraphQLInt)) },
+    between: { type: new GraphQLList(new GraphQLNonNull(GraphQLInt)) },
+    attributeExists: { type: GraphQLBoolean },
+  }),
+});
+PriorityFilterInput = new GraphQLInputObjectType({
+  name: "PriorityFilterInput",
+  fields: () => ({
+    title: { type: StringFilterInput },
+    value: { type: IntFilterInput },
+    icon: { type: StringFilterInput },
+    and: { type: new GraphQLList(PriorityFilterInput) },
+    or: { type: new GraphQLList(PriorityFilterInput) },
+    not: { type: PriorityFilterInput },
+  }),
+});
+Status = new GraphQLObjectType({
+  name: "Status",
+  fields: () => ({
+    title: { type: GraphQLString },
+    icon: { type: GraphQLString },
+    id: { type: new GraphQLNonNull(GraphQLID) },
+    createdAt: { type: GraphQLString },
+    updatedAt: { type: GraphQLString },
+  }),
+  interfaces: () => [TagProperty, Node],
+});
+StatusEdge = new GraphQLObjectType({
+  name: "StatusEdge",
+  fields: () => ({ cursor: { type: GraphQLString }, node: { type: Status } }),
+});
+StatusConnection = new GraphQLObjectType({
+  name: "StatusConnection",
+  fields: () => ({
+    edges: {
+      type: new GraphQLNonNull(new GraphQLList(new GraphQLNonNull(StatusEdge))),
+    },
+    pageInfo: { type: new GraphQLNonNull(PageInfo) },
+  }),
+});
+StatusFilterInput = new GraphQLInputObjectType({
+  name: "StatusFilterInput",
+  fields: () => ({
+    title: { type: StringFilterInput },
+    icon: { type: StringFilterInput },
+    and: { type: new GraphQLList(StatusFilterInput) },
+    or: { type: new GraphQLList(StatusFilterInput) },
+    not: { type: StatusFilterInput },
+  }),
+});
+Workspace = new GraphQLObjectType({
+  name: "Workspace",
+  fields: () => ({
+    name: { type: GraphQLString },
+    owner: {
+      type: User,
+      resolve: async (source, _, ctx) => {
+        const result = await ctx.db.get(source.userId);
+        return result;
+      },
+    },
+    labels: {
+      type: new GraphQLNonNull(LabelConnection),
+      args: {
+        filter: { type: LabelFilterInput },
+        first: { type: GraphQLInt },
+        after: { type: GraphQLString },
+        sort: { type: SortDirection },
+      },
+      resolve: async (source, args, ctx) => {
+        let query = ctx.db
+          .where("sourceId")
+          .equals(source.id)
+          .and(
+            filterExpression({
+              __typename: {
+                beginsWith: "Label",
+              },
+            }),
+          );
+        if (args.filter) {
+          query = query.filter(filterExpression(args.filter));
+        }
+        if (args.sort === "DESC") {
+          query = query.reverse();
+        }
+        const result = await query.toArray();
+        return formatConnection({ items: result });
+      },
+    },
+    priorities: {
+      type: new GraphQLNonNull(PriorityConnection),
+      args: {
+        filter: { type: PriorityFilterInput },
+        first: { type: GraphQLInt },
+        after: { type: GraphQLString },
+        sort: { type: SortDirection },
+      },
+      resolve: async (source, args, ctx) => {
+        let query = ctx.db
+          .where("sourceId")
+          .equals(source.id)
+          .and(
+            filterExpression({
+              __typename: {
+                beginsWith: "Priority",
+              },
+            }),
+          );
+        if (args.filter) {
+          query = query.filter(filterExpression(args.filter));
+        }
+        if (args.sort === "DESC") {
+          query = query.reverse();
+        }
+        const result = await query.toArray();
+        return formatConnection({ items: result });
+      },
+    },
+    statuses: {
+      type: new GraphQLNonNull(StatusConnection),
+      args: {
+        filter: { type: StatusFilterInput },
+        first: { type: GraphQLInt },
+        after: { type: GraphQLString },
+        sort: { type: SortDirection },
+      },
+      resolve: async (source, args, ctx) => {
+        let query = ctx.db
+          .where("sourceId")
+          .equals(source.id)
+          .and(
+            filterExpression({
+              __typename: {
+                beginsWith: "Status",
+              },
+            }),
+          );
+        if (args.filter) {
+          query = query.filter(filterExpression(args.filter));
+        }
+        if (args.sort === "DESC") {
+          query = query.reverse();
+        }
+        const result = await query.toArray();
+        return formatConnection({ items: result });
+      },
+    },
+    id: { type: new GraphQLNonNull(GraphQLID) },
+    createdAt: { type: GraphQLString },
+    updatedAt: { type: GraphQLString },
+  }),
+  interfaces: () => [Node],
+});
 LabelEdgeFilterInput = new GraphQLInputObjectType({
   name: "LabelEdgeFilterInput",
   fields: () => ({
@@ -206,10 +380,6 @@ LabelEdgeFilterInput = new GraphQLInputObjectType({
     or: { type: new GraphQLList(LabelEdgeFilterInput) },
     not: { type: LabelEdgeFilterInput },
   }),
-});
-const SortDirection = new GraphQLEnumType({
-  name: "SortDirection",
-  values: { ASC: { value: "ASC" }, DESC: { value: "DESC" } },
 });
 Task = new GraphQLObjectType({
   name: "Task",
@@ -238,7 +408,16 @@ Task = new GraphQLObjectType({
         sort: { type: SortDirection },
       },
       resolve: async (source, args, ctx) => {
-        let query = ctx.db.where("bySourceId").equals("Task");
+        let query = ctx.db
+          .where("sourceId")
+          .equals(source.id)
+          .and(
+            filterExpression({
+              __typename: {
+                beginsWith: "LabelEdge",
+              },
+            }),
+          );
         if (args.filter) {
           query = query.filter(filterExpression(args.filter));
         }
@@ -246,7 +425,10 @@ Task = new GraphQLObjectType({
           query = query.reverse();
         }
         const result = await query.toArray();
-        return formatConnection({ items: [], keys: result });
+        return formatConnection({
+          items: [],
+          keys: result.map(({ targetId }) => targetId).filter(Boolean),
+        });
       },
     },
     id: { type: new GraphQLNonNull(GraphQLID) },
@@ -326,88 +508,93 @@ Viewer = new GraphQLObjectType({
         return formatConnection({ items: result });
       },
     },
-  }),
-});
-StatusEdge = new GraphQLObjectType({
-  name: "StatusEdge",
-  fields: () => ({ cursor: { type: GraphQLString }, node: { type: Status } }),
-});
-StatusConnection = new GraphQLObjectType({
-  name: "StatusConnection",
-  fields: () => ({
-    edges: {
-      type: new GraphQLNonNull(new GraphQLList(new GraphQLNonNull(StatusEdge))),
+    labels: {
+      type: new GraphQLNonNull(LabelConnection),
+      args: {
+        filter: { type: LabelFilterInput },
+        first: { type: GraphQLInt },
+        after: { type: GraphQLString },
+        sort: { type: SortDirection },
+      },
+      resolve: async (source, args, ctx) => {
+        let query = ctx.db
+          .where("sourceId")
+          .equals(source.workspaceId)
+          .and(
+            filterExpression({
+              __typename: {
+                eq: "Label",
+              },
+            }),
+          );
+        if (args.filter) {
+          query = query.filter(filterExpression(args.filter));
+        }
+        if (args.sort === "DESC") {
+          query = query.reverse();
+        }
+        const result = await query.toArray();
+        return formatConnection({ items: result });
+      },
     },
-    pageInfo: { type: new GraphQLNonNull(PageInfo) },
-  }),
-});
-StatusFilterInput = new GraphQLInputObjectType({
-  name: "StatusFilterInput",
-  fields: () => ({
-    title: { type: StringFilterInput },
-    icon: { type: StringFilterInput },
-    id: { type: IDFilterInput },
-    createdAt: { type: StringFilterInput },
-    updatedAt: { type: StringFilterInput },
-    and: { type: new GraphQLList(StatusFilterInput) },
-    or: { type: new GraphQLList(StatusFilterInput) },
-    not: { type: StatusFilterInput },
-  }),
-});
-PriorityEdge = new GraphQLObjectType({
-  name: "PriorityEdge",
-  fields: () => ({ cursor: { type: GraphQLString }, node: { type: Priority } }),
-});
-PriorityConnection = new GraphQLObjectType({
-  name: "PriorityConnection",
-  fields: () => ({
-    edges: {
-      type: new GraphQLNonNull(
-        new GraphQLList(new GraphQLNonNull(PriorityEdge)),
-      ),
+    priorities: {
+      type: new GraphQLNonNull(PriorityConnection),
+      args: {
+        filter: { type: PriorityFilterInput },
+        first: { type: GraphQLInt },
+        after: { type: GraphQLString },
+        sort: { type: SortDirection },
+      },
+      resolve: async (source, args, ctx) => {
+        let query = ctx.db
+          .where("sourceId")
+          .equals(source.workspaceId)
+          .and(
+            filterExpression({
+              __typename: {
+                eq: "Priority",
+              },
+            }),
+          );
+        if (args.filter) {
+          query = query.filter(filterExpression(args.filter));
+        }
+        if (args.sort === "DESC") {
+          query = query.reverse();
+        }
+        const result = await query.toArray();
+        return formatConnection({ items: result });
+      },
     },
-    pageInfo: { type: new GraphQLNonNull(PageInfo) },
-  }),
-});
-IntFilterInput = new GraphQLInputObjectType({
-  name: "IntFilterInput",
-  fields: () => ({
-    ne: { type: GraphQLInt },
-    eq: { type: GraphQLInt },
-    le: { type: GraphQLInt },
-    lt: { type: GraphQLInt },
-    ge: { type: GraphQLInt },
-    gt: { type: GraphQLInt },
-    in: { type: new GraphQLList(new GraphQLNonNull(GraphQLInt)) },
-    between: { type: new GraphQLList(new GraphQLNonNull(GraphQLInt)) },
-    attributeExists: { type: GraphQLBoolean },
-  }),
-});
-PriorityFilterInput = new GraphQLInputObjectType({
-  name: "PriorityFilterInput",
-  fields: () => ({
-    title: { type: StringFilterInput },
-    value: { type: IntFilterInput },
-    icon: { type: StringFilterInput },
-    id: { type: IDFilterInput },
-    createdAt: { type: StringFilterInput },
-    updatedAt: { type: StringFilterInput },
-    and: { type: new GraphQLList(PriorityFilterInput) },
-    or: { type: new GraphQLList(PriorityFilterInput) },
-    not: { type: PriorityFilterInput },
-  }),
-});
-LabelFilterInput = new GraphQLInputObjectType({
-  name: "LabelFilterInput",
-  fields: () => ({
-    title: { type: StringFilterInput },
-    color: { type: StringFilterInput },
-    id: { type: IDFilterInput },
-    createdAt: { type: StringFilterInput },
-    updatedAt: { type: StringFilterInput },
-    and: { type: new GraphQLList(LabelFilterInput) },
-    or: { type: new GraphQLList(LabelFilterInput) },
-    not: { type: LabelFilterInput },
+    statuses: {
+      type: new GraphQLNonNull(StatusConnection),
+      args: {
+        filter: { type: StatusFilterInput },
+        first: { type: GraphQLInt },
+        after: { type: GraphQLString },
+        sort: { type: SortDirection },
+      },
+      resolve: async (source, args, ctx) => {
+        let query = ctx.db
+          .where("sourceId")
+          .equals(source.workspaceId)
+          .and(
+            filterExpression({
+              __typename: {
+                eq: "Status",
+              },
+            }),
+          );
+        if (args.filter) {
+          query = query.filter(filterExpression(args.filter));
+        }
+        if (args.sort === "DESC") {
+          query = query.reverse();
+        }
+        const result = await query.toArray();
+        return formatConnection({ items: result });
+      },
+    },
   }),
 });
 Query = new GraphQLObjectType({
@@ -445,7 +632,7 @@ Query = new GraphQLObjectType({
         sort: { type: SortDirection },
       },
       resolve: async (_, args, ctx) => {
-        let query = ctx.db.where("byTypename").equals("Task");
+        let query = ctx.db.where("__typename").equals("Status");
         if (args.filter) {
           query = query.filter(filterExpression(args.filter));
         }
@@ -473,7 +660,7 @@ Query = new GraphQLObjectType({
         sort: { type: SortDirection },
       },
       resolve: async (_, args, ctx) => {
-        let query = ctx.db.where("byTypename").equals("Task");
+        let query = ctx.db.where("__typename").equals("Priority");
         if (args.filter) {
           query = query.filter(filterExpression(args.filter));
         }
@@ -501,7 +688,7 @@ Query = new GraphQLObjectType({
         sort: { type: SortDirection },
       },
       resolve: async (_, args, ctx) => {
-        let query = ctx.db.where("byTypename").equals("Task");
+        let query = ctx.db.where("__typename").equals("Label");
         if (args.filter) {
           query = query.filter(filterExpression(args.filter));
         }
@@ -572,7 +759,7 @@ CreateTaskInput = new GraphQLInputObjectType({
     statusId: { type: GraphQLID },
     priorityId: { type: GraphQLID },
     sourceId: { type: GraphQLID },
-    id: { type: new GraphQLNonNull(GraphQLID) },
+    id: { type: GraphQLID },
     createdAt: { type: GraphQLString },
     updatedAt: { type: GraphQLString },
   }),
@@ -601,7 +788,8 @@ CreateStatusInput = new GraphQLInputObjectType({
   fields: () => ({
     title: { type: GraphQLString },
     icon: { type: GraphQLString },
-    id: { type: new GraphQLNonNull(GraphQLID) },
+    sourceId: { type: GraphQLID },
+    id: { type: GraphQLID },
     createdAt: { type: GraphQLString },
     updatedAt: { type: GraphQLString },
   }),
@@ -611,6 +799,7 @@ UpdateStatusInput = new GraphQLInputObjectType({
   fields: () => ({
     title: { type: GraphQLString },
     icon: { type: GraphQLString },
+    sourceId: { type: GraphQLID },
     id: { type: new GraphQLNonNull(GraphQLID) },
     createdAt: { type: GraphQLString },
     updatedAt: { type: GraphQLString },
@@ -622,7 +811,8 @@ CreatePriorityInput = new GraphQLInputObjectType({
     title: { type: GraphQLString },
     value: { type: GraphQLInt },
     icon: { type: GraphQLString },
-    id: { type: new GraphQLNonNull(GraphQLID) },
+    sourceId: { type: GraphQLID },
+    id: { type: GraphQLID },
     createdAt: { type: GraphQLString },
     updatedAt: { type: GraphQLString },
   }),
@@ -633,6 +823,7 @@ UpdatePriorityInput = new GraphQLInputObjectType({
     title: { type: GraphQLString },
     value: { type: GraphQLInt },
     icon: { type: GraphQLString },
+    sourceId: { type: GraphQLID },
     id: { type: new GraphQLNonNull(GraphQLID) },
     createdAt: { type: GraphQLString },
     updatedAt: { type: GraphQLString },
@@ -643,7 +834,8 @@ CreateLabelInput = new GraphQLInputObjectType({
   fields: () => ({
     title: { type: GraphQLString },
     color: { type: GraphQLString },
-    id: { type: new GraphQLNonNull(GraphQLID) },
+    sourceId: { type: GraphQLID },
+    id: { type: GraphQLID },
     createdAt: { type: GraphQLString },
     updatedAt: { type: GraphQLString },
   }),
@@ -653,6 +845,7 @@ UpdateLabelInput = new GraphQLInputObjectType({
   fields: () => ({
     title: { type: GraphQLString },
     color: { type: GraphQLString },
+    sourceId: { type: GraphQLID },
     id: { type: new GraphQLNonNull(GraphQLID) },
     createdAt: { type: GraphQLString },
     updatedAt: { type: GraphQLString },
@@ -933,10 +1126,17 @@ export const schema = new GraphQLSchema({
     SortDirection,
     UpdateUserInput,
     UpdateWorkspaceInput,
-    CreateTaskInput,
-    UpdateTaskInput,
     LabelConnection,
     LabelEdge,
+    LabelFilterInput,
+    PriorityConnection,
+    PriorityEdge,
+    PriorityFilterInput,
+    StatusConnection,
+    StatusEdge,
+    StatusFilterInput,
+    CreateTaskInput,
+    UpdateTaskInput,
     LabelEdgeFilterInput,
     LabelEdgeInput,
     CreateStatusInput,
@@ -948,12 +1148,5 @@ export const schema = new GraphQLSchema({
     TaskConnection,
     TaskEdge,
     TaskFilterInput,
-    StatusConnection,
-    StatusEdge,
-    StatusFilterInput,
-    PriorityConnection,
-    PriorityEdge,
-    PriorityFilterInput,
-    LabelFilterInput,
   ],
 });

@@ -4,6 +4,7 @@ import { z } from "zod";
 import { zodResolver } from "@hookform/resolvers/zod";
 import { Form, FormField } from "@/components/ui/form";
 import { TextInputField } from "@/components/text-input-field";
+import { ComboboxInputField } from "@/components/combobox-input-field";
 
 const schema = z.object({
   title: z.string().min(1),
@@ -29,12 +30,36 @@ const CreateTaskForm: FC<CreateTaskFormProps> = (props) => {
 
   return (
     <Form {...form}>
-      <form onSubmit={form.handleSubmit(onSubmit)} className="my-4 flex flex-col gap-4">
+      <form onSubmit={form.handleSubmit(onSubmit)} className="my-4 flex flex-col gap-6">
         <FormField
           control={form.control}
           name="title"
           render={({ field }) => (
             <TextInputField field={field} label="Title" placeholder="My awesome task title" />
+          )}
+        />
+        <FormField
+          control={form.control}
+          name="statusId"
+          render={({ field }) => (
+            <ComboboxInputField
+              field={field}
+              label="Status"
+              placeholder="Select status"
+              options={[]}
+            />
+          )}
+        />
+        <FormField
+          control={form.control}
+          name="priorityId"
+          render={({ field }) => (
+            <ComboboxInputField
+              field={field}
+              label="Priority"
+              placeholder="Select priority"
+              options={[]}
+            />
           )}
         />
         {children}

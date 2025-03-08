@@ -11,6 +11,9 @@ type User implements Node {
 type Workspace implements Node {
   name: String
   owner: User
+  labels(filter: LabelFilterInput, first: Int, after: String, sort: SortDirection): LabelConnection!
+  priorities(filter: PriorityFilterInput, first: Int, after: String, sort: SortDirection): PriorityConnection!
+  statuses(filter: StatusFilterInput, first: Int, after: String, sort: SortDirection): StatusConnection!
   id: ID!
   createdAt: String
   updatedAt: String
@@ -59,6 +62,9 @@ type Viewer {
   user: User
   workspace: Workspace
   tasks(filter: TaskFilterInput, first: Int, after: String, sort: SortDirection): TaskConnection!
+  labels(filter: LabelFilterInput, first: Int, after: String, sort: SortDirection): LabelConnection!
+  priorities(filter: PriorityFilterInput, first: Int, after: String, sort: SortDirection): PriorityConnection!
+  statuses(filter: StatusFilterInput, first: Int, after: String, sort: SortDirection): StatusConnection!
 }
 
 type Query {
@@ -193,12 +199,67 @@ input UpdateWorkspaceInput {
   updatedAt: String
 }
 
+type LabelConnection {
+  edges: [LabelEdge!]!
+  pageInfo: PageInfo!
+}
+
+type LabelEdge {
+  cursor: String
+  node: Label
+}
+
+input LabelFilterInput {
+  title: StringFilterInput
+  color: StringFilterInput
+  and: [LabelFilterInput]
+  or: [LabelFilterInput]
+  not: LabelFilterInput
+}
+
+type PriorityConnection {
+  edges: [PriorityEdge!]!
+  pageInfo: PageInfo!
+}
+
+type PriorityEdge {
+  cursor: String
+  node: Priority
+}
+
+input PriorityFilterInput {
+  title: StringFilterInput
+  value: IntFilterInput
+  icon: StringFilterInput
+  and: [PriorityFilterInput]
+  or: [PriorityFilterInput]
+  not: PriorityFilterInput
+}
+
+type StatusConnection {
+  edges: [StatusEdge!]!
+  pageInfo: PageInfo!
+}
+
+type StatusEdge {
+  cursor: String
+  node: Status
+}
+
+input StatusFilterInput {
+  title: StringFilterInput
+  icon: StringFilterInput
+  and: [StatusFilterInput]
+  or: [StatusFilterInput]
+  not: StatusFilterInput
+}
+
 input CreateTaskInput {
   title: String
   statusId: ID
   priorityId: ID
   sourceId: ID
-  id: ID!
+  id: ID
   createdAt: String
   updatedAt: String
 }
@@ -211,16 +272,6 @@ input UpdateTaskInput {
   id: ID!
   createdAt: String
   updatedAt: String
-}
-
-type LabelConnection {
-  edges: [LabelEdge!]!
-  pageInfo: PageInfo!
-}
-
-type LabelEdge {
-  cursor: String
-  node: Label
 }
 
 input LabelEdgeFilterInput {
@@ -239,7 +290,8 @@ input LabelEdgeInput {
 input CreateStatusInput {
   title: String
   icon: String
-  id: ID!
+  sourceId: ID
+  id: ID
   createdAt: String
   updatedAt: String
 }
@@ -247,6 +299,7 @@ input CreateStatusInput {
 input UpdateStatusInput {
   title: String
   icon: String
+  sourceId: ID
   id: ID!
   createdAt: String
   updatedAt: String
@@ -256,7 +309,8 @@ input CreatePriorityInput {
   title: String
   value: Int
   icon: String
-  id: ID!
+  sourceId: ID
+  id: ID
   createdAt: String
   updatedAt: String
 }
@@ -265,6 +319,7 @@ input UpdatePriorityInput {
   title: String
   value: Int
   icon: String
+  sourceId: ID
   id: ID!
   createdAt: String
   updatedAt: String
@@ -273,7 +328,8 @@ input UpdatePriorityInput {
 input CreateLabelInput {
   title: String
   color: String
-  id: ID!
+  sourceId: ID
+  id: ID
   createdAt: String
   updatedAt: String
 }
@@ -281,6 +337,7 @@ input CreateLabelInput {
 input UpdateLabelInput {
   title: String
   color: String
+  sourceId: ID
   id: ID!
   createdAt: String
   updatedAt: String
@@ -304,58 +361,4 @@ input TaskFilterInput {
   and: [TaskFilterInput]
   or: [TaskFilterInput]
   not: TaskFilterInput
-}
-
-type StatusConnection {
-  edges: [StatusEdge!]!
-  pageInfo: PageInfo!
-}
-
-type StatusEdge {
-  cursor: String
-  node: Status
-}
-
-input StatusFilterInput {
-  title: StringFilterInput
-  icon: StringFilterInput
-  id: IDFilterInput
-  createdAt: StringFilterInput
-  updatedAt: StringFilterInput
-  and: [StatusFilterInput]
-  or: [StatusFilterInput]
-  not: StatusFilterInput
-}
-
-type PriorityConnection {
-  edges: [PriorityEdge!]!
-  pageInfo: PageInfo!
-}
-
-type PriorityEdge {
-  cursor: String
-  node: Priority
-}
-
-input PriorityFilterInput {
-  title: StringFilterInput
-  value: IntFilterInput
-  icon: StringFilterInput
-  id: IDFilterInput
-  createdAt: StringFilterInput
-  updatedAt: StringFilterInput
-  and: [PriorityFilterInput]
-  or: [PriorityFilterInput]
-  not: PriorityFilterInput
-}
-
-input LabelFilterInput {
-  title: StringFilterInput
-  color: StringFilterInput
-  id: IDFilterInput
-  createdAt: StringFilterInput
-  updatedAt: StringFilterInput
-  and: [LabelFilterInput]
-  or: [LabelFilterInput]
-  not: LabelFilterInput
 }

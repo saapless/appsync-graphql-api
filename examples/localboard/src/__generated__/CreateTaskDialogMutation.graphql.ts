@@ -1,5 +1,5 @@
 /**
- * @generated SignedSource<<3fd245753a75065b4b85b14d48d4bcf2>>
+ * @generated SignedSource<<121b2307cc4c8d65f29f410229703134>>
  * @lightSyntaxTransform
  * @nogrep
  */
@@ -11,7 +11,7 @@
 import { ConcreteRequest } from 'relay-runtime';
 export type CreateTaskInput = {
   createdAt?: string | null;
-  id: string;
+  id?: string | null;
   priorityId?: string | null;
   sourceId?: string | null;
   statusId?: string | null;

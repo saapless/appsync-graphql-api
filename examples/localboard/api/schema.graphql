@@ -8,6 +8,9 @@ type User @model(operations: ["update"]) {
 type Workspace @model(operations: ["update"]) {
   name: String
   owner: User @hasOne
+  labels: Label @hasMany
+  priorities: Priority @hasMany
+  statuses: Status @hasMany
 }
 
 type Task @model(operations: [write]) {
@@ -42,6 +45,12 @@ type Viewer {
   user: User @hasOne(key: { ref: "source.userId" })
   workspace: Workspace @hasOne(key: { ref: "source.workspaceId" })
   tasks: Task @hasMany(key: { eq: "Task" }, index: "__typename")
+  labels: Label
+    @hasMany(key: { ref: "source.workspaceId" }, sortKey: { eq: "Label" }, index: "sourceId")
+  priorities: Priority
+    @hasMany(key: { ref: "source.workspaceId" }, sortKey: { eq: "Priority" }, index: "sourceId")
+  statuses: Status
+    @hasMany(key: { ref: "source.workspaceId" }, sortKey: { eq: "Status" }, index: "sourceId")
 }
 
 type Query {

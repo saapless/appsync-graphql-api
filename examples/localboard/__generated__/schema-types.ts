@@ -9,6 +9,24 @@ export type User = {
   updatedAt?: Maybe<string>;
   __typename: string;
 };
+export type WorkspaceLabelsArgs = {
+  filter?: Maybe<LabelFilterInput>;
+  first?: Maybe<number>;
+  after?: Maybe<string>;
+  sort?: Maybe<SortDirection>;
+};
+export type WorkspacePrioritiesArgs = {
+  filter?: Maybe<PriorityFilterInput>;
+  first?: Maybe<number>;
+  after?: Maybe<string>;
+  sort?: Maybe<SortDirection>;
+};
+export type WorkspaceStatusesArgs = {
+  filter?: Maybe<StatusFilterInput>;
+  first?: Maybe<number>;
+  after?: Maybe<string>;
+  sort?: Maybe<SortDirection>;
+};
 export type Workspace = {
   name?: Maybe<string>;
   userId?: Maybe<string>;
@@ -39,6 +57,7 @@ export interface TagProperty {
 export type Status = {
   title?: Maybe<string>;
   icon?: Maybe<string>;
+  sourceId?: Maybe<string>;
   id: string;
   createdAt?: Maybe<string>;
   updatedAt?: Maybe<string>;
@@ -48,6 +67,7 @@ export type Priority = {
   title?: Maybe<string>;
   value: number;
   icon?: Maybe<string>;
+  sourceId?: Maybe<string>;
   id: string;
   createdAt?: Maybe<string>;
   updatedAt?: Maybe<string>;
@@ -56,6 +76,7 @@ export type Priority = {
 export type Label = {
   title?: Maybe<string>;
   color?: Maybe<string>;
+  sourceId?: Maybe<string>;
   id: string;
   createdAt?: Maybe<string>;
   updatedAt?: Maybe<string>;
@@ -63,6 +84,24 @@ export type Label = {
 };
 export type ViewerTasksArgs = {
   filter?: Maybe<TaskFilterInput>;
+  first?: Maybe<number>;
+  after?: Maybe<string>;
+  sort?: Maybe<SortDirection>;
+};
+export type ViewerLabelsArgs = {
+  filter?: Maybe<LabelFilterInput>;
+  first?: Maybe<number>;
+  after?: Maybe<string>;
+  sort?: Maybe<SortDirection>;
+};
+export type ViewerPrioritiesArgs = {
+  filter?: Maybe<PriorityFilterInput>;
+  first?: Maybe<number>;
+  after?: Maybe<string>;
+  sort?: Maybe<SortDirection>;
+};
+export type ViewerStatusesArgs = {
+  filter?: Maybe<StatusFilterInput>;
   first?: Maybe<number>;
   after?: Maybe<string>;
   sort?: Maybe<SortDirection>;
@@ -240,12 +279,65 @@ export type UpdateWorkspaceInput = {
   createdAt?: Maybe<string>;
   updatedAt?: Maybe<string>;
 };
+export type LabelConnection = {
+  edges: LabelEdge[];
+  pageInfo: PageInfo;
+  keys?: Maybe<Node[]>;
+};
+export type LabelEdge = {
+  cursor?: Maybe<string>;
+  node?: Maybe<Label>;
+  id: string;
+  sourceId: string;
+  targetId: string;
+  createdAt: string;
+  updatedAt: string;
+  __typename: string;
+};
+export type LabelFilterInput = {
+  title?: Maybe<StringFilterInput>;
+  color?: Maybe<StringFilterInput>;
+  and?: Maybe<LabelFilterInput[]>;
+  or?: Maybe<LabelFilterInput[]>;
+  not?: Maybe<LabelFilterInput>;
+};
+export type PriorityConnection = {
+  edges: PriorityEdge[];
+  pageInfo: PageInfo;
+};
+export type PriorityEdge = {
+  cursor?: Maybe<string>;
+  node?: Maybe<Priority>;
+};
+export type PriorityFilterInput = {
+  title?: Maybe<StringFilterInput>;
+  value?: Maybe<IntFilterInput>;
+  icon?: Maybe<StringFilterInput>;
+  and?: Maybe<PriorityFilterInput[]>;
+  or?: Maybe<PriorityFilterInput[]>;
+  not?: Maybe<PriorityFilterInput>;
+};
+export type StatusConnection = {
+  edges: StatusEdge[];
+  pageInfo: PageInfo;
+};
+export type StatusEdge = {
+  cursor?: Maybe<string>;
+  node?: Maybe<Status>;
+};
+export type StatusFilterInput = {
+  title?: Maybe<StringFilterInput>;
+  icon?: Maybe<StringFilterInput>;
+  and?: Maybe<StatusFilterInput[]>;
+  or?: Maybe<StatusFilterInput[]>;
+  not?: Maybe<StatusFilterInput>;
+};
 export type CreateTaskInput = {
   title?: Maybe<string>;
   statusId?: Maybe<string>;
   priorityId?: Maybe<string>;
   sourceId?: Maybe<string>;
-  id: string;
+  id?: Maybe<string>;
   createdAt?: Maybe<string>;
   updatedAt?: Maybe<string>;
 };
@@ -257,21 +349,6 @@ export type UpdateTaskInput = {
   id: string;
   createdAt?: Maybe<string>;
   updatedAt?: Maybe<string>;
-};
-export type LabelConnection = {
-  edges: LabelEdge[];
-  pageInfo: PageInfo;
-  keys?: Maybe<Node[]>;
-};
-export type LabelEdge = {
-  cursor?: Maybe<string>;
-  node?: Maybe<Label>;
-  id: string;
-  _sk: string;
-  sourceId: string;
-  targetId: string;
-  createdAt: string;
-  updatedAt: string;
 };
 export type LabelEdgeFilterInput = {
   createdAt?: Maybe<StringFilterInput>;
@@ -287,13 +364,15 @@ export type LabelEdgeInput = {
 export type CreateStatusInput = {
   title?: Maybe<string>;
   icon?: Maybe<string>;
-  id: string;
+  sourceId?: Maybe<string>;
+  id?: Maybe<string>;
   createdAt?: Maybe<string>;
   updatedAt?: Maybe<string>;
 };
 export type UpdateStatusInput = {
   title?: Maybe<string>;
   icon?: Maybe<string>;
+  sourceId?: Maybe<string>;
   id: string;
   createdAt?: Maybe<string>;
   updatedAt?: Maybe<string>;
@@ -302,7 +381,8 @@ export type CreatePriorityInput = {
   title?: Maybe<string>;
   value?: Maybe<number>;
   icon?: Maybe<string>;
-  id: string;
+  sourceId?: Maybe<string>;
+  id?: Maybe<string>;
   createdAt?: Maybe<string>;
   updatedAt?: Maybe<string>;
 };
@@ -310,6 +390,7 @@ export type UpdatePriorityInput = {
   title?: Maybe<string>;
   value?: Maybe<number>;
   icon?: Maybe<string>;
+  sourceId?: Maybe<string>;
   id: string;
   createdAt?: Maybe<string>;
   updatedAt?: Maybe<string>;
@@ -317,13 +398,15 @@ export type UpdatePriorityInput = {
 export type CreateLabelInput = {
   title?: Maybe<string>;
   color?: Maybe<string>;
-  id: string;
+  sourceId?: Maybe<string>;
+  id?: Maybe<string>;
   createdAt?: Maybe<string>;
   updatedAt?: Maybe<string>;
 };
 export type UpdateLabelInput = {
   title?: Maybe<string>;
   color?: Maybe<string>;
+  sourceId?: Maybe<string>;
   id: string;
   createdAt?: Maybe<string>;
   updatedAt?: Maybe<string>;
@@ -344,51 +427,4 @@ export type TaskFilterInput = {
   and?: Maybe<TaskFilterInput[]>;
   or?: Maybe<TaskFilterInput[]>;
   not?: Maybe<TaskFilterInput>;
-};
-export type StatusConnection = {
-  edges: StatusEdge[];
-  pageInfo: PageInfo;
-};
-export type StatusEdge = {
-  cursor?: Maybe<string>;
-  node?: Maybe<Status>;
-};
-export type StatusFilterInput = {
-  title?: Maybe<StringFilterInput>;
-  icon?: Maybe<StringFilterInput>;
-  id?: Maybe<IDFilterInput>;
-  createdAt?: Maybe<StringFilterInput>;
-  updatedAt?: Maybe<StringFilterInput>;
-  and?: Maybe<StatusFilterInput[]>;
-  or?: Maybe<StatusFilterInput[]>;
-  not?: Maybe<StatusFilterInput>;
-};
-export type PriorityConnection = {
-  edges: PriorityEdge[];
-  pageInfo: PageInfo;
-};
-export type PriorityEdge = {
-  cursor?: Maybe<string>;
-  node?: Maybe<Priority>;
-};
-export type PriorityFilterInput = {
-  title?: Maybe<StringFilterInput>;
-  value?: Maybe<IntFilterInput>;
-  icon?: Maybe<StringFilterInput>;
-  id?: Maybe<IDFilterInput>;
-  createdAt?: Maybe<StringFilterInput>;
-  updatedAt?: Maybe<StringFilterInput>;
-  and?: Maybe<PriorityFilterInput[]>;
-  or?: Maybe<PriorityFilterInput[]>;
-  not?: Maybe<PriorityFilterInput>;
-};
-export type LabelFilterInput = {
-  title?: Maybe<StringFilterInput>;
-  color?: Maybe<StringFilterInput>;
-  id?: Maybe<IDFilterInput>;
-  createdAt?: Maybe<StringFilterInput>;
-  updatedAt?: Maybe<StringFilterInput>;
-  and?: Maybe<LabelFilterInput[]>;
-  or?: Maybe<LabelFilterInput[]>;
-  not?: Maybe<LabelFilterInput>;
 };

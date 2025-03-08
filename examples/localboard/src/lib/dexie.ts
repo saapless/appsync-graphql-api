@@ -1,5 +1,6 @@
 import { Dexie, EntityTable } from "dexie";
-import { Node, User, Viewer, Workspace } from "../../__generated__/schema-types";
+import { Node } from "../../__generated__/schema-types";
+import { getRecords } from "../../data/seed";
 
 export interface LocalBoardDB extends Dexie {
   records: EntityTable<Node, "id">;
@@ -13,34 +14,8 @@ db.version(1).stores({
 });
 
 db.on("populate", (tx) => {
-  const timestamp = new Date().toISOString();
-
-  const user = {
-    id: crypto.randomUUID(),
-    firstName: "Finn",
-    lastName: "Sparklewood",
-    email: "finn.sparky87@saapless.com",
-    createdAt: timestamp,
-    updatedAt: timestamp,
-    __typename: "User",
-  } satisfies User;
-
-  const workspace = {
-    id: crypto.randomUUID(),
-    name: "SparkleTech HQ",
-    userId: user.id,
-    createdAt: timestamp,
-    updatedAt: timestamp,
-    __typename: "Workspace",
-  } satisfies Workspace;
-
-  const viewer = {
-    id: "root:viewer:id",
-    userId: user.id,
-    workspaceId: workspace.id,
-  } satisfies Viewer;
-
-  tx.table("records").bulkAdd([user, workspace, viewer]);
+  const records = getRecords();
+  tx.table("records").bulkAdd(records);
 });
 
 export default db;

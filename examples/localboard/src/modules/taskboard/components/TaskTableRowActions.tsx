@@ -35,7 +35,7 @@ export const TaskTableRowActions: FC<{ row: Row<TaskNode> }> = ({ row }) => {
         <DropdownMenuSub>
           <DropdownMenuSubTrigger>Labels</DropdownMenuSubTrigger>
           <DropdownMenuSubContent>
-            <DropdownMenuRadioGroup value={row.original.labels.edges[0].node?.id}>
+            <DropdownMenuRadioGroup value={row.original.labels?.edges[0]?.node?.id}>
               {/* {labels.map((label) => (
                 <DropdownMenuRadioItem key={label.value} value={label.value}>
                   {label.label}

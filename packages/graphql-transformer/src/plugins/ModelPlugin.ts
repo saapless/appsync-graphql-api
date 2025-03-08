@@ -191,11 +191,16 @@ export class ModelPlugin extends TransformerPluginBase {
     }
   }
 
-  private _createMutationField(model: ObjectNode, fieldName: string, inputName: string) {
+  private _createMutationField(
+    model: ObjectNode,
+    fieldName: string,
+    inputName: string,
+    requiredFields?: string[]
+  ) {
     const mutationNode = this.context.document.getMutationNode();
 
     if (!this.context.document.getNode(inputName)) {
-      this._createMutationInput(model, inputName, ["id"]);
+      this._createMutationInput(model, inputName, requiredFields);
     }
 
     if (!mutationNode.hasField(fieldName)) {
@@ -213,6 +218,8 @@ export class ModelPlugin extends TransformerPluginBase {
 
     if (verb === "delete") {
       this._createDeleteMutationField(model, fieldName);
+    } else if (verb === "update") {
+      this._createMutationField(model, fieldName, inputName, ["id"]);
     } else {
       this._createMutationField(model, fieldName, inputName);
     }

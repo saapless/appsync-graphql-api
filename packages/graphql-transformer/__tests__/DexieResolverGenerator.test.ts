@@ -110,7 +110,8 @@ describe("DexieResolverGenerator", () => {
       fieldName: "getTask",
       operation: {
         type: "get",
-        key: [{ ref: "args.id" }, { eq: "Task" }],
+        key: { ref: "args.id" },
+        sortKey: { eq: "Task" },
       },
       targetName: "Task",
       returnType: "result",
@@ -143,7 +144,25 @@ describe("DexieResolverGenerator", () => {
       operation: {
         type: "query",
         key: { eq: "Task" },
-        index: "typename",
+        index: "byTypename",
+      },
+      targetName: "Task",
+      returnType: "connection",
+    } satisfies ResolverDescriptor;
+
+    const result = generator.generate(descriptor);
+    expect(printDefinitions([result], "Query.listTasks.ts")).toMatchSnapshot();
+  });
+
+  it("generates queryItems resolver with composite key", () => {
+    const descriptor = {
+      typeName: "Task",
+      fieldName: "labels",
+      operation: {
+        type: "query",
+        key: { ref: "source.id" },
+        sortKey: { beginsWith: { eq: "Label" } },
+        index: "bySourceId",
       },
       targetName: "Task",
       returnType: "connection",

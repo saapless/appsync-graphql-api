@@ -1,6 +1,6 @@
 import ts from "typescript";
 import { addImport } from "../../utils";
-import { KeyValue, ResolverDescriptor } from "../../context";
+import { Key, KeyValue, ResolverDescriptor } from "../../context";
 
 export function getWhereMethod(clause: string) {
   switch (clause) {
@@ -40,7 +40,158 @@ export function keyValue<T extends string | number>(obj: KeyValue<T>) {
   throw new Error("Invalid key value");
 }
 
-export function initQuery(descriptor: ResolverDescriptor) {
+export function createSortKeyExpression(key: Record<string, Key>) {
+  return ts.factory.createObjectLiteralExpression(
+    Object.entries(key).reduce((agg, [name, op]) => {
+      if (op.ref || op.eq) {
+        agg.push(
+          ts.factory.createPropertyAssignment(
+            ts.factory.createIdentifier(name),
+            ts.factory.createObjectLiteralExpression(
+              [
+                ts.factory.createPropertyAssignment(
+                  ts.factory.createIdentifier("eq"),
+                  keyValue(op)
+                ),
+              ],
+              true
+            )
+          )
+        );
+      } else if (op.le) {
+        agg.push(
+          ts.factory.createPropertyAssignment(
+            ts.factory.createIdentifier(name),
+            ts.factory.createObjectLiteralExpression(
+              [
+                ts.factory.createPropertyAssignment(
+                  ts.factory.createIdentifier("le"),
+                  keyValue(op.le)
+                ),
+              ],
+              true
+            )
+          )
+        );
+      } else if (op.lt) {
+        agg.push(
+          ts.factory.createPropertyAssignment(
+            ts.factory.createIdentifier(name),
+            ts.factory.createObjectLiteralExpression(
+              [
+                ts.factory.createPropertyAssignment(
+                  ts.factory.createIdentifier("lt"),
+                  keyValue(op.lt)
+                ),
+              ],
+              true
+            )
+          )
+        );
+      } else if (op.ge) {
+        agg.push(
+          ts.factory.createPropertyAssignment(
+            ts.factory.createIdentifier(name),
+            ts.factory.createObjectLiteralExpression(
+              [
+                ts.factory.createPropertyAssignment(
+                  ts.factory.createIdentifier("ge"),
+                  keyValue(op.ge)
+                ),
+              ],
+              true
+            )
+          )
+        );
+      } else if (op.gt) {
+        agg.push(
+          ts.factory.createPropertyAssignment(
+            ts.factory.createIdentifier(name),
+            ts.factory.createObjectLiteralExpression(
+              [
+                ts.factory.createPropertyAssignment(
+                  ts.factory.createIdentifier("gt"),
+                  keyValue(op.gt)
+                ),
+              ],
+              true
+            )
+          )
+        );
+      } else if (op.between) {
+        agg.push(
+          ts.factory.createPropertyAssignment(
+            ts.factory.createIdentifier(name),
+            ts.factory.createObjectLiteralExpression(
+              [
+                ts.factory.createPropertyAssignment(
+                  ts.factory.createIdentifier("between"),
+                  ts.factory.createArrayLiteralExpression(op.between.map((i) => keyValue(i)))
+                ),
+              ],
+              true
+            )
+          )
+        );
+      } else if (op.beginsWith) {
+        agg.push(
+          ts.factory.createPropertyAssignment(
+            ts.factory.createIdentifier(name),
+            ts.factory.createObjectLiteralExpression(
+              [
+                ts.factory.createPropertyAssignment(
+                  ts.factory.createIdentifier("beginsWith"),
+                  keyValue(op.beginsWith)
+                ),
+              ],
+              true
+            )
+          )
+        );
+      }
+      return agg;
+    }, [] as ts.ObjectLiteralElementLike[])
+  );
+}
+
+export function initQuery(
+  { operation }: ResolverDescriptor,
+  indexName?: string | null,
+  sortKeyField = "__typename"
+) {
+  let queryCall = ts.factory.createCallExpression(
+    ts.factory.createPropertyAccessExpression(
+      ts.factory.createCallExpression(
+        ts.factory.createPropertyAccessExpression(
+          ts.factory.createPropertyAccessExpression(
+            ts.factory.createIdentifier("ctx"),
+            ts.factory.createIdentifier("db")
+          ),
+          ts.factory.createIdentifier("where")
+        ),
+        undefined,
+        [ts.factory.createStringLiteral(indexName ?? ":id")]
+      ),
+      getWhereMethod(Object.keys(operation.key)[0])
+    ),
+    undefined,
+    [keyValue(operation.key)]
+  );
+
+  if (operation.sortKey) {
+    queryCall = ts.factory.createCallExpression(
+      ts.factory.createPropertyAccessExpression(queryCall, ts.factory.createIdentifier("and")),
+      undefined,
+      [
+        ts.factory.createCallExpression(
+          ts.factory.createIdentifier("filterExpression"),
+          undefined,
+          [createSortKeyExpression({ [sortKeyField]: operation.sortKey })]
+        ),
+      ]
+    );
+  }
+
   return ts.factory.createVariableStatement(
     undefined,
     ts.factory.createVariableDeclarationList(
@@ -49,24 +200,7 @@ export function initQuery(descriptor: ResolverDescriptor) {
           ts.factory.createIdentifier("query"),
           undefined,
           undefined,
-          ts.factory.createCallExpression(
-            ts.factory.createPropertyAccessExpression(
-              ts.factory.createCallExpression(
-                ts.factory.createPropertyAccessExpression(
-                  ts.factory.createPropertyAccessExpression(
-                    ts.factory.createIdentifier("ctx"),
-                    ts.factory.createIdentifier("db")
-                  ),
-                  ts.factory.createIdentifier("where")
-                ),
-                undefined,
-                [ts.factory.createStringLiteral(descriptor.operation.index ?? ":id")]
-              ),
-              ts.factory.createIdentifier("equals")
-            ),
-            undefined,
-            [ts.factory.createStringLiteral("Task")]
-          )
+          queryCall
         ),
       ],
       ts.NodeFlags.Let
@@ -376,8 +510,8 @@ export function initBulkGet() {
             ts.factory.createCallExpression(
               ts.factory.createPropertyAccessExpression(
                 ts.factory.createPropertyAccessExpression(
-                  ts.factory.createIdentifier("ctx.db"),
-                  ts.factory.createIdentifier("records")
+                  ts.factory.createIdentifier("ctx"),
+                  ts.factory.createIdentifier("db")
                 ),
                 ts.factory.createIdentifier("bulkGet")
               ),
@@ -599,7 +733,21 @@ export function initDeleteItem() {
   ];
 }
 
-export function formatResult(descriptor: ResolverDescriptor, ast: ts.Node[], identifier?: string) {
+export function formatConnectionResult(
+  descriptor: ResolverDescriptor,
+  ast: ts.Node[],
+  identifier: string
+) {
+  addImport(
+    ast,
+    "@saapless/graphql-utils",
+    ts.factory.createImportSpecifier(
+      false,
+      undefined,
+      ts.factory.createIdentifier("formatConnection")
+    )
+  );
+
   const props: ts.ObjectLiteralElementLike[] = [];
 
   if (descriptor.isEdge) {
@@ -610,7 +758,46 @@ export function formatResult(descriptor: ResolverDescriptor, ast: ts.Node[], ide
       ),
       ts.factory.createPropertyAssignment(
         ts.factory.createIdentifier("keys"),
-        ts.factory.createIdentifier("result")
+        ts.factory.createCallExpression(
+          ts.factory.createPropertyAccessExpression(
+            ts.factory.createCallExpression(
+              ts.factory.createPropertyAccessExpression(
+                ts.factory.createIdentifier(identifier),
+                ts.factory.createIdentifier("map")
+              ),
+              undefined,
+              [
+                ts.factory.createArrowFunction(
+                  undefined,
+                  undefined,
+                  [
+                    ts.factory.createParameterDeclaration(
+                      undefined,
+                      undefined,
+                      ts.factory.createObjectBindingPattern([
+                        ts.factory.createBindingElement(
+                          undefined,
+                          undefined,
+                          ts.factory.createIdentifier("targetId"),
+                          undefined
+                        ),
+                      ]),
+                      undefined,
+                      undefined,
+                      undefined
+                    ),
+                  ],
+                  undefined,
+                  ts.factory.createToken(ts.SyntaxKind.EqualsGreaterThanToken),
+                  ts.factory.createIdentifier("targetId")
+                ),
+              ]
+            ),
+            ts.factory.createIdentifier("filter")
+          ),
+          undefined,
+          [ts.factory.createIdentifier("Boolean")]
+        )
       )
     );
   } else {
@@ -622,25 +809,93 @@ export function formatResult(descriptor: ResolverDescriptor, ast: ts.Node[], ide
     );
   }
 
+  return ts.factory.createCallExpression(
+    ts.factory.createIdentifier("formatConnection"),
+    undefined,
+    [ts.factory.createObjectLiteralExpression(props)]
+  );
+}
+
+export function formatEdgesResult(
+  descriptor: ResolverDescriptor,
+  ast: ts.Node[],
+  identifier: string
+) {
+  addImport(
+    ast,
+    "@saapless/graphql-utils",
+    ts.factory.createImportSpecifier(false, undefined, ts.factory.createIdentifier("formatEdges"))
+  );
+
+  return ts.factory.createCallExpression(ts.factory.createIdentifier("formatEdges"), undefined, [
+    ts.factory.createIdentifier(identifier),
+  ]);
+}
+
+export function formatEdgeResult(
+  descriptor: ResolverDescriptor,
+  ast: ts.Node[],
+  identifier: string
+) {
+  addImport(
+    ast,
+    "@saapless/graphql-utils",
+    ts.factory.createImportSpecifier(false, undefined, ts.factory.createIdentifier("formatEdge"))
+  );
+
+  return ts.factory.createCallExpression(ts.factory.createIdentifier("formatEdge"), undefined, [
+    ts.factory.createIdentifier(identifier),
+  ]);
+}
+
+export function formatResult(
+  descriptor: ResolverDescriptor,
+  ast: ts.Node[],
+  identifier: string = "result"
+) {
   switch (descriptor.returnType) {
-    case "connection": {
-      addImport(
-        ast,
-        "@saapless/graphql-utils",
-        ts.factory.createImportSpecifier(
-          false,
-          undefined,
-          ts.factory.createIdentifier("formatConnection")
-        )
-      );
-      return ts.factory.createCallExpression(
-        ts.factory.createIdentifier("formatConnection"),
-        undefined,
-        [ts.factory.createObjectLiteralExpression(props)]
-      );
-    }
+    case "connection":
+      return formatConnectionResult(descriptor, ast, identifier);
+    case "edges":
+      return formatEdgesResult(descriptor, ast, identifier);
+    case "edge":
+      return formatEdgeResult(descriptor, ast, identifier);
     case "result":
     default:
       return ts.factory.createIdentifier(identifier ?? "result");
   }
+}
+
+export function checkEarlyReturn(descriptor: ResolverDescriptor, isArray: boolean = false) {
+  const propExists = ts.factory.createPropertyAccessChain(
+    ts.factory.createIdentifier("source"),
+    ts.factory.createToken(ts.SyntaxKind.QuestionDotToken),
+    ts.factory.createIdentifier(descriptor.fieldName)
+  );
+
+  return ts.factory.createIfStatement(
+    isArray
+      ? ts.factory.createBinaryExpression(
+          propExists,
+          ts.factory.createToken(ts.SyntaxKind.AmpersandAmpersandToken),
+          ts.factory.createPropertyAccessChain(
+            ts.factory.createPropertyAccessChain(
+              ts.factory.createIdentifier("source"),
+              undefined,
+              ts.factory.createIdentifier(descriptor.fieldName)
+            ),
+            undefined,
+            ts.factory.createIdentifier("length")
+          )
+        )
+      : propExists,
+    ts.factory.createBlock([
+      ts.factory.createReturnStatement(
+        ts.factory.createPropertyAccessExpression(
+          ts.factory.createIdentifier("source"),
+          ts.factory.createIdentifier(descriptor.fieldName)
+        )
+      ),
+    ])
+  );
 }
