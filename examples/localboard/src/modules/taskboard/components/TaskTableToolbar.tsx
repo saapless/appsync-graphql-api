@@ -4,7 +4,8 @@ import { X } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { TaskTableViewOptions } from "./TaskTableViewOptions";
-import { TaskTableFacetedFilter } from "./TaskTableFacetedFilter";
+import { StatusFilter } from "./StatusFilter";
+import { PriorityFilter } from "./PriorityFilter";
 
 interface DataTableToolbarProps<TData> {
   table: Table<TData>;
@@ -13,25 +14,20 @@ interface DataTableToolbarProps<TData> {
 export function TaskTableToolbar<TData>({ table }: DataTableToolbarProps<TData>) {
   const isFiltered = table.getState().columnFilters.length > 0;
 
+  const priorityColumn = table.getColumn("priority");
+  const statusColumn = table.getColumn("status");
+
   return (
     <div className="flex items-center justify-between">
       <div className="flex flex-1 items-center space-x-2">
         <Input
           placeholder="Filter tasks..."
-          value={(table.getColumn("title")?.getFilterValue() as string) ?? ""}
+          defaultValue={(table.getColumn("title")?.getFilterValue() as string) ?? ""}
           onChange={(event) => table.getColumn("title")?.setFilterValue(event.target.value)}
           className="h-8 w-[150px] lg:w-[250px]"
         />
-        {table.getColumn("status") && (
-          <TaskTableFacetedFilter column={table.getColumn("status")} title="Status" options={[]} />
-        )}
-        {table.getColumn("priority") && (
-          <TaskTableFacetedFilter
-            column={table.getColumn("priority")}
-            title="Priority"
-            options={[]}
-          />
-        )}
+        {statusColumn && <StatusFilter column={statusColumn} />}
+        {priorityColumn && <PriorityFilter column={priorityColumn} />}
         {isFiltered && (
           <Button
             variant="ghost"

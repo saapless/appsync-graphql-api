@@ -1,11 +1,11 @@
 import { ColumnDef } from "@tanstack/react-table";
 import { DynamicIcon, IconName } from "lucide-react/dynamic";
-import { Badge } from "@/components/ui/badge";
 import { Checkbox } from "@/components/ui/checkbox";
 
 import { TaskTableColumnHeader } from "./TaskTableColumnHeader";
 import { TaskTableRowActions } from "./TaskTableRowActions";
 import { TaskNode } from "./TaskTable";
+import { Badge } from "@/components/ui/badge";
 
 export const columns: ColumnDef<TaskNode>[] = [
   {
@@ -37,12 +37,19 @@ export const columns: ColumnDef<TaskNode>[] = [
     cell: ({ row }) => {
       const labels = row.original.labels.edges
         .filter(({ node }) => Boolean(node))
-        .map(({ node }) => <Badge variant="outline">{node?.title}</Badge>);
+        .map(
+          ({ node }) =>
+            node && (
+              <Badge key={node.id} variant="outline">
+                {node?.title}
+              </Badge>
+            )
+        );
 
       return (
         <div className="flex space-x-2">
-          {labels}
           <span className="max-w-[500px] truncate font-medium">{row.getValue("title")}</span>
+          {labels}
         </div>
       );
     },
@@ -50,6 +57,7 @@ export const columns: ColumnDef<TaskNode>[] = [
   {
     accessorKey: "status",
     header: ({ column }) => <TaskTableColumnHeader column={column} title="Status" />,
+    getUniqueValues: (row: TaskNode) => [row.status?.id],
     cell: ({ row }) => {
       const status = row.original.status;
 
@@ -69,13 +77,14 @@ export const columns: ColumnDef<TaskNode>[] = [
         </div>
       );
     },
-    filterFn: (row, id, value) => {
-      return value.includes(row.getValue(id));
+    filterFn: (row, _, value) => {
+      return value.includes(row.original.status?.id);
     },
   },
   {
     accessorKey: "priority",
     header: ({ column }) => <TaskTableColumnHeader column={column} title="Priority" />,
+    getUniqueValues: (row: TaskNode) => [row.priority?.id],
     cell: ({ row }) => {
       const priority = row.original.priority;
 
@@ -95,8 +104,8 @@ export const columns: ColumnDef<TaskNode>[] = [
         </div>
       );
     },
-    filterFn: (row, id, value) => {
-      return value.includes(row.getValue(id));
+    filterFn: (row, _, value) => {
+      return value.includes(row.original.priority?.id);
     },
   },
   {

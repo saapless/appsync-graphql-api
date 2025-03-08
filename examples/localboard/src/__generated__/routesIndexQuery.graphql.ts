@@ -1,5 +1,5 @@
 /**
- * @generated SignedSource<<dd3ac3e5db76a12019857bf2e7e394b6>>
+ * @generated SignedSource<<892472051c0f8a81c6f58418277596ff>>
  * @lightSyntaxTransform
  * @nogrep
  */
@@ -33,7 +33,7 @@ v1 = [
   {
     "kind": "Literal",
     "name": "first",
-    "value": 100
+    "value": 10
   }
 ],
 v2 = {
@@ -252,7 +252,7 @@ return {
                 "storageKey": null
               }
             ],
-            "storageKey": "tasks(first:100)"
+            "storageKey": "tasks(first:10)"
           },
           {
             "alias": null,
@@ -281,12 +281,12 @@ return {
     ]
   },
   "params": {
-    "cacheID": "78059fcb61afdefa57fe11f4253b4f65",
+    "cacheID": "d86449241618a7d7b751df32b8502ead",
     "id": null,
     "metadata": {},
     "name": "routesIndexQuery",
     "operationKind": "query",
-    "text": "query routesIndexQuery {\n  viewer {\n    ...TaskBoard_data\n  }\n}\n\nfragment TaskBoard_data on Viewer {\n  user {\n    id\n    firstName\n  }\n  ...TaskTable_data\n}\n\nfragment TaskTable_data on Viewer {\n  tasks(first: 100) {\n    edges {\n      node {\n        id\n        title\n        status {\n          id\n          title\n          icon\n        }\n        priority {\n          id\n          title\n          icon\n        }\n        labels {\n          edges {\n            node {\n              id\n              title\n              color\n            }\n          }\n        }\n        __typename\n      }\n      cursor\n    }\n    pageInfo {\n      endCursor\n      hasNextPage\n    }\n  }\n}\n"
+    "text": "query routesIndexQuery {\n  viewer {\n    ...TaskBoard_data\n  }\n}\n\nfragment TaskBoard_data on Viewer {\n  user {\n    id\n    firstName\n  }\n  ...TaskTable_data\n}\n\nfragment TaskTable_data on Viewer {\n  tasks(first: 10) {\n    edges {\n      node {\n        id\n        title\n        status {\n          id\n          title\n          icon\n        }\n        priority {\n          id\n          title\n          icon\n        }\n        labels {\n          edges {\n            node {\n              id\n              title\n              color\n            }\n          }\n        }\n        __typename\n      }\n      cursor\n    }\n    pageInfo {\n      endCursor\n      hasNextPage\n    }\n  }\n}\n"
   }
 };
 })();

@@ -1,3 +1,6 @@
+/* eslint-disable */
+// @ts-nocheck
+
 import {
   GraphQLObjectType,
   GraphQLString,
@@ -12,11 +15,7 @@ import {
   GraphQLEnumType,
   GraphQLSchema,
 } from "graphql";
-import {
-  filterExpression,
-  formatConnection,
-  formatEdges,
-} from "@saapless/graphql-utils";
+import { filterExpression, formatConnection, formatEdges } from "@saapless/graphql-utils";
 let User: GraphQLObjectType;
 let Workspace: GraphQLObjectType;
 let Task: GraphQLObjectType;
@@ -201,9 +200,7 @@ PriorityConnection = new GraphQLObjectType({
   name: "PriorityConnection",
   fields: () => ({
     edges: {
-      type: new GraphQLNonNull(
-        new GraphQLList(new GraphQLNonNull(PriorityEdge)),
-      ),
+      type: new GraphQLNonNull(new GraphQLList(new GraphQLNonNull(PriorityEdge))),
     },
     pageInfo: { type: new GraphQLNonNull(PageInfo) },
   }),
@@ -295,7 +292,7 @@ Workspace = new GraphQLObjectType({
               __typename: {
                 beginsWith: "Label",
               },
-            }),
+            })
           );
         if (args.filter) {
           query = query.filter(filterExpression(args.filter));
@@ -324,7 +321,7 @@ Workspace = new GraphQLObjectType({
               __typename: {
                 beginsWith: "Priority",
               },
-            }),
+            })
           );
         if (args.filter) {
           query = query.filter(filterExpression(args.filter));
@@ -353,7 +350,7 @@ Workspace = new GraphQLObjectType({
               __typename: {
                 beginsWith: "Status",
               },
-            }),
+            })
           );
         if (args.filter) {
           query = query.filter(filterExpression(args.filter));
@@ -416,7 +413,7 @@ Task = new GraphQLObjectType({
               __typename: {
                 beginsWith: "LabelEdge",
               },
-            }),
+            })
           );
         if (args.filter) {
           query = query.filter(filterExpression(args.filter));
@@ -525,7 +522,7 @@ Viewer = new GraphQLObjectType({
               __typename: {
                 eq: "Label",
               },
-            }),
+            })
           );
         if (args.filter) {
           query = query.filter(filterExpression(args.filter));
@@ -554,7 +551,7 @@ Viewer = new GraphQLObjectType({
               __typename: {
                 eq: "Priority",
               },
-            }),
+            })
           );
         if (args.filter) {
           query = query.filter(filterExpression(args.filter));
@@ -583,7 +580,7 @@ Viewer = new GraphQLObjectType({
               __typename: {
                 eq: "Status",
               },
-            }),
+            })
           );
         if (args.filter) {
           query = query.filter(filterExpression(args.filter));

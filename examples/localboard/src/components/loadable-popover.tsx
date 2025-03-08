@@ -1,5 +1,5 @@
 import type { GraphQLTaggedNode, OperationType } from "relay-runtime";
-import { ComponentProps, createContext, ReactNode, useContext } from "react";
+import { ComponentProps, createContext, ReactNode, Suspense, useContext } from "react";
 import { PreloadedQuery, usePreloadedQuery, useQueryLoader } from "react-relay/hooks";
 import { Popover, PopoverTrigger, PopoverContent } from "@/components/ui/popover";
 
@@ -38,21 +38,31 @@ function LoadablePopoverTrigger(props: ComponentProps<typeof PopoverTrigger>) {
   return <PopoverTrigger {...props} />;
 }
 
-function LoadablePopoverContentLoader(
-  props: Omit<ComponentProps<typeof LoadablePopoverContent>, "queryReference" | "taggedNode">
+function LoadablePopoverContentLoader<TQuery extends OperationType>(
+  props: Omit<
+    ComponentProps<typeof LoadablePopoverContent<TQuery>>,
+    "queryReference" | "taggedNode"
+  >
 ) {
   const { queryReference, taggedNode } = useContext(LoadablePopoverContext);
   return queryReference && taggedNode ? (
-    <LoadablePopoverContent {...props} queryReference={queryReference} taggedNode={taggedNode} />
+    <Suspense>
+      <LoadablePopoverContent<TQuery>
+        {...props}
+        queryReference={queryReference as PreloadedQuery<TQuery>}
+        taggedNode={taggedNode}
+      />
+    </Suspense>
   ) : null;
 }
 
-type LoadablePopoverContentProps<TQuery extends OperationType> = ComponentProps<
-  typeof PopoverContent
+type LoadablePopoverContentProps<TQuery extends OperationType> = Omit<
+  ComponentProps<typeof PopoverContent>,
+  "children"
 > & {
   queryReference: PreloadedQuery<TQuery>;
   taggedNode: GraphQLTaggedNode;
-  children: (data: TQuery["response"]) => ReactNode;
+  children: ReactNode | ((data: TQuery["response"]) => ReactNode);
 };
 
 function LoadablePopoverContent<TQuery extends OperationType>(
@@ -61,7 +71,11 @@ function LoadablePopoverContent<TQuery extends OperationType>(
   const { queryReference, taggedNode, children, ...rest } = props;
   const data = usePreloadedQuery<TQuery>(taggedNode, queryReference);
 
-  return <PopoverContent {...rest}>{children(data)}</PopoverContent>;
+  return (
+    <PopoverContent {...rest}>
+      {typeof children === "function" ? children(data) : children}
+    </PopoverContent>
+  );
 }
 
 export {

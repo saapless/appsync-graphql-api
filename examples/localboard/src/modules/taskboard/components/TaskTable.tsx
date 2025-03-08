@@ -32,7 +32,7 @@ import { useMemo, useState } from "react";
 
 const fragment = graphql`
   fragment TaskTable_data on Viewer {
-    tasks(first: 100) @connection(key: "TaskTable_tasks") {
+    tasks(first: 10) @connection(key: "TaskTable_tasks") {
       edges {
         node {
           id

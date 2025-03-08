@@ -2,6 +2,7 @@ import { routesIndexQuery } from "@/__generated__/routesIndexQuery.graphql";
 import { HeroSection, HeroSectionDescription, HeroSectionHeading } from "@/components/hero-section";
 import { TaskBoard } from "@/modules/taskboard";
 import { createFileRoute } from "@tanstack/react-router";
+import { Suspense } from "react";
 import { graphql, loadQuery, usePreloadedQuery } from "react-relay/hooks";
 
 const query = graphql`
@@ -30,11 +31,13 @@ function PageComponent() {
           A simple, lightweight, task management tool that works fully in the browser.
         </HeroSectionDescription>
       </HeroSection>
-      <section className="section">
-        <div className="container">
-          <TaskBoard data={data.viewer} />
-        </div>
-      </section>
+      <Suspense>
+        <section className="section">
+          <div className="container">
+            <TaskBoard data={data.viewer} />
+          </div>
+        </section>
+      </Suspense>
     </>
   );
 }
