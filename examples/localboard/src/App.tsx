@@ -7,7 +7,7 @@ import { environment } from "./lib/relay";
 import { ThemeProvider } from "./providers/theme";
 
 // Create a new router instance
-const router = createRouter({ routeTree });
+const router = createRouter({ routeTree, context: { environment } });
 
 // Register the router instance for type safety
 declare module "@tanstack/react-router" {

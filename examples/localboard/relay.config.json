@@ -1,6 +1,6 @@
 {
   "schema": "__generated__/schema.graphql",
-  "output": "src/__generated__",
+  "artifactDirectory": "src/__generated__",
   "language": "typescript",
   "typescriptExcludeUndefinedFromNullableUnion": true,
   "noFutureProofEnums": true,

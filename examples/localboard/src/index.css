@@ -122,3 +122,13 @@
     @apply bg-background text-foreground;
   }
 }
+
+@layer utilities {
+  .section {
+    @apply py-6 w-full;
+  }
+
+  .container {
+    @apply px-3 xl:px-5 mx-auto max-w-7xl;
+  }
+}

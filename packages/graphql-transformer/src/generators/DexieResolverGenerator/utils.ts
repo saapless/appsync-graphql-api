@@ -62,7 +62,7 @@ export function initQuery(descriptor: ResolverDescriptor) {
                 undefined,
                 [ts.factory.createStringLiteral(descriptor.operation.index ?? ":id")]
               ),
-              ts.factory.createIdentifier("eq")
+              ts.factory.createIdentifier("equals")
             ),
             undefined,
             [ts.factory.createStringLiteral("Task")]
