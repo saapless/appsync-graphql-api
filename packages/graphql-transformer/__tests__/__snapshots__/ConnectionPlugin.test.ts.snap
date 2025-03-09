@@ -139,7 +139,6 @@ type ResourceEdge {
   cursor: String @clientOnly
   node: Resource @clientOnly
   id: ID! @serverOnly
-  _sk: ID! @serverOnly
   sourceId: ID! @writeOnly
   targetId: ID! @writeOnly
   createdAt: AWSDateTime! @filterOnly

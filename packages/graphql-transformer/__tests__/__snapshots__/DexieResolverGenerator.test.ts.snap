@@ -2,8 +2,8 @@
 
 exports[`DexieResolverGenerator generates batchGetItems resolver 1`] = `
 "async (source, _, ctx) => {
-    const result = await db.friends.bulkGet(source.keys);
-    return result;
+    const result = await ctx.db.bulkGet(source.keys);
+    return formatEdges(result);
 }
 "
 `;
@@ -56,7 +56,24 @@ exports[`DexieResolverGenerator generates getItem resolver with nested key 1`] =
 
 exports[`DexieResolverGenerator generates queryItems resolver 1`] = `
 "async (_, __, ctx) => {
-    let query = ctx.db.where("typename").eq("Task");
+    let query = ctx.db.where("__typename").equals("Task");
+    if (args.filter) {
+        query = query.filter(filterExpression(args.filter));
+    }
+    if (args.sort === "DESC") {
+        query = query.reverse();
+    }
+    const result = await query.toArray();
+    return formatConnection({ items: result });
+}
+"
+`;
+
+exports[`DexieResolverGenerator generates queryItems resolver with composite key 1`] = `
+"async (source, _, ctx) => {
+    let query = ctx.db.where("sourceId").equals(source.id).and(filterExpression({ __typename: {
+            beginsWith: "Label"
+        } }));
     if (args.filter) {
         query = query.filter(filterExpression(args.filter));
     }

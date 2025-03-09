@@ -1,5 +1,6 @@
 {
   "jest.nodeEnv": {
     "NODE_OPTIONS": "--experimental-vm-modules"
-  }
+  },
+  "relay.rootDirectory": "examples/localboard"
 }

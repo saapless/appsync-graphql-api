@@ -1,5 +1,5 @@
 import { ConnectionDirective, RelationType, ScalarType, UtilityDirective } from "../constants";
-import { IndexType, TransformerContext } from "../context";
+import { TransformerContext } from "../context";
 import {
   DefinitionNode,
   DirectiveDefinitionNode,
@@ -172,7 +172,10 @@ export class ConnectionPlugin extends TransformerPluginBase {
     return undefined;
   }
 
-  private _getFieldConnection(field: FieldNode): FieldConnection | null {
+  private _getFieldConnection(
+    object: ObjectNode | InterfaceNode,
+    field: FieldNode
+  ): FieldConnection | null {
     const target = this._getConnectionTarget(field);
 
     if (!target) return null;
@@ -214,11 +217,17 @@ export class ConnectionPlugin extends TransformerPluginBase {
     if (directive) {
       const args = directive.getArgumentsJSON<DirectiveArgs>();
 
+      let sortKey = args.sortKey;
+
+      if (!sortKey && !args.key && !args.relation && object.name !== "Query") {
+        sortKey = { beginsWith: { eq: target.name } };
+      }
+
       return {
         relation: args.relation ?? RelationType.ONE_TO_MANY,
         target: target,
         key: args.key ?? { ref: "source.id" },
-        sortKey: args.sortKey ?? null,
+        sortKey: sortKey ?? null,
         index: args.index ?? "bySourceId",
       };
     }
@@ -429,14 +438,10 @@ export class ConnectionPlugin extends TransformerPluginBase {
             DirectiveNode.create(UtilityDirective.SERVER_ONLY),
           ])
         );
+
         edgeType
           .addField(
             FieldNode.create("id", NonNullTypeNode.create("ID"), null, [
-              DirectiveNode.create(UtilityDirective.SERVER_ONLY),
-            ])
-          )
-          .addField(
-            FieldNode.create("_sk", NonNullTypeNode.create("ID"), null, [
               DirectiveNode.create(UtilityDirective.SERVER_ONLY),
             ])
           )
@@ -460,6 +465,16 @@ export class ConnectionPlugin extends TransformerPluginBase {
               DirectiveNode.create(UtilityDirective.FILTER_ONLY),
             ])
           );
+
+        // Edges should not extend Node interface but should share fields.
+
+        const nodeFields = (this.context.document.getNode("Node") as InterfaceNode)?.fields ?? [];
+
+        for (const field of nodeFields) {
+          if (!edgeType.hasField(field.name)) {
+            edgeType.addField(FieldNode.fromDefinition(field.serialize()));
+          }
+        }
       }
 
       this._setConnectionArguments(field, hasEdgeRecord ? edgeType : (target as ObjectNode));
@@ -538,7 +553,7 @@ export class ConnectionPlugin extends TransformerPluginBase {
       operation: {
         type: "get",
         key: connection.key,
-        index: (connection.index as IndexType) ?? undefined,
+        index: connection.index ?? undefined,
       },
     });
   }
@@ -556,7 +571,8 @@ export class ConnectionPlugin extends TransformerPluginBase {
         operation: {
           type: "query",
           key: connection.key,
-          index: (connection.index as IndexType) ?? undefined,
+          sortKey: connection.sortKey ?? undefined,
+          index: connection.index ?? undefined,
         },
         returnType: "connection",
       });
@@ -572,8 +588,9 @@ export class ConnectionPlugin extends TransformerPluginBase {
         isEdge: true,
         operation: {
           type: "query",
-          key: [connection.key, { beginsWith: { eq: pascalCase(target.name, "Edge") } }],
-          index: (connection.index as IndexType) ?? undefined,
+          key: connection.key,
+          sortKey: { beginsWith: { eq: pascalCase(target.name, "Edge") } },
+          index: connection.index ?? undefined,
         },
         returnType: "connection",
       });
@@ -677,7 +694,7 @@ export class ConnectionPlugin extends TransformerPluginBase {
 
   public normalize(definition: ObjectNode | InterfaceNode): void {
     for (const field of definition.fields ?? []) {
-      const connection = this._getFieldConnection(field);
+      const connection = this._getFieldConnection(definition, field);
 
       if (!connection) {
         continue;
@@ -716,7 +733,7 @@ export class ConnectionPlugin extends TransformerPluginBase {
     }
 
     for (const field of definition.fields) {
-      const connection = this._getFieldConnection(field);
+      const connection = this._getFieldConnection(definition, field);
 
       if (!connection) {
         continue;

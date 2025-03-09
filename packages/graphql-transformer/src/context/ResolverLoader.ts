@@ -11,8 +11,6 @@ export type OperationActionType =
 
 export type ReturnType = "connection" | "edges" | "edge" | "result";
 
-export type IndexType = "sourceId" | "targetId" | "typename";
-
 export type KeyValue<T extends string | number = string> = {
   ref?: string;
   eq?: T;
@@ -31,8 +29,9 @@ export type Key<T extends string | number = string> = KeyValue<T> & KeyOperator<
 
 export type DescriptorOperation = {
   type: OperationActionType;
-  key: KeyValue | [pk: KeyValue, sk: Key];
-  index?: IndexType;
+  key: KeyValue;
+  sortKey?: Key;
+  index?: string;
 };
 
 export type ResolverDescriptor = {

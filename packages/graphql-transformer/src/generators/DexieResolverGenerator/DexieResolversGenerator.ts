@@ -3,6 +3,7 @@ import { ResolverDescriptor, TransformerContext } from "../../context";
 import { ObjectNode } from "../../definition";
 import { addImport, TransformPluginExecutionError } from "../../utils";
 import {
+  checkEarlyReturn,
   filterQuery,
   formatResult,
   getQueryResult,
@@ -15,15 +16,42 @@ import {
   sortQuery,
 } from "./utils";
 
+const defaultIndexMappings = {
+  bySourceId: "sourceId",
+  byTargetId: "targetId",
+  byTypename: "__typename",
+};
+
 export class DexieResolverGenerator {
   public readonly name = "DexieResolverGenerator";
 
   private readonly context: TransformerContext;
   private readonly _ast: ts.Node[] = [];
+  private readonly _indexMappings: Record<string, string>;
 
   constructor(context: TransformerContext, ast: ts.Node[]) {
     this.context = context;
     this._ast = ast;
+    this._indexMappings = defaultIndexMappings;
+  }
+
+  private _getOperationIndexName(operation: ResolverDescriptor["operation"]) {
+    if (!operation.index) {
+      return null;
+    }
+
+    if (Object.keys(this._indexMappings).includes(operation.index)) {
+      return this._indexMappings[operation.index];
+    }
+
+    if (Object.values(this._indexMappings).includes(operation.index)) {
+      return operation.index;
+    }
+
+    throw new TransformPluginExecutionError(
+      this.name,
+      `Index ${operation.index} not found in index mappings`
+    );
   }
 
   private _getArgs(descriptor: ResolverDescriptor) {
@@ -68,9 +96,20 @@ export class DexieResolverGenerator {
     );
   }
 
+  private _getEarlyReturn(descriptor: ResolverDescriptor) {
+    const statements: ts.Statement[] = [];
+
+    if (descriptor.checkEarlyReturn) {
+      statements.push(checkEarlyReturn(descriptor, descriptor.returnType === "edges"));
+    }
+
+    return statements;
+  }
+
   private _getItem(descriptor: ResolverDescriptor): ts.Block {
     return ts.factory.createBlock(
       [
+        ...this._getEarlyReturn(descriptor),
         initGetItem(descriptor),
         ts.factory.createReturnStatement(formatResult(descriptor, this._ast)),
       ],
@@ -80,7 +119,11 @@ export class DexieResolverGenerator {
 
   private _batchGetItems(descriptor: ResolverDescriptor): ts.Block {
     return ts.factory.createBlock(
-      [initBulkGet(), ts.factory.createReturnStatement(formatResult(descriptor, this._ast))],
+      [
+        ...this._getEarlyReturn(descriptor),
+        initBulkGet(),
+        ts.factory.createReturnStatement(formatResult(descriptor, this._ast)),
+      ],
       true
     );
   }
@@ -95,8 +138,10 @@ export class DexieResolverGenerator {
         ts.factory.createIdentifier("filterExpression")
       )
     );
+
     const block = [
-      initQuery(descriptor),
+      ...this._getEarlyReturn(descriptor),
+      initQuery(descriptor, this._getOperationIndexName(descriptor.operation)),
       filterQuery(),
       sortQuery(),
       getQueryResult(),

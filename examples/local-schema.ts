@@ -94,7 +94,7 @@ const schema = /* GraphQL */ `
   }
 
   type Query {
-    viewer: Viewer!
+    viewer: Viewer @hasOne(key: { eq: "root:viewer" })
   }
 `;
 
@@ -106,4 +106,8 @@ const transformer = createTransformer({
   plugins: [AWSTypesPlugin, ExecutableSchemaGenerator],
 });
 
+const start = performance.now();
+
 transformer.transform();
+
+console.log(`Transformed schema in ${(performance.now() - start).toFixed(2)}ms`);
