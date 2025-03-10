@@ -34,7 +34,7 @@ const context = new TestContext({
   outputDirectory: "__test__",
 });
 
-const generator = new ExecutableSchemaGenerator(context);
+const generator = new ExecutableSchemaGenerator(context, { outDir: "executable-schema" });
 
 describe("ExecutableSchemaGenerator", () => {
   beforeAll(() => {
@@ -45,6 +45,6 @@ describe("ExecutableSchemaGenerator", () => {
 
   it("generates executable schema", () => {
     generator.generate();
-    expect(context.files.get("executable-schema.ts")).toMatchSnapshot();
+    expect(context.files.get("executable-schema/schema.ts")).toMatchSnapshot();
   });
 });

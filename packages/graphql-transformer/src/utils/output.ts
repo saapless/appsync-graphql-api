@@ -25,10 +25,10 @@ export function cleanDir(loc: string) {
   return dirPath;
 }
 
-export function ensureOutputDirectory(loc: string) {
+export function ensureOutputDirectory(loc: string, clean = false) {
   const dirPath = getOrCreateDir(loc);
 
-  if (fs.readdirSync(dirPath).length) {
+  if (clean && fs.readdirSync(dirPath).length) {
     return cleanDir(dirPath);
   }
 

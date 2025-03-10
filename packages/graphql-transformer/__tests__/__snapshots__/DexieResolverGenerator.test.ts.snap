@@ -10,7 +10,7 @@ exports[`DexieResolverGenerator generates batchGetItems resolver 1`] = `
 
 exports[`DexieResolverGenerator generates createItem resolver 1`] = `
 "async (_, args, ctx) => {
-    const id = args.input.id ?? ctx.util.uuid();
+    const id = args.input.id ?? ctx.uuid();
     const timestamp = new Date().toISOString();
     const values = {
         ...args.input,

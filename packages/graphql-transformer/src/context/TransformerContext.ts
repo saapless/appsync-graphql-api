@@ -41,10 +41,15 @@ export class TransformerContext {
   }
 
   public printFile(filePath: string, content: string) {
-    return printFile(path.resolve(this.outputDirectory, filePath), content);
+    const resolvedPath = path.resolve(this.outputDirectory, filePath);
+    ensureOutputDirectory(path.dirname(resolvedPath));
+
+    return printFile(resolvedPath, content);
   }
 
   public printScript(filePath: string, content: string) {
-    return prettyPrintFile(path.resolve(this.outputDirectory, filePath), content);
+    const resolvedPath = path.resolve(this.outputDirectory, filePath);
+    ensureOutputDirectory(path.dirname(resolvedPath));
+    return prettyPrintFile(resolvedPath, content);
   }
 }

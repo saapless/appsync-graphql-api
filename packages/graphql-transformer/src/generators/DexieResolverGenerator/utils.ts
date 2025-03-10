@@ -328,10 +328,7 @@ export function initCreateItem(descriptor: ResolverDescriptor) {
               ts.factory.createToken(ts.SyntaxKind.QuestionQuestionToken),
               ts.factory.createCallExpression(
                 ts.factory.createPropertyAccessExpression(
-                  ts.factory.createPropertyAccessExpression(
-                    ts.factory.createIdentifier("ctx"),
-                    ts.factory.createIdentifier("util")
-                  ),
+                  ts.factory.createIdentifier("ctx"),
                   ts.factory.createIdentifier("uuid")
                 ),
                 undefined,

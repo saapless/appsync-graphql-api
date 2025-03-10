@@ -1,10 +1,11 @@
 // Jest Snapshot v1, https://goo.gl/fbAQLP
 
 exports[`ExecutableSchemaGenerator generates executable schema 1`] = `
-"import { GraphQLObjectType, GraphQLNonNull, GraphQLID, GraphQLString, GraphQLEnumType, GraphQLSchema } from "graphql";
-let User: GraphQLObjectType;
-let Task: GraphQLObjectType;
-let Query: GraphQLObjectType;
+"/* eslint-disable */
+import { GraphQLObjectType, GraphQLNonNull, GraphQLID, GraphQLString, GraphQLEnumType, GraphQLSchema } from "graphql";
+let User: GraphQLObjectType<Schema.User, ResolverContext>;
+let Task: GraphQLObjectType<Schema.Task, ResolverContext>;
+let Query: GraphQLObjectType<undefined, ResolverContext>;
 const UserRole = new GraphQLEnumType({ name: "UserRole", values: { ADMIN: { value: "ADMIN" }, USER: { value: "USER" } } });
 Task = new GraphQLObjectType({ name: "Task", fields: () => ({ id: { type: new GraphQLNonNull(GraphQLID) }, title: { type: new GraphQLNonNull(GraphQLString) }, description: { type: new GraphQLNonNull(GraphQLString) }, user: { type: new GraphQLNonNull(User) } }) });
 User = new GraphQLObjectType({ name: "User", fields: () => ({ id: { type: new GraphQLNonNull(GraphQLID) }, name: { type: new GraphQLNonNull(GraphQLString) }, email: { type: new GraphQLNonNull(GraphQLString) }, role: { type: new GraphQLNonNull(UserRole) }, tasks: { type: Task } }) });

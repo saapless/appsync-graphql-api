@@ -67,7 +67,8 @@
   },
   "dependencies": {
     "fast-glob": "^3.3.3",
-    "graphql": "^16.9.0"
+    "graphql": "^16.9.0",
+    "@prettier/sync": "^0.5.2"
   },
   "devDependencies": {
     "@aws-appsync/utils": "^1.11.0",
