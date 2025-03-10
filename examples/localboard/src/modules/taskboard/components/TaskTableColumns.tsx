@@ -40,7 +40,7 @@ export const columns: ColumnDef<TaskNode>[] = [
         .map(
           ({ node }) =>
             node && (
-              <Badge key={node.id} variant="outline">
+              <Badge key={node.id} color={node.color ?? undefined} variant="outline">
                 {node?.title}
               </Badge>
             )

@@ -3,8 +3,9 @@ import { useForm } from "react-hook-form";
 import { z } from "zod";
 import { zodResolver } from "@hookform/resolvers/zod";
 import { Form, FormField } from "@/components/ui/form";
-import { TextInputField } from "@/components/text-input-field";
-import { ComboboxInputField } from "@/components/combobox-input-field";
+import { TitleInputField } from "./TitleInputField";
+import PriorityInputField from "./PriorityInputField";
+import StatusInputField from "./StatusInputField";
 
 const schema = z.object({
   title: z.string().min(1),
@@ -15,38 +16,34 @@ const schema = z.object({
   labels: z.array(z.string()).optional(),
 });
 
-export type CreateTaskFormValues = z.infer<typeof schema>;
+export type TaskFormValues = z.infer<typeof schema>;
 
 type CreateTaskFormProps = PropsWithChildren<{
-  onSubmit: (values: CreateTaskFormValues) => void | Promise<void>;
+  onSubmit: (values: TaskFormValues) => void | Promise<void>;
 }>;
 
-const CreateTaskForm: FC<CreateTaskFormProps> = (props) => {
+const TaskForm: FC<CreateTaskFormProps> = (props) => {
   const { onSubmit, children } = props;
-  const form = useForm<CreateTaskFormValues>({
+  const form = useForm<TaskFormValues>({
     resolver: zodResolver(schema),
     defaultValues: {},
   });
 
   return (
     <Form {...form}>
-      <form onSubmit={form.handleSubmit(onSubmit)} className="my-4 flex flex-col gap-6">
+      <form onSubmit={form.handleSubmit(onSubmit)} className=" flex flex-col gap-6">
         <FormField
           control={form.control}
           name="title"
-          render={({ field }) => (
-            <TextInputField field={field} label="Title" placeholder="My awesome task title" />
-          )}
+          render={({ field }) => <TitleInputField field={field} />}
         />
         <FormField
           control={form.control}
           name="statusId"
           render={({ field }) => (
-            <ComboboxInputField
+            <StatusInputField
               field={field}
-              label="Status"
-              placeholder="Select status"
-              options={[]}
+              onSelect={(value) => form.setValue("statusId", value)}
             />
           )}
         />
@@ -54,11 +51,9 @@ const CreateTaskForm: FC<CreateTaskFormProps> = (props) => {
           control={form.control}
           name="priorityId"
           render={({ field }) => (
-            <ComboboxInputField
+            <PriorityInputField
               field={field}
-              label="Priority"
-              placeholder="Select priority"
-              options={[]}
+              onSelect={(value) => form.setValue("statusId", value)}
             />
           )}
         />
@@ -68,4 +63,4 @@ const CreateTaskForm: FC<CreateTaskFormProps> = (props) => {
   );
 };
 
-export default CreateTaskForm;
+export { TaskForm };

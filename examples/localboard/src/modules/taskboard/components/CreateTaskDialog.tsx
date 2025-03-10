@@ -10,7 +10,7 @@ import {
   DialogTrigger,
 } from "@/components/ui/dialog";
 import { PlusIcon } from "lucide-react";
-import CreateTaskForm, { CreateTaskFormValues } from "./CreateTaskForm";
+import { TaskForm, TaskFormValues } from "./TaskForm";
 import { graphql, useMutation } from "react-relay/hooks";
 import { CreateTaskInput } from "@/__generated__/CreateTaskDialogMutation.graphql";
 
@@ -32,7 +32,7 @@ export const CreateTaskDialog: FC<CreateTaskDialogProps> = (props) => {
   const [commit] = useMutation(mutation);
   const [dialogOpen, setDialogOpen] = useState(false);
 
-  const onSubmit = (values: CreateTaskFormValues) => {
+  const onSubmit = (values: TaskFormValues) => {
     const timestamp = new Date().toISOString();
 
     const input = {
@@ -46,7 +46,7 @@ export const CreateTaskDialog: FC<CreateTaskDialogProps> = (props) => {
 
     commit({
       variables: { input, connectionKeys },
-      onCompleted: (errors) => {
+      onCompleted: (res, errors) => {
         if (errors) {
           console.error(errors);
         }
@@ -67,8 +67,8 @@ export const CreateTaskDialog: FC<CreateTaskDialogProps> = (props) => {
         <DialogHeader>
           <DialogTitle>Create Task</DialogTitle>
         </DialogHeader>
-        <CreateTaskForm onSubmit={onSubmit}>
-          <DialogFooter className="flex flex-row justify-end items-center gap-2">
+        <TaskForm onSubmit={onSubmit}>
+          <DialogFooter className="flex flex-row justify-end items-center gap-2 mt-5">
             <DialogClose asChild>
               <Button type="button" variant="secondary">
                 Close
@@ -76,7 +76,7 @@ export const CreateTaskDialog: FC<CreateTaskDialogProps> = (props) => {
             </DialogClose>
             <Button size="sm">Create task</Button>
           </DialogFooter>
-        </CreateTaskForm>
+        </TaskForm>
       </DialogContent>
     </Dialog>
   );
