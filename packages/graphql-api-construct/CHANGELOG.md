@@ -1,5 +1,15 @@
 # @saapless/graphql-api-construct
 
+## 0.0.3
+
+### Patch Changes
+
+- eaacbe7: fix(transformer): ExecutableSchemaGenerator plugin fix
+- ded04ec: chore: fix package config
+- Updated dependencies [eaacbe7]
+- Updated dependencies [72abd69]
+  - @saapless/graphql-transformer@0.0.3
+
 ## 0.0.2
 
 ### Patch Changes
