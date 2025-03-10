@@ -1,5 +1,5 @@
 /**
- * @generated SignedSource<<c964f6ce82eb94f89a84b987c7f085df>>
+ * @generated SignedSource<<8cef296167bc20a94be6a8b215d43b01>>
  * @lightSyntaxTransform
  * @nogrep
  */
@@ -15,7 +15,9 @@ export type StatusPopoverQuery$data = {
     readonly statuses: {
       readonly edges: ReadonlyArray<{
         readonly node: {
+          readonly icon: string | null;
           readonly id: string;
+          readonly title: string | null;
         } | null;
       }>;
     };
@@ -65,6 +67,20 @@ var v0 = {
                   "kind": "ScalarField",
                   "name": "id",
                   "storageKey": null
+                },
+                {
+                  "alias": null,
+                  "args": null,
+                  "kind": "ScalarField",
+                  "name": "title",
+                  "storageKey": null
+                },
+                {
+                  "alias": null,
+                  "args": null,
+                  "kind": "ScalarField",
+                  "name": "icon",
+                  "storageKey": null
                 }
               ],
               "storageKey": null
@@ -104,16 +120,16 @@ return {
     ]
   },
   "params": {
-    "cacheID": "91c9a6cfd3ab21268e6fdab9decd71a7",
+    "cacheID": "1ccc464205df5afbfb1845c31f04d2fc",
     "id": null,
     "metadata": {},
     "name": "StatusPopoverQuery",
     "operationKind": "query",
-    "text": "query StatusPopoverQuery {\n  viewer {\n    statuses {\n      edges {\n        node {\n          id\n        }\n      }\n    }\n  }\n}\n"
+    "text": "query StatusPopoverQuery {\n  viewer {\n    statuses {\n      edges {\n        node {\n          id\n          title\n          icon\n        }\n      }\n    }\n  }\n}\n"
   }
 };
 })();
 
-(node as any).hash = "f659ee63db6ebf29c44dd7008da11bf9";
+(node as any).hash = "edc6648cda3d9d4cf07adea333293b0b";
 
 export default node;

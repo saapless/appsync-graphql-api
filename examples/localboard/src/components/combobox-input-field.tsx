@@ -66,20 +66,20 @@ function ComboboxInputField<TForm extends FieldValues, TName extends FieldPath<T
 
   return (
     <FormItem {...rest}>
-      <div className={cn("flex gap-2", orientation === "horizontal" ? "flex-row" : "flex-col")}>
-        <FormLabel>{label}</FormLabel>
-        <FormControl>
+      <div className={cn("flex gap-4", orientation === "horizontal" ? "flex-row" : "flex-col")}>
+        <FormLabel className="w-[140px]">{label}</FormLabel>
+        <FormControl className="w-full">
           <Popover open={open} onOpenChange={setOpen}>
             <PopoverTrigger asChild>
               <Button
                 variant="outline"
-                className={cn("w-[150px] justify-between", !field.value && "text-muted-foreground")}
+                className={cn("grow justify-between", !field.value && "text-muted-foreground")}
               >
                 {text}
                 <ChevronsUpDown className="opacity-50" />
               </Button>
             </PopoverTrigger>
-            <PopoverContent className="p-0" side="right" align="start">
+            <PopoverContent className="p-0" align="start">
               <Command>
                 <CommandInput placeholder="Search..." />
                 <CommandList>

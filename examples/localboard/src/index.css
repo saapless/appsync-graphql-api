@@ -75,6 +75,88 @@
   --sidebar-ring: oklch(0.439 0 0);
 }
 
+[data-color="zinc"] {
+  --background: 0 0% 100%;
+  --foreground: 240 10% 3.9%;
+}
+
+.dark [data-color="zinc"] {
+  --background: 240 10% 3.9%;
+  --foreground: 0 0% 98%;
+}
+
+[data-color="slate"] {
+  --background: 0 0% 100%;
+  --foreground: 222.2 84% 4.9%;
+}
+
+.dark [data-color="slate"] {
+  --background: 222.2 84% 4.9%;
+  --foreground: 210 40% 98%;
+}
+
+[data-color="stone"] {
+  --background: 0 0% 100%;
+  --foreground: 20 14.3% 4.1%;
+}
+
+.dark [data-color="stone"] {
+  --background: 20 14.3% 4.1%;
+  --foreground: 60 9.1% 97.8%;
+}
+
+[data-color="gray"] {
+  --background: 0 0% 100%;
+  --foreground: 224 71.4% 4.1%;
+}
+
+.dark [data-color="gray"] {
+  --background: 224 71.4% 4.1%;
+  --foreground: 210 20% 98%;
+}
+
+[data-color="red"] {
+  --background: 0 0% 100%;
+  --foreground: 0 0% 3.9%;
+}
+
+.dark [data-color="red"] {
+  --background: 0 0% 3.9%;
+  --foreground: 0 0% 98%;
+}
+
+[data-color="rose"] {
+  --background: 0 0% 100%;
+  --foreground: 240 10% 3.9%;
+}
+
+.dark [data-color="rose"] {
+  --background: 20 14.3% 4.1%;
+  --foreground: 0 0% 95%;
+}
+
+[data-color="orange"] {
+  --background: 0 0% 100%;
+  --foreground: 20 14.3% 4.1%;
+}
+
+.dark [data-color="orange"] {
+  --background: 20 14.3% 4.1%;
+  --foreground: 60 9.1% 97.8%;
+}
+
+[data-color="green"] {
+  /* --background: 0 0% 100%;
+  --foreground: 240 10% 3.9%; */
+  --background: 142.1 70.6% 45.3%;
+  --foreground: 144.9 80.4% 10%;
+}
+
+.dark [data-color="green"] {
+  --background: 142.1 70.6% 45.3%;
+  --foreground: 144.9 80.4% 10%;
+}
+
 @theme inline {
   --color-background: var(--background);
   --color-foreground: var(--foreground);

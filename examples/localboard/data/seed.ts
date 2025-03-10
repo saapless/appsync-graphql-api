@@ -43,9 +43,9 @@ type LabelSeed = {
 
 const LABELS: LabelSeed[] = [
   { title: "Bug", color: "red" },
-  { title: "Feat", color: "green" },
-  { title: "Perf", color: "blue" },
-  { title: "Docs", color: "purple" },
+  { title: "Feature", color: "green" },
+  { title: "Performance", color: "blue" },
+  { title: "Documantation", color: "purple" },
   { title: "API", color: "orange" },
   { title: "App", color: "yellow" },
   { title: "CI/CD", color: "slate" },
