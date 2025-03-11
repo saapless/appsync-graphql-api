@@ -40,6 +40,9 @@ exports[`DexieResolverGenerator generates deleteItem resolver 1`] = `
 
 exports[`DexieResolverGenerator generates getItem resolver 1`] = `
 "async (_, args, ctx) => {
+    if (!args.id) {
+        return null;
+    }
     const result = await ctx.db.get(args.id);
     return result;
 }
@@ -48,6 +51,9 @@ exports[`DexieResolverGenerator generates getItem resolver 1`] = `
 
 exports[`DexieResolverGenerator generates getItem resolver with nested key 1`] = `
 "async (_, args, ctx) => {
+    if (!args.id) {
+        return null;
+    }
     const result = await ctx.db.get(args.id);
     return result;
 }

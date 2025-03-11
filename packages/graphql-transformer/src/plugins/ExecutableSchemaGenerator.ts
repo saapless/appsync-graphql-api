@@ -1,5 +1,9 @@
+import { createRequire } from "node:module";
+import path from "node:path";
+import fs from "node:fs";
 import { Kind } from "graphql";
 import ts from "typescript";
+import fg from "fast-glob";
 import { TransformerContext } from "../context";
 import {
   DefinitionNode,
@@ -15,11 +19,13 @@ import {
   TypeNode,
   UnionNode,
 } from "../definition";
-import { addImport, printDefinitions } from "../utils";
+import { addImport, camelCase, printDefinitions } from "../utils";
 import { ScalarType, UtilityDirective } from "../constants";
 import { DexieResolverGenerator } from "../generators";
 import { DexieResolverTypesGenerator } from "../generators/DexieResolverGenerator/DexieResolverTypesGenerator";
 import { TransformerPluginBase } from "./PluginBase";
+
+const require = createRequire(import.meta.url);
 
 type DependencyNode = {
   ast: ts.Node;
@@ -46,6 +52,7 @@ export class ExecutableSchemaGenerator extends TransformerPluginBase {
   private readonly _resoverGenerator: DexieResolverGenerator;
   private readonly _typesGenerator: DexieResolverTypesGenerator;
   private readonly _config: ExecutableSchemaGeneratorConfig;
+  private readonly _customResolver: Map<string, string>;
 
   constructor(context: TransformerContext, config: ExecutableSchemaGeneratorConfig) {
     super("ExecutableSchemaGenerator", context);
@@ -56,6 +63,32 @@ export class ExecutableSchemaGenerator extends TransformerPluginBase {
     this._typeIds = [];
     this._resoverGenerator = new DexieResolverGenerator(context, this._ast);
     this._typesGenerator = new DexieResolverTypesGenerator(context);
+    this._customResolver = new Map();
+
+    if (config.customResolverSource) {
+      this._getCustomResolvers(config.customResolverSource);
+    }
+  }
+
+  private _getCustomResolvers(source: string | string[]) {
+    let globPath = source;
+
+    if (!Array.isArray(source) && fs.lstatSync(source).isDirectory()) {
+      globPath = path.join(source, "**", "*.{js,ts}");
+    }
+
+    const paths = fg.globSync(globPath, { absolute: true });
+
+    for (const resolverPath of paths) {
+      const name = path.basename(resolverPath, path.extname(resolverPath));
+
+      // eslint-disable-next-line security/detect-non-literal-require
+      const resolver = require(resolverPath);
+
+      if (Object.hasOwn(resolver, "resolve") && typeof resolver.resolve === "function") {
+        this._customResolver.set(name, resolverPath);
+      }
+    }
   }
 
   private _addDefaults() {
@@ -263,13 +296,36 @@ export class ExecutableSchemaGenerator extends TransformerPluginBase {
       );
     }
 
-    const resolverDescriptor = this.context.resolvers.getLoader(object.name, field.name);
-    if (resolverDescriptor) {
-      this._typesGenerator.generate(resolverDescriptor);
-      const resolver = this._resoverGenerator.generate(resolverDescriptor);
+    let resolveRef;
 
+    // TODO check custom resolver
+    const customResolver = this._customResolver.get(`${object.name}.${field.name}`);
+    if (customResolver) {
+      addImport(
+        this._ast,
+        path.relative(
+          path.resolve(this.context.outputDirectory, this._config.outDir),
+          customResolver.split(".").slice(0, -1).join(".")
+        ),
+        ts.factory.createImportSpecifier(
+          false,
+          ts.factory.createIdentifier("resolve"),
+          ts.factory.createIdentifier(camelCase(object.name, field.name, "resolve"))
+        )
+      );
+
+      resolveRef = ts.factory.createIdentifier(camelCase(object.name, field.name, "resolve"));
+    } else {
+      const resolverDescriptor = this.context.resolvers.getLoader(object.name, field.name);
+      if (resolverDescriptor) {
+        this._typesGenerator.generate(resolverDescriptor);
+        resolveRef = this._resoverGenerator.generate(resolverDescriptor);
+      }
+    }
+
+    if (resolveRef) {
       props.push(
-        ts.factory.createPropertyAssignment(ts.factory.createIdentifier("resolve"), resolver)
+        ts.factory.createPropertyAssignment(ts.factory.createIdentifier("resolve"), resolveRef)
       );
     }
 
@@ -661,6 +717,7 @@ export class ExecutableSchemaGenerator extends TransformerPluginBase {
 
   public static config(options: Partial<ExecutableSchemaGeneratorConfig>) {
     ExecutableSchemaGenerator.options = { ...options, ...ExecutableSchemaGenerator.options };
+    return ExecutableSchemaGenerator;
   }
 
   public static create(context: TransformerContext) {

@@ -463,35 +463,48 @@ export function initCreateItem(descriptor: ResolverDescriptor) {
 }
 
 export function initGetItem(descriptor: ResolverDescriptor) {
-  return ts.factory.createVariableStatement(
-    undefined,
-    ts.factory.createVariableDeclarationList(
-      [
-        ts.factory.createVariableDeclaration(
-          ts.factory.createIdentifier("result"),
-          undefined,
-          undefined,
-          ts.factory.createAwaitExpression(
-            ts.factory.createCallExpression(
-              ts.factory.createPropertyAccessExpression(
-                ts.factory.createIdentifier("ctx.db"),
-                ts.factory.createIdentifier("get")
-              ),
-              undefined,
-              [
-                keyValue(
-                  Array.isArray(descriptor.operation.key)
-                    ? descriptor.operation.key[0]
-                    : descriptor.operation.key
-                ),
-              ]
-            )
-          )
+  const statements: ts.Statement[] = [];
+
+  if (descriptor.operation.key.ref) {
+    statements.push(
+      ts.factory.createIfStatement(
+        ts.factory.createPrefixUnaryExpression(
+          ts.SyntaxKind.ExclamationToken,
+          ts.factory.createIdentifier(descriptor.operation.key.ref)
         ),
-      ],
-      ts.NodeFlags.Const
+        ts.factory.createBlock([ts.factory.createReturnStatement(ts.factory.createNull())], true),
+        undefined
+      )
+    );
+  }
+
+  statements.push(
+    ts.factory.createVariableStatement(
+      undefined,
+      ts.factory.createVariableDeclarationList(
+        [
+          ts.factory.createVariableDeclaration(
+            ts.factory.createIdentifier("result"),
+            undefined,
+            undefined,
+            ts.factory.createAwaitExpression(
+              ts.factory.createCallExpression(
+                ts.factory.createPropertyAccessExpression(
+                  ts.factory.createIdentifier("ctx.db"),
+                  ts.factory.createIdentifier("get")
+                ),
+                undefined,
+                [keyValue(descriptor.operation.key)]
+              )
+            )
+          ),
+        ],
+        ts.NodeFlags.Const
+      )
     )
   );
+
+  return statements;
 }
 
 export function initBulkGet() {

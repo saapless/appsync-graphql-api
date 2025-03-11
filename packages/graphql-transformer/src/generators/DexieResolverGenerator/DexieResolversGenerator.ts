@@ -110,7 +110,7 @@ export class DexieResolverGenerator {
     return ts.factory.createBlock(
       [
         ...this._getEarlyReturn(descriptor),
-        initGetItem(descriptor),
+        ...initGetItem(descriptor),
         ts.factory.createReturnStatement(formatResult(descriptor, this._ast)),
       ],
       true
