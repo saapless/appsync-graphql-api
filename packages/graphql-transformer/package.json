@@ -1,6 +1,6 @@
 {
   "name": "@saapless/graphql-transformer",
-  "version": "0.0.2",
+  "version": "0.0.3",
   "sideEffects": false,
   "type": "module",
   "description": "AppSync GraphQL Transformer",
@@ -72,11 +72,11 @@
   },
   "devDependencies": {
     "@aws-appsync/utils": "^1.11.0",
-    "@saapless/appsync-utils": "0.0.2"
+    "@saapless/appsync-utils": "0.0.3"
   },
   "peerDependencies": {
     "dexie": ">=4",
-    "@saapless/graphql-utils": "0.0.2"
+    "@saapless/graphql-utils": "0.0.3"
   },
   "peerDependenciesMeta": {
     "dexie": {
