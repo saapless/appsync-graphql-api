@@ -1,6 +1,6 @@
 {
   "name": "@saapless/graphql-transformer",
-  "version": "0.0.3",
+  "version": "0.0.4",
   "sideEffects": false,
   "type": "module",
   "description": "AppSync GraphQL Transformer",
