@@ -433,38 +433,53 @@ export class ConnectionPlugin extends TransformerPluginBase {
       }
 
       if (this._needsEdgeRecord(connection)) {
-        connectionType.addField(
-          FieldNode.create("keys", ListTypeNode.create("Node"), null, [
-            DirectiveNode.create(UtilityDirective.SERVER_ONLY),
-          ])
-        );
+        if (!connectionType.hasField("keys")) {
+          connectionType.addField(
+            FieldNode.create("keys", ListTypeNode.create("Node"), null, [
+              DirectiveNode.create(UtilityDirective.SERVER_ONLY),
+            ])
+          );
+        }
 
-        edgeType
-          .addField(
+        if (!edgeType.hasField("id")) {
+          edgeType.addField(
             FieldNode.create("id", NonNullTypeNode.create("ID"), null, [
               DirectiveNode.create(UtilityDirective.SERVER_ONLY),
             ])
-          )
-          .addField(
+          );
+        }
+
+        if (!edgeType.hasField("sourceId")) {
+          edgeType.addField(
             FieldNode.create("sourceId", NonNullTypeNode.create("ID"), null, [
               DirectiveNode.create(UtilityDirective.WRITE_ONLY),
             ])
-          )
-          .addField(
+          );
+        }
+
+        if (!edgeType.hasField("targetId")) {
+          edgeType.addField(
             FieldNode.create("targetId", NonNullTypeNode.create("ID"), null, [
               DirectiveNode.create(UtilityDirective.WRITE_ONLY),
             ])
-          )
-          .addField(
+          );
+        }
+
+        if (!edgeType.hasField("createdAt")) {
+          edgeType.addField(
             FieldNode.create("createdAt", NonNullTypeNode.create("AWSDateTime"), null, [
               DirectiveNode.create(UtilityDirective.FILTER_ONLY),
             ])
-          )
-          .addField(
+          );
+        }
+
+        if (!edgeType.hasField("updatedAt")) {
+          edgeType.addField(
             FieldNode.create("updatedAt", NonNullTypeNode.create("AWSDateTime"), null, [
               DirectiveNode.create(UtilityDirective.FILTER_ONLY),
             ])
           );
+        }
 
         // Edges should not extend Node interface but should share fields.
 
