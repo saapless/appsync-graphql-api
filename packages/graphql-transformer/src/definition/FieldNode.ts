@@ -1,14 +1,14 @@
-import { ConstDirectiveNode, FieldDefinitionNode, InputValueDefinitionNode, Kind } from "graphql";
+import { FieldDefinitionNode, InputValueDefinitionNode, Kind } from "graphql";
 import { InputValueNode } from "./InputValueNode";
 import { DirectiveNode } from "./DirectiveNode";
 import { ListTypeNode, NamedTypeNode, NonNullTypeNode, TypeNode } from "./TypeNode";
+import { WithDirectivesNode } from "./DefinitionNodeBase";
 
-export class FieldNode {
+export class FieldNode extends WithDirectivesNode {
   readonly kind: Kind.FIELD_DEFINITION = Kind.FIELD_DEFINITION;
   readonly name: string;
   public type: TypeNode;
   arguments?: InputValueNode[] | undefined;
-  directives?: DirectiveNode[] | undefined;
 
   constructor(
     name: string,
@@ -16,14 +16,14 @@ export class FieldNode {
     args?: InputValueNode[] | null,
     directives?: DirectiveNode[] | undefined
   ) {
+    super(name, directives);
     this.name = name;
     this.type = type;
     this.arguments = args ?? undefined;
-    this.directives = directives;
   }
 
-  public hasArgument(arg: string) {
-    return this.arguments?.some((argument) => argument.name === arg) ?? false;
+  public hasArgument(name: string) {
+    return this.arguments?.some((arg) => arg.name === name) ?? false;
   }
 
   public getArgument(arg: string) {
@@ -31,42 +31,20 @@ export class FieldNode {
   }
 
   public addArgument(argument: InputValueNode | InputValueDefinitionNode) {
-    const argumentNode =
+    const node =
       argument instanceof InputValueNode ? argument : InputValueNode.fromDefinition(argument);
 
-    if (this.hasArgument(argumentNode.name)) {
-      throw new Error(`Argument ${argument.name} already exists on field ${this.name}`);
+    if (this.hasArgument(node.name)) {
+      throw new Error(`Argument ${node.name} already exists on field ${this.name}`);
     }
 
     this.arguments = this.arguments ?? [];
-    this.arguments.push(argumentNode);
+    this.arguments.push(node);
     return this;
   }
 
-  public removeArgument(arg: string) {
-    this.arguments = this.arguments?.filter((argument) => argument.name !== arg);
-    return this;
-  }
-
-  public hasDirective(name: string): boolean {
-    return this.directives?.some((directive) => directive.name === name) ?? false;
-  }
-
-  public getDirective(name: string) {
-    return this.directives?.find((directive) => directive.name === name);
-  }
-
-  public addDirective(directive: DirectiveNode | ConstDirectiveNode) {
-    const directiveNode =
-      directive instanceof DirectiveNode ? directive : DirectiveNode.fromDefinition(directive);
-
-    this.directives = this.directives ?? [];
-    this.directives.push(directiveNode);
-    return this;
-  }
-
-  public removeDirective(name: string) {
-    this.directives = this.directives?.filter((directive) => directive.name !== name);
+  public removeArgument(name: string) {
+    this.arguments = this.arguments?.filter((arg) => arg.name !== name);
     return this;
   }
 

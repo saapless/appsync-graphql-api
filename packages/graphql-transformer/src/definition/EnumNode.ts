@@ -1,5 +1,4 @@
 import {
-  ConstDirectiveNode,
   EnumTypeDefinitionNode,
   EnumTypeExtensionNode,
   EnumValueDefinitionNode,
@@ -7,17 +6,18 @@ import {
 } from "graphql";
 import { DirectiveNode } from "./DirectiveNode";
 import { EnumValueNode } from "./EnumValueNode";
+import { WithDirectivesNode } from "./DefinitionNodeBase";
 
-export class EnumNode {
+export class EnumNode extends WithDirectivesNode {
   kind: Kind.ENUM_TYPE_DEFINITION = Kind.ENUM_TYPE_DEFINITION;
   name: string;
   values?: EnumValueNode[] | undefined;
-  directives?: DirectiveNode[] | undefined;
 
   constructor(name: string, values?: EnumValueNode[], directives?: DirectiveNode[]) {
+    super(name, directives);
+
     this.name = name;
     this.values = values;
-    this.directives = directives;
   }
 
   public hasValue(name: string) {
@@ -43,32 +43,6 @@ export class EnumNode {
 
   public removeValue(name: string) {
     this.values = this.values?.filter((value) => value.name !== name);
-    return this;
-  }
-
-  public hasDirective(name: string) {
-    return this.directives?.some((directive) => directive.name === name) ?? false;
-  }
-
-  public addDirective(directive: string | DirectiveNode | ConstDirectiveNode) {
-    const node =
-      directive instanceof DirectiveNode
-        ? directive
-        : typeof directive === "string"
-          ? DirectiveNode.create(directive)
-          : DirectiveNode.fromDefinition(directive);
-
-    if (this.hasDirective(node.name)) {
-      throw new Error(`Directive ${node.name} already exists on enum ${this.name}`);
-    }
-
-    this.directives = this.directives ?? [];
-    this.directives.push(node);
-    return this;
-  }
-
-  public removeDirective(name: string) {
-    this.directives = this.directives?.filter((directive) => directive.name !== name);
     return this;
   }
 

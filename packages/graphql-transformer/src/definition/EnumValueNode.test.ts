@@ -77,7 +77,7 @@ describe("EnumValueNode", () => {
     const node = EnumValueNode.create("name");
     node.addDirective("directive1");
     expect(() => node.addDirective("directive1")).toThrow(
-      `Directive directive1 already exists on enum value name`
+      `Directive directive1 already exists on node name`
     );
   });
 
