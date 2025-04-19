@@ -72,6 +72,10 @@ export class InterfaceNode {
     return this;
   }
 
+  public getField(name: string) {
+    return this.fields?.find((field) => field.name === name);
+  }
+
   public removeField(name: string) {
     this.fields = this.fields?.filter((field) => field.name !== name);
     return this;

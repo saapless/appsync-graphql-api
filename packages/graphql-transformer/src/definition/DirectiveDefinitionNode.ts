@@ -21,20 +21,15 @@ type Location =
 export class DirectiveDefinitionNode {
   kind: Kind.DIRECTIVE_DEFINITION = Kind.DIRECTIVE_DEFINITION;
   name: string;
-  repeatable: boolean = false;
+  repeatable: boolean;
   locations: Location[];
   arguments?: InputValueNode[];
 
-  constructor(
-    name: string,
-    locations: Location | Location[],
-    args?: InputValueNode | InputValueNode[],
-    repeatable: boolean = false
-  ) {
+  constructor(name: string, locations: Location[], args?: InputValueNode[], repeatable?: boolean) {
     this.name = name;
-    this.locations = Array.isArray(locations) ? locations : [locations];
-    this.arguments = args instanceof InputValueNode ? [args] : args;
-    this.repeatable = repeatable;
+    this.locations = locations;
+    this.arguments = args;
+    this.repeatable = repeatable ?? false;
   }
 
   public hasArgument(arg: string) {
@@ -94,8 +89,13 @@ export class DirectiveDefinitionNode {
     name: string,
     locations: Location | Location[],
     args?: InputValueNode | InputValueNode[],
-    repeatable: boolean = false
+    repeatable?: boolean
   ) {
-    return new DirectiveDefinitionNode(name, locations, args, repeatable);
+    return new DirectiveDefinitionNode(
+      name,
+      Array.isArray(locations) ? locations : [locations],
+      args instanceof InputValueNode ? [args] : args,
+      repeatable
+    );
   }
 }

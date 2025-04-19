@@ -47,7 +47,7 @@ export class EnumNode {
   }
 
   public hasDirective(name: string) {
-    return this.directives?.some((directive) => directive.name === name);
+    return this.directives?.some((directive) => directive.name === name) ?? false;
   }
 
   public addDirective(directive: string | DirectiveNode | ConstDirectiveNode) {
@@ -58,9 +58,12 @@ export class EnumNode {
           ? DirectiveNode.create(directive)
           : DirectiveNode.fromDefinition(directive);
 
+    if (this.hasDirective(node.name)) {
+      throw new Error(`Directive ${node.name} already exists on enum ${this.name}`);
+    }
+
     this.directives = this.directives ?? [];
     this.directives.push(node);
-
     return this;
   }
 
@@ -99,10 +102,10 @@ export class EnumNode {
     };
   }
 
-  static create(name: string, values: string[], directives?: DirectiveNode[]) {
+  static create(name: string, values?: string[], directives?: DirectiveNode[]) {
     return new EnumNode(
       name,
-      values.map((value) => EnumValueNode.create(value)),
+      values?.map((value) => EnumValueNode.create(value)),
       directives
     );
   }
