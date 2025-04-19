@@ -1,6 +1,6 @@
 import { ConstDirectiveNode, EnumValueDefinitionNode, Kind } from "graphql";
+import { WithDirectivesNode } from "./WithDirectivesNode";
 import { DirectiveNode } from "./DirectiveNode";
-import { WithDirectivesNode } from "./DefinitionNodeBase";
 
 export class EnumValueNode extends WithDirectivesNode {
   kind: Kind.ENUM_VALUE_DEFINITION = Kind.ENUM_VALUE_DEFINITION;

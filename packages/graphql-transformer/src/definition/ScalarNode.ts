@@ -1,42 +1,15 @@
-import {
-  ConstDirectiveNode,
-  Kind,
-  ScalarTypeDefinitionNode,
-  ScalarTypeExtensionNode,
-} from "graphql";
+import { Kind, ScalarTypeDefinitionNode, ScalarTypeExtensionNode } from "graphql";
 import { DirectiveNode } from "./DirectiveNode";
+import { WithDirectivesNode } from "./WithDirectivesNode";
 
-export class ScalarNode {
+export class ScalarNode extends WithDirectivesNode {
   kind: Kind.SCALAR_TYPE_DEFINITION = Kind.SCALAR_TYPE_DEFINITION;
   name: string;
-  directives?: DirectiveNode[] = [];
 
   constructor(name: string, directives?: DirectiveNode[]) {
+    super(name, directives);
+
     this.name = name;
-    this.directives = directives;
-  }
-
-  public hasDirective(name: string): boolean {
-    return this.directives?.some((directive) => directive.name === name) ?? false;
-  }
-
-  public addDirective(directive: string | DirectiveNode | ConstDirectiveNode) {
-    const node =
-      directive instanceof DirectiveNode
-        ? directive
-        : typeof directive === "string"
-          ? DirectiveNode.create(directive)
-          : DirectiveNode.fromDefinition(directive);
-
-    this.directives = this.directives ?? [];
-    this.directives.push(node);
-
-    return this;
-  }
-
-  public removeDirective(name: string) {
-    this.directives = this.directives?.filter((directive) => directive.name !== name);
-    return this;
   }
 
   public extend(definition: ScalarTypeExtensionNode) {
@@ -53,6 +26,7 @@ export class ScalarNode {
         kind: Kind.NAME,
         value: this.name,
       },
+      directives: this.directives?.map((node) => node.serialize()),
     };
   }
 
@@ -63,7 +37,7 @@ export class ScalarNode {
     );
   }
 
-  static create(name: string) {
-    return new ScalarNode(name);
+  static create(name: string, directives?: DirectiveNode[]) {
+    return new ScalarNode(name, directives);
   }
 }

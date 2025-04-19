@@ -40,39 +40,3 @@ export class WithDirectivesNode {
     return this;
   }
 }
-
-// export class WithArgumentsNode {
-//   name: string;
-//   arguments?: InputValueNode[] | undefined;
-
-//   constructor(name: string, args?: InputValueNode[]) {
-//     this.name = name;
-//     this.arguments = args;
-//   }
-
-//   public hasArgument(name: string) {
-//     return this.arguments?.some((arg) => arg.name === name) ?? false;
-//   }
-
-//   public getArgument(arg: string) {
-//     return this.arguments?.find((argument) => argument.name === arg);
-//   }
-
-//   public addArgument(argument: InputValueNode | InputValueDefinitionNode) {
-//     const node =
-//       argument instanceof InputValueNode ? argument : InputValueNode.fromDefinition(argument);
-
-//     if (this.hasArgument(node.name)) {
-//       throw new Error(`Argument ${node.name} already exists on node ${this.name}`);
-//     }
-
-//     this.arguments = this.arguments ?? [];
-//     this.arguments.push(node);
-//     return this;
-//   }
-
-//   public removeArgument(name: string) {
-//     this.arguments = this.arguments?.filter((arg) => arg.name !== name);
-//     return this;
-//   }
-// }
