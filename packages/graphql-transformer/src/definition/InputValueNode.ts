@@ -1,4 +1,5 @@
 import {
+  ConstDirectiveNode,
   ConstValueNode,
   FieldDefinitionNode,
   InputValueDefinitionNode,
@@ -7,13 +8,13 @@ import {
 } from "graphql";
 import { DirectiveNode } from "./DirectiveNode";
 import { ListTypeNode, NamedTypeNode, NonNullTypeNode, TypeNode } from "./TypeNode";
+import { WithDirectivesNode } from "./DefinitionNodeBase";
 
-export class InputValueNode {
+export class InputValueNode extends WithDirectivesNode {
   kind: Kind.INPUT_VALUE_DEFINITION = Kind.INPUT_VALUE_DEFINITION;
   name: string;
   type: TypeNode;
   defaultValue?: ConstValueNode | undefined;
-  directives?: DirectiveNode[] | undefined;
 
   constructor(
     name: string,
@@ -21,10 +22,11 @@ export class InputValueNode {
     defaultValue?: ConstValueNode | null,
     directives?: DirectiveNode[]
   ) {
+    super(name, directives);
+
     this.name = name;
     this.type = type;
     this.defaultValue = defaultValue ?? undefined;
-    this.directives = directives;
   }
 
   public serialize(): InputValueDefinitionNode {
@@ -40,7 +42,12 @@ export class InputValueNode {
     };
   }
 
-  static create(name: string, value: string | TypeNode | TypeNodeDefinition) {
+  static create(
+    name: string,
+    value: string | TypeNode | TypeNodeDefinition,
+    defaultValue?: ConstValueNode,
+    directives?: (string | DirectiveNode | ConstDirectiveNode)[]
+  ) {
     const typeNode =
       typeof value === "string"
         ? NamedTypeNode.create(value)
@@ -54,7 +61,18 @@ export class InputValueNode {
               ? ListTypeNode.fromDefinition(value)
               : NamedTypeNode.fromDefinition(value);
 
-    return new InputValueNode(name, typeNode);
+    return new InputValueNode(
+      name,
+      typeNode,
+      defaultValue,
+      directives?.map((directive) =>
+        directive instanceof DirectiveNode
+          ? directive
+          : typeof directive === "string"
+            ? DirectiveNode.create(directive)
+            : DirectiveNode.fromDefinition(directive)
+      )
+    );
   }
 
   static fromDefinition(field: FieldDefinitionNode | InputValueDefinitionNode) {
