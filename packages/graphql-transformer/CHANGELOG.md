@@ -1,5 +1,11 @@
 # @saapless/graphql-transformer
 
+## 0.0.4
+
+### Patch Changes
+
+- f06e1bf: check connection type fields already exists
+
 ## 0.0.3
 
 ### Patch Changes
