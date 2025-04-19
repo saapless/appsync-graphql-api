@@ -112,8 +112,6 @@ export class ValueNode {
             {} as { [key: string]: ConstValueNode }
           )
         );
-      default:
-        return ValueNode.null();
     }
   }
 
@@ -141,8 +139,6 @@ export class ValueNode {
           },
           {} as { [key: string]: ValueType }
         );
-      default:
-        return null;
     }
   }
 }
