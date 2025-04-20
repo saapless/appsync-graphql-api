@@ -20,6 +20,13 @@ type Task @model(operations: [write]) {
   labels: Label @hasMany(relation: "manyToMany")
 }
 
+union Artifact = Task | Workspace | User
+
+interface Editor {
+  content: String
+  artifacts: Artifact @hasMany(relation: "manyToMany")
+}
+
 interface TagProperty {
   title: String
 }

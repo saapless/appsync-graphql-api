@@ -62,12 +62,21 @@ export class DexieResolverTypesGenerator {
 
     this._ast.push(
       ts.factory.createTypeAliasDeclaration(
-        [ts.factory.createToken(ts.SyntaxKind.ExportKeyword)],
-        ts.factory.createIdentifier("RecordsDB"),
         undefined,
-        ts.factory.createTypeReferenceNode(ts.factory.createIdentifier("EntityTable"), [
-          ts.factory.createTypeReferenceNode(ts.factory.createIdentifier("Schema.Node"), undefined),
-          ts.factory.createLiteralTypeNode(ts.factory.createStringLiteral("id")),
+        ts.factory.createIdentifier("DBRecord"),
+        undefined,
+        ts.factory.createIntersectionTypeNode([
+          ts.factory.createTypeReferenceNode(
+            ts.factory.createQualifiedName(
+              ts.factory.createIdentifier("Schema"),
+              ts.factory.createIdentifier("Node")
+            ),
+            undefined
+          ),
+          ts.factory.createTypeReferenceNode(ts.factory.createIdentifier("Record"), [
+            ts.factory.createKeywordTypeNode(ts.SyntaxKind.StringKeyword),
+            ts.factory.createKeywordTypeNode(ts.SyntaxKind.UnknownKeyword),
+          ]),
         ])
       ),
       ts.factory.createTypeAliasDeclaration(
@@ -79,7 +88,13 @@ export class DexieResolverTypesGenerator {
             undefined,
             ts.factory.createIdentifier("db"),
             undefined,
-            ts.factory.createTypeReferenceNode(ts.factory.createIdentifier("RecordsDB"), undefined)
+            ts.factory.createTypeReferenceNode(ts.factory.createIdentifier("EntityTable"), [
+              ts.factory.createTypeReferenceNode(
+                ts.factory.createIdentifier("DBRecord"),
+                undefined
+              ),
+              ts.factory.createLiteralTypeNode(ts.factory.createStringLiteral("id")),
+            ])
           ),
           ts.factory.createMethodSignature(
             undefined,

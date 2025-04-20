@@ -106,10 +106,30 @@ export class DexieResolverGenerator {
     return statements;
   }
 
+  private _checkKeyNotNull(descriptor: ResolverDescriptor) {
+    const statements: ts.Statement[] = [];
+
+    if (descriptor.operation.key.ref) {
+      statements.push(
+        ts.factory.createIfStatement(
+          ts.factory.createPrefixUnaryExpression(
+            ts.SyntaxKind.ExclamationToken,
+            ts.factory.createIdentifier(descriptor.operation.key.ref)
+          ),
+          ts.factory.createBlock([ts.factory.createReturnStatement(ts.factory.createNull())], true),
+          undefined
+        )
+      );
+    }
+
+    return statements;
+  }
+
   private _getItem(descriptor: ResolverDescriptor): ts.Block {
     return ts.factory.createBlock(
       [
         ...this._getEarlyReturn(descriptor),
+        ...this._checkKeyNotNull(descriptor),
         ...initGetItem(descriptor),
         ts.factory.createReturnStatement(formatResult(descriptor, this._ast)),
       ],
@@ -121,6 +141,7 @@ export class DexieResolverGenerator {
     return ts.factory.createBlock(
       [
         ...this._getEarlyReturn(descriptor),
+        ...this._checkKeyNotNull(descriptor),
         initBulkGet(),
         ts.factory.createReturnStatement(formatResult(descriptor, this._ast)),
       ],
@@ -141,6 +162,7 @@ export class DexieResolverGenerator {
 
     const block = [
       ...this._getEarlyReturn(descriptor),
+      ...this._checkKeyNotNull(descriptor),
       initQuery(descriptor, this._getOperationIndexName(descriptor.operation)),
       filterQuery(),
       sortQuery(),

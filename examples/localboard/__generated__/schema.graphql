@@ -29,6 +29,13 @@ type Task implements Node {
   updatedAt: String
 }
 
+union Artifact = Task | Workspace | User
+
+interface Editor {
+  content: String
+  artifacts: Artifact
+}
+
 interface TagProperty {
   title: String
 }

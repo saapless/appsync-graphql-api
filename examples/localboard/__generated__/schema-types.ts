@@ -51,6 +51,10 @@ export type Task = {
   updatedAt?: Maybe<string>;
   __typename: string;
 };
+export type Artifact = Task | Workspace | User;
+export interface Editor {
+  content?: Maybe<string>;
+}
 export interface TagProperty {
   title?: Maybe<string>;
 }
@@ -282,7 +286,7 @@ export type UpdateWorkspaceInput = {
 export type LabelConnection = {
   edges: LabelEdge[];
   pageInfo: PageInfo;
-  keys?: Maybe<Node[]>;
+  keys?: Maybe<string[]>;
 };
 export type LabelEdge = {
   cursor?: Maybe<string>;

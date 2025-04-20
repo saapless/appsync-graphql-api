@@ -435,7 +435,7 @@ export class ConnectionPlugin extends TransformerPluginBase {
       if (this._needsEdgeRecord(connection)) {
         if (!connectionType.hasField("keys")) {
           connectionType.addField(
-            FieldNode.create("keys", ListTypeNode.create("Node"), null, [
+            FieldNode.create("keys", ListTypeNode.create(NonNullTypeNode.create("ID")), null, [
               DirectiveNode.create(UtilityDirective.SERVER_ONLY),
             ])
           );
@@ -599,12 +599,12 @@ export class ConnectionPlugin extends TransformerPluginBase {
       const edgeTypeName = pascalCase(target.name, "edge");
 
       this.context.resolvers.setLoader(parent.name, field.name, {
-        targetName: edgeTypeName,
+        targetName: target.name,
         isEdge: true,
         operation: {
           type: "query",
           key: connection.key,
-          sortKey: { beginsWith: { eq: pascalCase(target.name, "Edge") } },
+          sortKey: { beginsWith: { eq: edgeTypeName } },
           index: connection.index ?? undefined,
         },
         returnType: "connection",
@@ -745,6 +745,10 @@ export class ConnectionPlugin extends TransformerPluginBase {
         this.name,
         "Definition does not have any fields. Make sure you run `match` before calling `execute`."
       );
+    }
+
+    if (definition instanceof InterfaceNode) {
+      return;
     }
 
     for (const field of definition.fields) {
