@@ -41,7 +41,6 @@ export default tseslint.config(
       parserOptions: {
         project: [
           path.join(__dirname, "tsconfig.json"),
-          path.join(__dirname, "tsconfig.eslint.json"),
           path.join(__dirname, "packages/*/tsconfig.json"),
         ],
       },
@@ -50,11 +49,7 @@ export default tseslint.config(
       "import/resolver": {
         typescript: {
           alwaysTryTypes: true,
-          project: [
-            "<rootDir>/tsconfig.json",
-            "<rootDir>/tsconfig.eslint.json",
-            "<rootDir>/packages/*/tsconfig.json",
-          ],
+          project: ["<rootDir>/tsconfig.json", "<rootDir>/packages/*/tsconfig.json"],
         },
       },
     },

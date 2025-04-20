@@ -2,5 +2,6 @@
   "jest.nodeEnv": {
     "NODE_OPTIONS": "--experimental-vm-modules"
   },
-  "relay.rootDirectory": "examples/localboard"
+  "relay.rootDirectory": "examples/localboard",
+  "typescript.tsdk": "node_modules/typescript/lib"
 }
