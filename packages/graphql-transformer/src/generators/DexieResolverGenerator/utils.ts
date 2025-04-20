@@ -872,7 +872,7 @@ export function formatResult(
       return formatEdgeResult(descriptor, ast, identifier);
     case "result":
     default:
-      return ts.factory.createIdentifier(identifier ?? "result");
+      return ts.factory.createIdentifier(identifier);
   }
 }
 

@@ -121,3 +121,8 @@ export function pluralize(word: string) {
     });
   });
 }
+
+export function normalizeWhitespace(str: string): string {
+  if (!str?.length) return str;
+  return str.replace(/\s+/g, " ").trim();
+}
