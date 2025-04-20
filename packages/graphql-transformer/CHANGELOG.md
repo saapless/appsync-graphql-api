@@ -1,5 +1,14 @@
 # @saapless/graphql-transformer
 
+## 0.0.5
+
+### Patch Changes
+
+- 02322da: fix DexieResolver interface generation issues
+- Updated dependencies [8f37130]
+- Updated dependencies [2a65996]
+  - @saapless/graphql-utils@0.0.4
+
 ## 0.0.4
 
 ### Patch Changes
