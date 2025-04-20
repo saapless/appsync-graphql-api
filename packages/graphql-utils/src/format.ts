@@ -21,7 +21,7 @@ type ConnectionProps<T extends ConnectionType> = {
   nextToken?: string | null;
 } & Record<string, unknown>;
 
-export function formatConnection<T extends ConnectionType>(props: ConnectionProps<T>) {
+export function formatConnection<T extends ConnectionType>(props: ConnectionProps<T>): T {
   const { items, prevToken, nextToken, ...rest } = props;
 
   const edges = items.filter(Boolean).map((item) => ({
@@ -39,12 +39,12 @@ export function formatConnection<T extends ConnectionType>(props: ConnectionProp
   return { edges, pageInfo, ...rest } as T;
 }
 
-export function formatEdges<T>(items: T extends Array<EdgeType<infer N>> ? (N | null)[] : never) {
-  const filtered = items.filter(Boolean) as T extends Array<EdgeType<infer N>> ? N[] : never;
+export function formatEdges<T extends Node>(items: Array<T | null | undefined>): EdgeType<T>[] {
+  const filtered = items.filter(Boolean) as T[];
   return filtered.map((item) => ({
     cursor: btoa(item?.id),
     node: item,
-  })) as T;
+  }));
 }
 
 export function formatEdge<T extends Node>(item: T): EdgeType<T> {

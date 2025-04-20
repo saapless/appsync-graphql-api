@@ -1,3 +1,5 @@
+import { getValue } from "./deepValue";
+
 // Comparison Operators
 type EqualsExpression = { eq: unknown };
 type NotEqualsExpression = { ne: unknown };
@@ -22,7 +24,7 @@ type NotContainsExpression = { notContains: string };
 type BeginsWithExpression = { beginsWith: string };
 type AttributeExistsExpression = { attributeExists: boolean };
 type AttributeTypeExpression = { attributeType: string };
-type SizeExpression = { size: ComparisonExpression & BetweenExpression };
+type SizeExpression = { size: ComparisonExpression | BetweenExpression };
 
 type FunctionExpression =
   | InExpression
@@ -35,6 +37,14 @@ type FunctionExpression =
   | SizeExpression;
 
 type Expression = ComparisonExpression | FunctionExpression;
+
+type FilterExpression =
+  | {
+      and?: FilterExpression[];
+      or?: FilterExpression[];
+      not?: FilterExpression;
+    }
+  | Record<string, Expression>;
 
 function isEqualsExp(exp: Expression): exp is EqualsExpression {
   return Object.hasOwn(exp, "eq");
@@ -103,23 +113,43 @@ function matchExp(value: unknown, exp: Expression): boolean {
   }
 
   if (isGreaterThanExp(exp)) {
-    return (value as string) > (exp.gt as string);
+    if (
+      (typeof value === "number" && typeof exp.gt === "number") ||
+      (typeof value === "string" && typeof exp.gt === "string")
+    ) {
+      return value > exp.gt;
+    }
   }
 
   if (isGreaterThanOrEqualsExp(exp)) {
-    return (value as string) >= (exp.ge as string);
+    if (
+      (typeof value === "number" && typeof exp.ge === "number") ||
+      (typeof value === "string" && typeof exp.ge === "string")
+    ) {
+      return value >= exp.ge;
+    }
   }
 
   if (isLessThanExp(exp)) {
-    return (value as string) < (exp.lt as string);
+    if (
+      (typeof value === "number" && typeof exp.lt === "number") ||
+      (typeof value === "string" && typeof exp.lt === "string")
+    ) {
+      return value < exp.lt;
+    }
   }
 
   if (isLessThanOrEqualsExp(exp)) {
-    return (value as string) <= (exp.le as string);
+    if (
+      (typeof value === "number" && typeof exp.le === "number") ||
+      (typeof value === "string" && typeof exp.le === "string")
+    ) {
+      return value <= exp.le;
+    }
   }
 
   if (isInExp(exp)) {
-    return (exp.in as unknown[]).includes(value);
+    return exp.in.includes(value);
   }
 
   if (isBetweenExp(exp)) {
@@ -130,15 +160,21 @@ function matchExp(value: unknown, exp: Expression): boolean {
   }
 
   if (isContainsExp(exp)) {
-    return (value as string).includes(exp.contains);
+    if (typeof value === "string" || Array.isArray(value)) {
+      return value.includes(exp.contains);
+    }
   }
 
   if (isNotContainsExp(exp)) {
-    return !(value as string).includes(exp.notContains);
+    if (typeof value === "string" || Array.isArray(value)) {
+      return !value.includes(exp.notContains);
+    }
   }
 
   if (isBeginsWithExp(exp)) {
-    return (value as string).startsWith(exp.beginsWith);
+    if (typeof value === "string") {
+      return value.startsWith(exp.beginsWith);
+    }
   }
 
   if (isAttributeExistsExp(exp)) {
@@ -149,41 +185,63 @@ function matchExp(value: unknown, exp: Expression): boolean {
   }
 
   if (isSizeExp(exp)) {
-    return matchExp((value as string[]).length, exp.size);
+    if (typeof value === "string" || Array.isArray(value)) {
+      return matchExp(value.length, exp.size);
+    }
   }
 
-  return value === exp;
+  return false;
 }
 
-function evaluate(exp: Record<string, Expression>, record: Record<string, unknown>) {
-  for (const [key, value] of Object.entries(exp)) {
-    if (!matchExp(record[key], value)) {
-      return false;
+function evaluate<T extends Record<string, unknown>>(
+  expression: FilterExpression,
+  record: T
+): boolean {
+  for (const [key, exp] of Object.entries(expression)) {
+    if (key === "and" && Array.isArray(exp)) {
+      if (!exp.every((e) => evaluate(e, record))) {
+        return false;
+      }
+    } else if (key === "or" && Array.isArray(exp)) {
+      if (!exp.some((e) => evaluate(e, record))) {
+        return false;
+      }
+    } else if (key === "not" && typeof exp === "object" && !Array.isArray(exp)) {
+      if (evaluate(exp, record)) {
+        return false;
+      }
+    } else {
+      const isNested = key.split(".").length > 1 && Boolean(getValue(record, key));
+
+      if (isNested) {
+        if (!matchExp(getValue(record, key), exp)) {
+          return false;
+        }
+      } else if (!matchExp(record[key], exp)) {
+        return false;
+      }
     }
   }
 
   return true;
 }
 
-export function filterExpression<
-  TFilter extends Record<string, Expression>,
-  TRecord extends Record<string, unknown>,
->(expression: TFilter) {
-  return (record: TRecord): boolean => {
-    for (const [key, exp] of Object.entries(expression)) {
-      if (key === "and" && Array.isArray(exp)) {
-        return exp.every((e) => evaluate(e, record));
-      }
+/**
+ * Filters a record based on the provided filter expression.
+ * @param expression - The filter expression to apply.
+ * @returns A function that takes a record or an array of records and returns true if it matches the filter expression, false otherwise.
+ */
 
-      if (key === "or" && Array.isArray(exp)) {
-        return exp.some((e) => evaluate(e, record));
-      }
-
-      if (key === "not" && typeof exp === "object" && !Array.isArray(exp)) {
-        return !evaluate(exp as Record<string, Expression>, record);
-      }
+export function filterExpression<TFilter extends FilterExpression>(expression: TFilter) {
+  return <TRecord>(record: TRecord): boolean => {
+    if (Array.isArray(record)) {
+      return record.every((r) => evaluate(expression, r));
     }
 
-    return evaluate(expression, record);
+    if (typeof record === "object" && record !== null) {
+      return evaluate(expression, record as Record<string, unknown>);
+    }
+
+    return false;
   };
 }
