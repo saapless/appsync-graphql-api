@@ -1,11 +1,12 @@
 {
-  "include": [
-    "src",
-    "../../global.d.ts"
-  ],
+  "extends": "../../tsconfig.json",
   "references": [
     {
       "path": "./tsconfig.build.json"
     },
+  ],
+  "include": [
+    "src",
+    "../../global.d.ts"
   ],
 }
