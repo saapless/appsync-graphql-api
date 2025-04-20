@@ -1,18 +1,11 @@
 {
-  "extends": "../../tsconfig.json",
-  "compilerOptions": {
-    "rootDir": "src",
-    "noEmit": false,
-    "outDir": "dist",
-    "inlineSources": false,
-    "incremental": true,
-    "isolatedModules": true,
-  },
   "include": [
-    "src"
+    "src",
+    "../../global.d.ts"
   ],
-  "exclude": [
-    "dist",
-    "node_modules"
-  ]
+  "references": [
+    {
+      "path": "./tsconfig.build.json"
+    },
+  ],
 }
