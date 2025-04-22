@@ -560,17 +560,19 @@ export class ConnectionPlugin extends TransformerPluginBase {
     field: FieldNode,
     connection: FieldConnection
   ) {
-    this.context.resolvers.setLoader(parent.name, field.name, {
-      typeName: parent.name,
-      fieldName: field.name,
-      targetName: connection.target.name,
-      returnType: "result",
-      operation: {
-        type: "get",
-        key: connection.key,
-        index: connection.index ?? undefined,
-      },
-    });
+    if (parent instanceof ObjectNode) {
+      this.context.resolvers.setLoader(parent.name, field.name, {
+        typeName: parent.name,
+        fieldName: field.name,
+        targetName: connection.target.name,
+        returnType: "result",
+        operation: {
+          type: "get",
+          key: connection.key,
+          index: connection.index ?? undefined,
+        },
+      });
+    }
   }
 
   private _createEdgesConnection(
@@ -579,6 +581,13 @@ export class ConnectionPlugin extends TransformerPluginBase {
     connection: FieldConnection
   ) {
     this._createConnectionTypes(field, connection);
+
+    // We need to transformer the connections for interface fields
+    // but they should not load data directly.
+
+    if (parent instanceof InterfaceNode) {
+      return;
+    }
 
     if (connection.relation === "oneToMany" && !this._needsEdgeRecord(connection)) {
       this.context.resolvers.setLoader(parent.name, field.name, {
@@ -745,10 +754,6 @@ export class ConnectionPlugin extends TransformerPluginBase {
         this.name,
         "Definition does not have any fields. Make sure you run `match` before calling `execute`."
       );
-    }
-
-    if (definition instanceof InterfaceNode) {
-      return;
     }
 
     for (const field of definition.fields) {
