@@ -1,5 +1,11 @@
 # @saapless/graphql-transformer
 
+## 0.0.6
+
+### Patch Changes
+
+- be85390: fix(transformer): fix interface connection fields transformation
+
 ## 0.0.5
 
 ### Patch Changes
