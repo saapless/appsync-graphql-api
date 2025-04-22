@@ -1,5 +1,12 @@
 # @saapless/graphql-api-construct
 
+## 0.0.6
+
+### Patch Changes
+
+- Updated dependencies [be85390]
+  - @saapless/graphql-transformer@0.0.6
+
 ## 0.0.5
 
 ### Patch Changes
