@@ -3,12 +3,27 @@
   "version": "0.0.7",
   "description": "AppSync GraphQL Api Construct",
   "sideEffects": false,
-  "author": "Saapless",
+  "type": "module",
   "license": "MIT",
+  "keywords": [
+    "GraphQL",
+    "AppSync",
+    "CDK",
+    "AWS"
+  ],
+  "author": "Saapless <dev@saapless.com>",
   "publishConfig": {
     "access": "public"
   },
-  "type": "module",
+  "homepage": "https://www.saapless.com",
+  "repository": {
+    "type": "git",
+    "url": "git+https://github.com/saapless/appsync-graphql-api.git",
+    "directory": "packages/graphql-api-construct"
+  },
+  "bugs": {
+    "url": "https://github.com/saapless/appsync-graphql-api/issues"
+  },
   "main": "dist/index.js",
   "types": "dist/index.d.ts",
   "files": [

@@ -1,9 +1,10 @@
 {
   "name": "@saapless/graphql-transformer",
   "version": "0.0.7",
+  "description": "AppSync GraphQL Transformer",
   "sideEffects": false,
   "type": "module",
-  "description": "AppSync GraphQL Transformer",
+  "license": "MIT",
   "keywords": [
     "GraphQL"
   ],
@@ -11,7 +12,6 @@
   "publishConfig": {
     "access": "public"
   },
-  "license": "MIT",
   "homepage": "https://www.saapless.com",
   "repository": {
     "type": "git",
