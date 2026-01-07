@@ -666,7 +666,7 @@ export class ConnectionPlugin extends TransformerPluginBase {
       .addNode(
         EnumNode.create(
           "ConnectionRelationType",
-          ["oneToMay", "manyToMany"],
+          ["oneToMany", "manyToMany"],
           [DirectiveNode.create(UtilityDirective.INTERNAL)]
         )
       )

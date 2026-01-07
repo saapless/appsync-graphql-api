@@ -70,7 +70,7 @@ export class GraphQLTransformer<TOutput extends Record<string, unknown> = Record
 
     /**
      * We clean up internal declaration first because we don't want to polute the schema types
-     * with internal, processing only types that can confuse users.
+     * with internals (processing only types that can confuse users).
      * TODO: mark internal types with `@internal` directive to avoid confusion.
      */
 
