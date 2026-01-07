@@ -23,8 +23,8 @@
   },
   "dependencies": {
     "@saapless/graphql-transformer": "0.0.6",
-    "aws-cdk-lib": "^2.176.0",
-    "constructs": "^10.4.2",
+    "aws-cdk-lib": "^2.233.0",
+    "constructs": "^10.4.4",
     "fast-glob": "^3.3.3"
   }
 }

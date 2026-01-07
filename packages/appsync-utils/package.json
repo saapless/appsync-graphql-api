@@ -21,10 +21,10 @@
     "dist"
   ],
   "devDependencies": {
-    "@aws-appsync/eslint-plugin": "^2.0.1"
+    "@aws-appsync/eslint-plugin": "^2.0.2"
   },
   "peerDependencies": {
-    "@aws-appsync/utils": ">=1.11.0"
+    "@aws-appsync/utils": "^1.12.0"
   },
   "peerDependenciesMeta": {
     "@aws-appsync/utils": {
