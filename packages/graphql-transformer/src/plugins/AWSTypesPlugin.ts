@@ -29,6 +29,7 @@ export class AWSTypesPlugin extends TransformerPluginBase {
       .addNode(ScalarNode.create("AWSPhone"))
       .addNode(ScalarNode.create("AWSURL"))
       .addNode(ScalarNode.create("AWSIPAddress"))
+      .addNode(ScalarNode.create("Long"))
       .addNode(DirectiveDefinitionNode.create("aws_api_key", ["FIELD_DEFINITION", "OBJECT"]))
       .addNode(
         DirectiveDefinitionNode.create(
@@ -88,6 +89,7 @@ export class AWSTypesPlugin extends TransformerPluginBase {
       .removeNode("AWSPhone")
       .removeNode("AWSURL")
       .removeNode("AWSIPAddress")
+      .removeNode("Long")
       .removeNode("aws_api_key")
       .removeNode("aws_auth")
       .removeNode("aws_cognito_user_pools")

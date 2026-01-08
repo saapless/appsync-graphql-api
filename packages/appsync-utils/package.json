@@ -2,12 +2,26 @@
   "name": "@saapless/appsync-utils",
   "version": "0.0.4",
   "description": "Utilities for AWS AppSync JS resolvers",
-  "author": "Saapless",
-  "license": "MIT",
   "sideEffects": false,
+  "type": "module",
+  "license": "MIT",
+  "author": "Saapless",
   "publishConfig": {
     "access": "public"
   },
+  "homepage": "https://www.saapless.com",
+  "repository": {
+    "type": "git",
+    "url": "git+https://github.com/saapless/appsync-graphql-api.git",
+    "directory": "packages/appsync-utils"
+  },
+  "bugs": {
+    "url": "https://github.com/saapless/appsync-graphql-api/issues"
+  },
+  "files": [
+    "dist",
+    "../../LICENSE"
+  ],
   "main": "dist/index.js",
   "types": "dist/index.d.ts",
   "scripts": {
@@ -17,9 +31,6 @@
     "test:watch": "NODE_OPTIONS=\"--experimental-vm-modules\" jest --watch",
     "lint": "eslint"
   },
-  "files": [
-    "dist"
-  ],
   "devDependencies": {
     "@aws-appsync/eslint-plugin": "^2.0.2"
   },

@@ -2,17 +2,29 @@
   "name": "appsync-realtime-client",
   "version": "0.0.1",
   "description": "GraphQL over Websocket client for AWS AppSync. Based on graphql-transport-ws.",
+  "sideEffects": false,
+  "type": "module",
+  "license": "MIT",
+  "author": "Saapless",
   "publishConfig": {
     "access": "public"
   },
-  "author": "Saapless",
-  "license": "MIT",
-  "sideEffects": false,
+  "homepage": "https://www.saapless.com",
+  "repository": {
+    "type": "git",
+    "url": "git+https://github.com/saapless/appsync-graphql-api.git",
+    "directory": "packages/appsync-realtime-client"
+  },
+  "bugs": {
+    "url": "https://github.com/saapless/appsync-graphql-api/issues"
+  },
+  "files": [
+    "dist",
+    "README.md",
+    "../../LICENSE"
+  ],
   "main": "dist/index.js",
   "types": "dist/index.d.ts",
-  "files": [
-    "dist"
-  ],
   "scripts": {
     "build": "tsc",
     "dev": "tsc --watch",

@@ -2,14 +2,25 @@
   "name": "@saapless/graphql-utils",
   "version": "0.0.4",
   "description": "Utilities for GraphQL JS resolvers",
-  "author": "Saapless",
-  "license": "MIT",
   "sideEffects": false,
+  "type": "module",
+  "license": "MIT",
+  "author": "Saapless",
   "publishConfig": {
     "access": "public"
   },
+  "homepage": "https://www.saapless.com",
+  "repository": {
+    "type": "git",
+    "url": "git+https://github.com/saapless/appsync-graphql-api.git",
+    "directory": "packages/graphql-utils"
+  },
+  "bugs": {
+    "url": "https://github.com/saapless/appsync-graphql-api/issues"
+  },
   "files": [
-    "dist"
+    "dist",
+    "../../LICENSE"
   ],
   "main": "dist/index.js",
   "types": "dist/index.d.ts",
