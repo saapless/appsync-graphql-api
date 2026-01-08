@@ -21,13 +21,13 @@
   "bugs": {
     "url": "https://github.com/saapless/appsync-graphql-api/issues"
   },
-  "main": "dist/index.js",
-  "types": "dist/index.d.ts",
   "files": [
     "dist",
     "README.md",
     "../../LICENSE"
   ],
+  "main": "dist/index.js",
+  "types": "dist/index.d.ts",
   "exports": {
     ".": {
       "default": "./dist/index.js",
