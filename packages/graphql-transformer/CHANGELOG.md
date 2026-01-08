@@ -1,5 +1,13 @@
 # @saapless/graphql-transformer
 
+## 0.0.8
+
+### Patch Changes
+
+- bc4318d: Add Long scalar support in AWSTypesPlugin
+- Updated dependencies [bc4318d]
+  - @saapless/graphql-utils@0.0.5
+
 ## 0.0.7
 
 ### Patch Changes
