@@ -1,6 +1,6 @@
 {
   "name": "@saapless/graphql-api-construct",
-  "version": "0.0.7",
+  "version": "0.0.8",
   "description": "AppSync GraphQL Api Construct",
   "sideEffects": false,
   "type": "module",
@@ -37,7 +37,7 @@
     "test:watch": "NODE_OPTIONS=\"--experimental-vm-modules\" jest --watch"
   },
   "dependencies": {
-    "@saapless/graphql-transformer": "0.0.7",
+    "@saapless/graphql-transformer": "0.0.8",
     "aws-cdk-lib": "^2.233.0",
     "constructs": "^10.4.4",
     "fast-glob": "^3.3.3"
