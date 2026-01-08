@@ -1,5 +1,11 @@
 # @saapless/graphql-transformer
 
+## 0.0.9
+
+### Patch Changes
+
+- fdcb410: added generated files header
+
 ## 0.0.8
 
 ### Patch Changes
