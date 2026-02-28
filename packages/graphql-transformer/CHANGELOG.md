@@ -1,5 +1,11 @@
 # @saapless/graphql-transformer
 
+## 0.0.10
+
+### Patch Changes
+
+- 2b06770: Fix interface connection filter generation
+
 ## 0.0.9
 
 ### Patch Changes
