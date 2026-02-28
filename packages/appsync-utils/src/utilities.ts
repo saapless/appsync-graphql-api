@@ -1,4 +1,3 @@
-/* eslint-disable security/detect-object-injection */
 /* eslint-disable @typescript-eslint/no-explicit-any */
 
 export function getVal<T = unknown>(obj: object, path: string): T | undefined {

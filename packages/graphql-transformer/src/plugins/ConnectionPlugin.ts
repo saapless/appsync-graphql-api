@@ -238,7 +238,7 @@ export class ConnectionPlugin extends TransformerPluginBase {
     );
   }
 
-  private _setConnectionArguments(field: FieldNode, target: ObjectNode) {
+  private _setConnectionArguments(field: FieldNode, target: ObjectNode | InterfaceNode) {
     if (!field.hasArgument("filter")) {
       const filterInput = this._createFilterInput(target);
       field.addArgument(InputValueNode.create("filter", NamedTypeNode.create(filterInput.name)));
@@ -293,7 +293,7 @@ export class ConnectionPlugin extends TransformerPluginBase {
     }
   }
 
-  private _createFilterInput(target: ObjectNode) {
+  private _createFilterInput(target: ObjectNode | InterfaceNode): InputObjectNode {
     const filterInputName = pascalCase(target.name, "filter", "input");
     let filterInput = this.context.document.getNode(filterInputName);
 
@@ -387,12 +387,16 @@ export class ConnectionPlugin extends TransformerPluginBase {
   }
 
   private _needsEdgeRecord(connection: FieldConnection) {
-    if (connection.relation === RelationType.MANY_TO_MANY) return true;
+    if (connection.relation === RelationType.MANY_TO_MANY) {
+      return true;
+    }
     if (
       connection.relation === RelationType.ONE_TO_MANY &&
-      (connection.target instanceof UnionNode || connection.target instanceof InterfaceNode)
-    )
+      connection.target instanceof UnionNode
+    ) {
       return true;
+    }
+
     return false;
   }
 
