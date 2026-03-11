@@ -1,15 +1,15 @@
-import { ModelPlugin } from "../src/plugins/ModelPlugin";
 import {
   DirectiveDefinitionNode,
   DocumentNode,
   EnumNode,
   InputObjectNode,
   ObjectNode,
-} from "../src/definition";
-import { TestContext } from "../__fixtures__/TestContext";
+} from "../definition";
+import { TestTransformerContext } from "../utils/test-utils";
+import { ModelPlugin } from "./ModelPlugin";
 
 describe("ModelPlugin", () => {
-  const context = new TestContext({
+  const context = new TestTransformerContext({
     outputDirectory: "__test__",
     document: DocumentNode.fromSource(/* GraphQL */ `
       type Model @model {

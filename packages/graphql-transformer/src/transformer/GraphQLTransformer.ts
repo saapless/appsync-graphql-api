@@ -1,10 +1,11 @@
-import { DocumentNode } from "../definition";
 import { TransformerContext, TransformerContextConfig } from "../context";
 import { IPluginFactory, TransformerPluginBase } from "../plugins";
 import { SchemaValidationError } from "../utils/errors";
 
-export interface GraphQLTransformerOptions
-  extends Omit<TransformerContextConfig, "document" | "outputDirectory"> {
+export interface GraphQLTransformerOptions extends Omit<
+  TransformerContextConfig,
+  "document" | "outputDirectory"
+> {
   definition: string;
   plugins: IPluginFactory[];
   // Absolute path for dev outputs
@@ -20,15 +21,8 @@ export class GraphQLTransformer<TOutput extends Record<string, unknown> = Record
   readonly context: TransformerContext;
   readonly plugins: TransformerPluginBase[];
 
-  constructor(options: GraphQLTransformerOptions) {
-    const { definition, outDir, plugins, ...contextOptions } = options;
-
-    this.context = new TransformerContext({
-      document: DocumentNode.fromSource(definition),
-      outputDirectory: outDir,
-      ...contextOptions,
-    });
-
+  constructor(context: TransformerContext, plugins: IPluginFactory[]) {
+    this.context = context;
     this.plugins = this._initPlugins(plugins, this.context);
   }
 
@@ -49,7 +43,9 @@ export class GraphQLTransformer<TOutput extends Record<string, unknown> = Record
 
     /**
      * Transformations run in 2 stages (`normalize` & `execute`) to handle interdependencies.
-     * Example: ModelPlugin needs connection keys, while ConnectionPlugin needs Query fields.
+     * Example:
+     * - ModelPlugin needs connection keys to be added when genrating inputs;
+     * - ConnectionPlugin needs to transform `list` fields added by ModelPlugin.
      */
 
     for (const definition of this.context.document.definitions.values()) {
@@ -68,6 +64,14 @@ export class GraphQLTransformer<TOutput extends Record<string, unknown> = Record
       }
     }
 
+    for (const definition of this.context.document.definitions.values()) {
+      for (const plugin of this.plugins) {
+        if (plugin.match(definition) && typeof plugin.cleanup === "function") {
+          plugin.cleanup(definition);
+        }
+      }
+    }
+
     /**
      * We clean up internal declaration first because we don't want to polute the schema types
      * with internals (processing only types that can confuse users).
@@ -76,14 +80,6 @@ export class GraphQLTransformer<TOutput extends Record<string, unknown> = Record
 
     for (const plugin of this.plugins) {
       plugin.after();
-    }
-
-    for (const definition of this.context.document.definitions.values()) {
-      for (const plugin of this.plugins) {
-        if (plugin.match(definition) && typeof plugin.cleanup === "function") {
-          plugin.cleanup(definition);
-        }
-      }
     }
 
     for (const generator of this.plugins) {

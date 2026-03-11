@@ -161,7 +161,7 @@ describe("InputObjectNode", () => {
     const node = InputObjectNode.create("InputObject", [InputValueNode.create("id", "ID")]);
     expect(() => {
       node.addField(InputValueNode.create("id", "ID"));
-    }).toThrowError("Field id already exists on type InputObject");
+    }).toThrow("Field id already exists on type InputObject");
   });
   it("removes field from node", () => {
     const node = InputObjectNode.create("InputObject", [

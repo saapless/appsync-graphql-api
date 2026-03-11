@@ -1,6 +1,6 @@
-import { DirectiveDefinitionNode, DocumentNode, ScalarNode } from "../src/definition";
-import { AWSTypesPlugin } from "../src/plugins/AWSTypesPlugin";
-import { TestContext } from "../__fixtures__/TestContext";
+import { DirectiveDefinitionNode, DocumentNode, ScalarNode } from "../definition";
+import { TestTransformerContext } from "../utils/test-utils";
+import { AWSTypesPlugin } from "./AWSTypesPlugin";
 
 const schema = /* GraphQL */ `
   type User {
@@ -9,7 +9,7 @@ const schema = /* GraphQL */ `
   }
 `;
 
-const context = new TestContext({
+const context = new TestTransformerContext({
   outputDirectory: "__test__",
   document: DocumentNode.fromSource(schema),
 });

@@ -23,7 +23,7 @@ import { addImport, camelCase, printDefinitions } from "../utils";
 import { ScalarType, UtilityDirective } from "../constants";
 import { DexieResolverGenerator } from "../generators";
 import { DexieResolverTypesGenerator } from "../generators/DexieResolverGenerator/DexieResolverTypesGenerator";
-import { TransformerPluginBase } from "./PluginBase";
+import { TransformerPluginBase } from "../plugins/PluginBase";
 
 const require = createRequire(import.meta.url);
 

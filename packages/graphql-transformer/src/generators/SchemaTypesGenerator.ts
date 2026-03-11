@@ -17,7 +17,7 @@ import { pascalCase } from "../utils/strings";
 import { TransformerContext } from "../context";
 import { printDefinitions } from "../utils";
 import { UtilityDirective } from "../constants";
-import { TransformerPluginBase } from "./PluginBase";
+import { TransformerPluginBase } from "../plugins/PluginBase";
 
 export class SchemaTypesGenerator extends TransformerPluginBase {
   private readonly _definitions: ts.Node[];

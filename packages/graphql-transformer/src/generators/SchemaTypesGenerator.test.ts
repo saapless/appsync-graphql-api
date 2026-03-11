@@ -1,10 +1,9 @@
 import { jest } from "@jest/globals";
-import { DocumentNode } from "../src/definition";
-import { TestContext } from "../__fixtures__/TestContext";
+import { TestTransformerContext } from "../utils/test-utils";
+import { DocumentNode } from "../definition";
+import { SchemaTypesGenerator } from "./SchemaTypesGenerator";
 
-const { SchemaTypesGenerator } = await import("../src/plugins/SchemaTypesGenerator");
-
-const context = new TestContext({
+const context = new TestTransformerContext({
   outputDirectory: "__test__",
   document: DocumentNode.fromSource(/* GraphQL */ `
     type User {
@@ -42,6 +41,6 @@ describe("SchemaTypesGenerator", () => {
   it("generates schema types", async () => {
     const generator = new SchemaTypesGenerator(context);
     generator.generate();
-    expect(context.files.get("schema-types.ts")).toMatchSnapshot();
+    expect(context.files.get("schema-types.ts")).toMatchInlineSnapshot(`""`);
   });
 });

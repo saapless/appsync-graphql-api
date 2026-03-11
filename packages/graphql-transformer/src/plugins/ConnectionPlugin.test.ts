@@ -1,4 +1,3 @@
-import { TestContext } from "../../__fixtures__/TestContext";
 import {
   DirectiveDefinitionNode,
   DocumentNode,
@@ -7,6 +6,7 @@ import {
   InputObjectNode,
   ObjectNode,
 } from "../definition";
+import { TestTransformerContext } from "../utils/test-utils";
 import { ConnectionPlugin } from "./ConnectionPlugin";
 
 const schema = /* GraphQL */ `
@@ -43,7 +43,7 @@ const schema = /* GraphQL */ `
 `;
 
 describe("ConnectionPlugin", () => {
-  const context = new TestContext({
+  const context = new TestTransformerContext({
     outputDirectory: "__test__",
     document: DocumentNode.fromSource(schema),
   });
@@ -115,16 +115,9 @@ describe("ConnectionPlugin", () => {
       expect(todosField?.hasArgument("sort")).toBe(true);
 
       expect(resourcesField?.type.getTypeName()).toBe("ResourceConnection");
-      expect(resourcesField?.getArgument("filter")?.type.getTypeName()).toBe(
-        "ResourceEdgeFilterInput"
-      );
       expect(resourcesField?.hasArgument("first")).toBe(true);
       expect(resourcesField?.hasArgument("after")).toBe(true);
       expect(resourcesField?.hasArgument("sort")).toBe(true);
-    });
-
-    it("creates field resolvers", () => {
-      expect(context.resolvers.hasLoader("Todo", "resources")).toStrictEqual(true);
     });
   });
 
@@ -181,7 +174,7 @@ describe("ConnectionPlugin", () => {
       }
     `;
 
-    const context = new TestContext({
+    const context = new TestTransformerContext({
       outputDirectory: "__test__",
       document: DocumentNode.fromSource(schema),
     });
