@@ -20,10 +20,11 @@ import {
   UnionNode,
 } from "../definition";
 import { addImport, camelCase, printDefinitions } from "../utils";
-import { ScalarType, UtilityDirective } from "../constants";
 import { DexieResolverGenerator } from "../generators";
 import { DexieResolverTypesGenerator } from "../generators/DexieResolverGenerator/DexieResolverTypesGenerator";
-import { TransformerPluginBase } from "./PluginBase";
+import { TransformerPluginBase } from "../plugins/PluginBase";
+import { BuiltInScalar } from "../utils/constants";
+import { UtilityDirective } from "../plugins/UtilitiesPlugin";
 
 const require = createRequire(import.meta.url);
 
@@ -241,7 +242,7 @@ export class ExecutableSchemaGenerator extends TransformerPluginBase {
       ]);
     }
 
-    if (Object.values<string>(ScalarType).includes(type.name)) {
+    if (Object.values<string>(BuiltInScalar).includes(type.name)) {
       const scalarName = `GraphQL${type.name}`;
       addImport(
         this._ast,

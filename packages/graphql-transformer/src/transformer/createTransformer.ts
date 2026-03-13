@@ -1,13 +1,7 @@
-import {
-  type IPluginFactory,
-  NodeInterfacePlugin,
-  UtilitiesPlugin,
-  ModelPlugin,
-  ConnectionPlugin,
-  AuthPlugin,
-  SchemaGenerator,
-  SchemaTypesGenerator,
-} from "../plugins";
+import type { IPluginFactory } from "../plugins";
+import { TransformerContext } from "../context";
+import { DocumentNode } from "../definition";
+import { NodeInterfacePlugin, UtilitiesPlugin, ModelPlugin, ConnectionPlugin } from "../plugins";
 import { GraphQLTransformer, GraphQLTransformerOptions } from "./GraphQLTransformer";
 
 export function createTransformer(options: Partial<GraphQLTransformerOptions>) {
@@ -22,17 +16,14 @@ export function createTransformer(options: Partial<GraphQLTransformerOptions>) {
     NodeInterfacePlugin,
     ModelPlugin,
     ConnectionPlugin,
-    AuthPlugin,
-    SchemaGenerator,
-    SchemaTypesGenerator,
     ...plugins,
   ];
 
-  return new GraphQLTransformer({
-    definition: definition,
-    plugins: mergedPlugins,
-    mode: options.mode ?? "production",
-    outDir: outDir ?? "__generated__",
+  const context = new TransformerContext({
+    document: DocumentNode.fromSource(definition),
+    outputDirectory: outDir ?? "__generated__",
     ...rest,
   });
+
+  return new GraphQLTransformer(context, mergedPlugins);
 }

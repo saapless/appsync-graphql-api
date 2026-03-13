@@ -1,0 +1,39 @@
+type User @model {
+  id: ID!
+  name: String @semanticNonNull
+  email: String @semanticNonNull
+  age: Int
+  todos: Todo @hasMany(key: "ownerId") @semanticNonNull
+}
+
+enum Role {
+  OWNER
+  ADMIN
+  MEMBER
+}
+
+type WorkspaceMember @model {
+  id: ID!
+  role: Role @semanticNonNull
+  user: User @hasOne @semanticNonNull
+  workspace: Workspace @hasOne @semanticNonNull
+}
+
+type Workspace @model {
+  id: ID!
+  name: String @semanticNonNull
+  members: WorkspaceMember @hasMany
+}
+
+type Todo @model {
+  id: ID!
+  title: String @semanticNonNull
+  description: String
+  completed: Boolean @semanticNonNull
+  owner: User @hasOne @semanticNonNull
+  subtasks: Todo @hasMany
+}
+
+type Viewer {
+  actor: User @hasOne
+}

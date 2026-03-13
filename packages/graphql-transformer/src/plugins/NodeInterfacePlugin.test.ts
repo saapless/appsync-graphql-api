@@ -1,7 +1,7 @@
-import { TestContext } from "../__fixtures__/TestContext";
-import { DocumentNode, InterfaceNode, ObjectNode } from "../src/definition";
-import { NodeInterfacePlugin } from "../src/plugins/NodeInterfacePlugin";
-import { InvalidDefinitionError } from "../src/utils/errors";
+import { DocumentNode, InterfaceNode, ObjectNode } from "../definition";
+import { InvalidDefinitionError } from "../utils/errors";
+import { TestTransformerContext } from "../utils/test-utils";
+import { NodeInterfacePlugin } from "./NodeInterfacePlugin";
 
 describe("NodeInterfacePlugin", () => {
   describe("the `before` hook", () => {
@@ -11,7 +11,8 @@ describe("NodeInterfacePlugin", () => {
           id: ID!
         }
       `;
-      const context = new TestContext({
+
+      const context = new TestTransformerContext({
         outputDirectory: "__test__",
         document: DocumentNode.fromSource(schema),
       });
@@ -29,7 +30,7 @@ describe("NodeInterfacePlugin", () => {
       }
     `;
 
-    const context = new TestContext({
+    const context = new TestTransformerContext({
       outputDirectory: "__test__",
       document: DocumentNode.fromSource(schema),
     });

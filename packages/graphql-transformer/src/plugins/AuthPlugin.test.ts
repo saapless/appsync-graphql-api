@@ -1,12 +1,12 @@
-import { TestContext } from "../__fixtures__/TestContext";
-import { AuthPlugin } from "../src/plugins/AuthPlugin";
 import {
   DirectiveDefinitionNode,
   DocumentNode,
   EnumNode,
   InputObjectNode,
   ObjectNode,
-} from "../src/definition";
+} from "../definition";
+import { TestTransformerContext } from "../utils/test-utils";
+import { AuthPlugin } from "./AuthPlugin";
 
 const schema = /* GraphQL */ `
   type User @model {
@@ -23,7 +23,7 @@ const schema = /* GraphQL */ `
 `;
 
 describe("AuthPlugin", () => {
-  const context = new TestContext({
+  const context = new TestTransformerContext({
     outputDirectory: "__test__",
     document: DocumentNode.fromSource(schema),
   });

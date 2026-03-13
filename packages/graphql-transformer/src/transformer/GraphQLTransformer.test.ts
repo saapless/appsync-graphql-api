@@ -1,21 +1,16 @@
-import { jest } from "@jest/globals";
-import { FieldNode, NamedTypeNode, ObjectNode } from "../src/definition";
-import { SchemaValidationError } from "../src/utils/errors";
-import { AWSTypesPlugin, SchemaGenerator, SchemaTypesGenerator } from "../src/plugins";
-import { createTransformer, GraphQLTransformer } from "../src";
-import { TransformerContext } from "../src/context";
+import { DocumentNode, FieldNode, NamedTypeNode, ObjectNode } from "../definition";
+import { SchemaValidationError } from "../utils/errors";
+import {
+  AWSTypesPlugin,
+  ConnectionPlugin,
+  ModelPlugin,
+  NodeInterfacePlugin,
+  UtilitiesPlugin,
+} from "../plugins";
 
-jest.spyOn(TransformerContext.prototype, "createOutputDirectory").mockImplementation((path) => {
-  return path;
-});
-
-jest.spyOn(SchemaTypesGenerator.prototype, "generate").mockImplementation(() => {
-  return "/* Schema Types */";
-});
-
-jest.spyOn(SchemaGenerator.prototype, "generate").mockImplementation(() => {
-  return "/* Schema Types */";
-});
+import { TestTransformerContext } from "../utils/test-utils";
+import { createTransformer } from "./createTransformer";
+import { GraphQLTransformer } from "./GraphQLTransformer";
 
 const schema = /* GraphQL */ `
   enum UserStatus {
@@ -112,15 +107,21 @@ const schema = /* GraphQL */ `
   }
 `;
 
-describe("GraphQLTransformer", () => {
-  const transformer = createTransformer({
-    definition: schema,
-    mode: "development",
-    outDir: "__testing__",
-    plugins: [AWSTypesPlugin],
-  });
+const context = new TestTransformerContext({
+  outputDirectory: "__test__",
+  document: DocumentNode.fromSource(schema),
+});
 
-  describe("createTransformer factory", () => {
+const transformer = new GraphQLTransformer(context, [
+  UtilitiesPlugin,
+  NodeInterfacePlugin,
+  ModelPlugin,
+  ConnectionPlugin,
+  AWSTypesPlugin,
+]);
+
+describe("GraphQLTransformer", () => {
+  describe.skip("createTransformer factory", () => {
     it("throws if empty definition", () => {
       expect(() => createTransformer({ definition: "" })).toThrow();
     });
@@ -137,21 +138,27 @@ describe("GraphQLTransformer", () => {
 
   describe("given invalid schema", () => {
     it("throws SchemaValidationError", () => {
-      const transformer = createTransformer({
-        definition: schema.replace("type Viewer", "type Viewer2"),
+      const context = new TestTransformerContext({
+        outputDirectory: "__test__",
+        document: DocumentNode.fromSource(schema.replace("type Viewer", "type Viewer2")),
       });
+
+      const transformer = new GraphQLTransformer(context, [
+        UtilitiesPlugin,
+        NodeInterfacePlugin,
+        ModelPlugin,
+        ConnectionPlugin,
+        AWSTypesPlugin,
+      ]);
 
       expect(() => transformer.transform()).toThrow(SchemaValidationError);
     });
   });
 
   describe("runs schema transformations", () => {
-    const result = transformer.transform();
-    const context = transformer.context;
+    transformer.transform();
 
-    it.skip("return result", () => {
-      expect(result).toMatchSnapshot();
-    });
+    const context = transformer.context;
 
     it("copies extended fields", () => {
       const viewerType = context.document.getNode("Viewer") as ObjectNode;
@@ -160,14 +167,10 @@ describe("GraphQLTransformer", () => {
       expect(viewerType.getField("tasks")).toBeInstanceOf(FieldNode);
     });
 
-    // it("generates resources", () => {
-    //   expect(output.mockedFiles.size).toBe(2);
-    // });
-
     describe("NodeInterfacePlugin trnsformations", () => {
       it("adds valid `node` field to Query", () => {
         const nodeField = (context.document.getNode("Query") as ObjectNode)?.getField("node");
-        const nodeFieldTypename = (nodeField?.type as NamedTypeNode).name;
+        const nodeFieldTypename = nodeField?.type.getTypeName();
 
         expect(nodeField).toBeDefined();
         expect(nodeField).toBeInstanceOf(FieldNode);

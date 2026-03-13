@@ -1,6 +1,51 @@
-// Jest Snapshot v1, https://goo.gl/fbAQLP
+import { beforeAll } from "@jest/globals";
+import { DocumentNode } from "../definition";
+import { TestTransformerContext } from "../utils/test-utils";
+import { ExecutableSchemaGenerator } from "./ExecutableSchemaGenerator";
 
-exports[`ExecutableSchemaGenerator generates executable schema 1`] = `
+const schema = /* GraphQL */ `
+  type User {
+    id: ID!
+    name: String!
+    email: String!
+    role: UserRole!
+    tasks: Task
+  }
+
+  enum UserRole {
+    ADMIN
+    USER
+  }
+
+  type Task {
+    id: ID!
+    title: String!
+    description: String!
+    user: User!
+  }
+
+  type Query {
+    viewer: User
+  }
+`;
+
+const context = new TestTransformerContext({
+  document: DocumentNode.fromSource(schema),
+  outputDirectory: "__test__",
+});
+
+const generator = new ExecutableSchemaGenerator(context, { outDir: "executable-schema" });
+
+describe("ExecutableSchemaGenerator", () => {
+  beforeAll(() => {
+    for (const node of context.document.definitions.values()) {
+      generator.execute(node);
+    }
+  });
+
+  it("generates executable schema", () => {
+    generator.generate();
+    expect(context.files.get("executable-schema/schema.ts")).toMatchInlineSnapshot(`
 "/* eslint-disable */
 import { GraphQLObjectType, GraphQLNonNull, GraphQLID, GraphQLString, GraphQLEnumType, GraphQLSchema } from "graphql";
 let User: GraphQLObjectType<Schema.User, ResolverContext>;
@@ -16,4 +61,6 @@ export const schema = new GraphQLSchema({
     types: [User, UserRole, Task]
 });
 "
-`;
+`);
+  });
+});

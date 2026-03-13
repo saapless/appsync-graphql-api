@@ -9,6 +9,7 @@ const config = {
   testMatch: ["**/__tests__/**/?(*.)+(spec|test).[jt]s?(x)", "**/?(*.)+(spec|test).[jt]s?(x)"],
   testEnvironment: "node",
   extensionsToTreatAsEsm: [".ts"],
+  prettierPath: null,
   ...createDefaultEsmPreset({
     tsconfig: path.resolve(__dirname, "../../tsconfig.json"),
     useESM: true,

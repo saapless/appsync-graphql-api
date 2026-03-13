@@ -2,7 +2,7 @@ import ts from "typescript";
 import { TransformerContext, ResolverDescriptor } from "../context";
 import { ObjectNode } from "../definition";
 import { pascalCase, printDefinitions } from "../utils";
-import { TransformerPluginBase } from "./PluginBase";
+import { TransformerPluginBase } from "../plugins/PluginBase";
 
 export class AppSyncResolverTypesGenerator extends TransformerPluginBase {
   private readonly _definitions: ts.Node[];

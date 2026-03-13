@@ -1,7 +1,27 @@
-import { UtilityDirective } from "../constants";
 import { TransformerContext } from "../context";
-import { DefinitionNode, DirectiveDefinitionNode, InterfaceNode, ObjectNode } from "../definition";
+import {
+  DefinitionNode,
+  DirectiveDefinitionNode,
+  DirectiveNode,
+  InputObjectNode,
+  InputValueNode,
+  InterfaceNode,
+  ListTypeNode,
+  ObjectNode,
+  ValueNode,
+} from "../definition";
 import { TransformerPluginBase } from "./PluginBase";
+
+export const UtilityDirective = {
+  SERVER_ONLY: "serverOnly",
+  CLIENT_ONLY: "clientOnly",
+  READ_ONLY: "readOnly",
+  WRITE_ONLY: "writeOnly",
+  FILTER_ONLY: "filterOnly",
+  SEMANTIC_NON_NULL: "semanticNonNull",
+  NON_NULL: "nonNull",
+  INTERNAL: "internal",
+} as const;
 
 export class UtilitiesPlugin extends TransformerPluginBase {
   constructor(context: TransformerContext) {
@@ -15,6 +35,37 @@ export class UtilitiesPlugin extends TransformerPluginBase {
       .addNode(DirectiveDefinitionNode.create(UtilityDirective.SERVER_ONLY, ["FIELD_DEFINITION"]))
       .addNode(DirectiveDefinitionNode.create(UtilityDirective.CLIENT_ONLY, ["FIELD_DEFINITION"]))
       .addNode(DirectiveDefinitionNode.create(UtilityDirective.FILTER_ONLY, ["FIELD_DEFINITION"]))
+      .addNode(
+        DirectiveDefinitionNode.create(
+          UtilityDirective.SEMANTIC_NON_NULL,
+          ["FIELD_DEFINITION"],
+          InputValueNode.create(
+            "levels",
+            ListTypeNode.create("Int"),
+            ValueNode.list([ValueNode.int(0)])
+          )
+        )
+      )
+      .addNode(
+        InputObjectNode.create("NonNullOptionsInput", [
+          InputValueNode.create("read", "Boolean"),
+          InputValueNode.create("write", "Boolean"),
+        ])
+      )
+      .addNode(
+        DirectiveDefinitionNode.create(
+          UtilityDirective.NON_NULL,
+          ["FIELD_DEFINITION"],
+          [
+            InputValueNode.create("on", "NonNullOptionsInput"),
+            InputValueNode.create(
+              "levels",
+              ListTypeNode.create("Int"),
+              ValueNode.list([ValueNode.int(0)])
+            ),
+          ]
+        )
+      )
       .addNode(
         DirectiveDefinitionNode.create(UtilityDirective.INTERNAL, [
           "FIELD_DEFINITION",
@@ -35,6 +86,17 @@ export class UtilitiesPlugin extends TransformerPluginBase {
     return false;
   }
 
+  public normalize(definition: ObjectNode | InterfaceNode): void {
+    for (const field of definition.fields ?? []) {
+      if (field.hasDirective(UtilityDirective.NON_NULL)) {
+        const levels = field.getDirective(UtilityDirective.NON_NULL)?.getArgument("levels");
+        field.addDirective(
+          DirectiveNode.create(UtilityDirective.SEMANTIC_NON_NULL, levels ? [levels] : undefined)
+        );
+      }
+    }
+  }
+
   public execute(): void {}
 
   public cleanup(definition: ObjectNode | InterfaceNode): void {
@@ -45,6 +107,10 @@ export class UtilitiesPlugin extends TransformerPluginBase {
 
       if (field.hasDirective(UtilityDirective.CLIENT_ONLY)) {
         field.removeDirective(UtilityDirective.CLIENT_ONLY);
+      }
+
+      if (field.hasDirective(UtilityDirective.NON_NULL)) {
+        field.removeDirective(UtilityDirective.NON_NULL);
       }
 
       if (field.hasDirective(UtilityDirective.FILTER_ONLY)) {
@@ -68,6 +134,8 @@ export class UtilitiesPlugin extends TransformerPluginBase {
       .removeNode(UtilityDirective.SERVER_ONLY)
       .removeNode(UtilityDirective.CLIENT_ONLY)
       .removeNode(UtilityDirective.FILTER_ONLY)
+      .removeNode(UtilityDirective.NON_NULL)
+      .removeNode("NonNullOptionsInput")
       .removeNode(UtilityDirective.INTERNAL);
   }
 

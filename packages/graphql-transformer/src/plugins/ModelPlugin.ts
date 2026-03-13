@@ -1,5 +1,3 @@
-import { ScalarType, UtilityDirective } from "../constants";
-import { ModelOperation, type ModelOperationType } from "../constants/model";
 import { TransformerContext } from "../context";
 import {
   ArgumentNode,
@@ -17,13 +15,32 @@ import {
   ScalarNode,
   ValueNode,
 } from "../definition";
+import { BuiltInScalar } from "../utils/constants";
 import { TransformPluginExecutionError } from "../utils/errors";
 import { camelCase, pascalCase, pluralize } from "../utils/strings";
 import { WriteOperation } from "../utils/types";
 import { TransformerPluginBase } from "./PluginBase";
+import { UtilityDirective } from "./UtilitiesPlugin";
+
+export const ModelOperation = {
+  READ: "read",
+  GET: "get",
+  LIST: "list",
+  SYNC: "sync",
+  SUBSCRIBE: "subscribe",
+  WRITE: "write",
+  CREATE: "create",
+  UPDATE: "update",
+  UPSERT: "upsert",
+  DELETE: "delete",
+} as const;
+
+export const ModelDirective = {
+  MODEL: "model",
+} as const;
 
 export type ModelDirectiveArgs = {
-  operations?: ModelOperationType[];
+  operations?: (typeof ModelOperation)[keyof typeof ModelOperation][];
 };
 
 export class ModelPlugin extends TransformerPluginBase {
@@ -97,8 +114,8 @@ export class ModelPlugin extends TransformerPluginBase {
   }
 
   private _isScalarType(typeName: string) {
-    return Object.values(ScalarType).includes(
-      typeName as (typeof ScalarType)[keyof typeof ScalarType]
+    return Object.values(BuiltInScalar).includes(
+      typeName as (typeof BuiltInScalar)[keyof typeof BuiltInScalar]
     );
   }
 

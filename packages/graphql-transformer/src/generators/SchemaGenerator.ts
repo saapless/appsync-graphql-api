@@ -1,5 +1,5 @@
 import { TransformerContext } from "../context";
-import { TransformerPluginBase } from "./PluginBase";
+import { TransformerPluginBase } from "../plugins/PluginBase";
 
 export class SchemaGenerator extends TransformerPluginBase {
   constructor(context: TransformerContext) {
