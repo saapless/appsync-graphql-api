@@ -6,7 +6,7 @@ import {
   NonNullTypeNode,
   ScalarNode,
 } from "../definition";
-import { TransformerPluginBase } from "./PluginBase";
+import { TransformerPluginBase } from "../plugins/PluginBase";
 
 /**
  * This plugin deals with AWS specific scalars and directives.

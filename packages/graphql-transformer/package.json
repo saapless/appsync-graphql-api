@@ -45,6 +45,10 @@
       "default": "./dist/definition/index.js",
       "types": "./dist/definition/index.d.ts"
     },
+    "./generators": {
+      "default": "./dist/generators/index.js",
+      "types": "./dist/generators/index.d.ts"
+    },
     "./plugins": {
       "default": "./dist/plugins/index.js",
       "types": "./dist/plugins/index.d.ts"

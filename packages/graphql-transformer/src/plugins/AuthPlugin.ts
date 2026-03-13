@@ -1,4 +1,3 @@
-import { UtilityDirective } from "../constants";
 import { TransformerContext } from "../context";
 import {
   DefinitionNode,
@@ -15,6 +14,7 @@ import {
 } from "../definition";
 import { AuthorizationRule } from "../utils";
 import { TransformerPluginBase } from "./PluginBase";
+import { UtilityDirective } from "./UtilitiesPlugin";
 
 /**
  * Adds authorization directive to the schema.

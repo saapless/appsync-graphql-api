@@ -1,4 +1,3 @@
-import { ConnectionDirective, RelationType, ScalarType, UtilityDirective } from "../constants";
 import { TransformerContext } from "../context";
 import {
   DefinitionNode,
@@ -17,20 +16,32 @@ import {
 } from "../definition";
 import { TransformPluginExecutionError } from "../utils/errors";
 import { camelCase, pascalCase } from "../utils/strings";
-import { KeyOperator, KeyValue } from "../utils/types";
+import { BuiltInScalar } from "../utils/constants";
 import { TransformerPluginBase } from "./PluginBase";
+import { UtilityDirective } from "./UtilitiesPlugin";
+
+export const ConnectionDirective = {
+  HAS_ONE: "hasOne",
+  HAS_MANY: "hasMany",
+} as const;
+
+export const RelationType = {
+  ONE_TO_ONE: "oneToOne",
+  ONE_TO_MANY: "oneToMany",
+  MANY_TO_MANY: "manyToMany",
+} as const;
 
 type Relation = (typeof RelationType)[keyof typeof RelationType];
 
 export type DirectiveArgs = {
   relation?: Relation;
-  key?: KeyValue<string>;
-  sortKey?: (KeyValue<string> & KeyOperator<string>) | null;
-  index?: string | null;
+  key?: string;
 };
 
-export type FieldConnection = Required<DirectiveArgs> & {
+export type FieldConnection = {
+  relation: Relation;
   target: ObjectNode | InterfaceNode | UnionNode;
+  key?: string;
 };
 
 export class ConnectionPlugin extends TransformerPluginBase {
@@ -187,7 +198,7 @@ export class ConnectionPlugin extends TransformerPluginBase {
     ) {
       throw new TransformPluginExecutionError(
         this.name,
-        `Type ${target.name} is not a valid connection target.`
+        `Type ${target.name} is not a valid connection target for ${object.name}.${field.name} `
       );
     }
 
@@ -206,9 +217,7 @@ export class ConnectionPlugin extends TransformerPluginBase {
       return {
         relation: RelationType.ONE_TO_ONE,
         target: target,
-        key: args.key ?? { ref: `source.${camelCase(target.name, "id")}` },
-        sortKey: args.sortKey ?? null,
-        index: args.index ?? null,
+        key: args.key ?? camelCase(field.name, "id"),
       };
     }
 
@@ -217,18 +226,10 @@ export class ConnectionPlugin extends TransformerPluginBase {
     if (directive) {
       const args = directive.getArgumentsJSON<DirectiveArgs>();
 
-      let sortKey = args.sortKey;
-
-      if (!sortKey && !args.key && !args.relation && object.name !== "Query") {
-        sortKey = { beginsWith: { eq: target.name } };
-      }
-
       return {
         relation: args.relation ?? RelationType.ONE_TO_MANY,
         target: target,
-        key: args.key ?? { ref: "source.id" },
-        sortKey: sortKey ?? null,
-        index: args.index ?? "bySourceId",
+        key: args.key,
       };
     }
 
@@ -280,6 +281,7 @@ export class ConnectionPlugin extends TransformerPluginBase {
       );
     }
   }
+
   private _createEnumFilterInput(node: EnumNode) {
     const filterInputName = pascalCase(node.name, "filter", "input");
 
@@ -319,27 +321,27 @@ export class ConnectionPlugin extends TransformerPluginBase {
         }
 
         switch (field.type.getTypeName()) {
-          case ScalarType.ID:
+          case BuiltInScalar.ID:
             filterInput.addField(
               InputValueNode.create(field.name, NamedTypeNode.create(`IDFilterInput`))
             );
             continue;
-          case ScalarType.INT:
+          case BuiltInScalar.Int:
             filterInput.addField(
               InputValueNode.create(field.name, NamedTypeNode.create("IntFilterInput"))
             );
             continue;
-          case ScalarType.FLOAT:
+          case BuiltInScalar.Float:
             filterInput.addField(
               InputValueNode.create(field.name, NamedTypeNode.create("FloatFilterInput"))
             );
             continue;
-          case ScalarType.BOOLEAN:
+          case BuiltInScalar.Boolean:
             filterInput.addField(
               InputValueNode.create(field.name, NamedTypeNode.create("BooleanFilterInput"))
             );
             continue;
-          case ScalarType.STRING:
+          case BuiltInScalar.String:
           case "AWSDate":
           case "AWSDateTime":
           case "AWSTime":
@@ -439,36 +441,6 @@ export class ConnectionPlugin extends TransformerPluginBase {
   public before() {
     this.context.document
       .addNode(
-        InputObjectNode.create(
-          "KeyValueInput",
-          [
-            InputValueNode.create("ref", NamedTypeNode.create("String")),
-            InputValueNode.create("eq", NamedTypeNode.create("String")),
-          ],
-          [DirectiveNode.create(UtilityDirective.INTERNAL)]
-        )
-      )
-      .addNode(
-        InputObjectNode.create(
-          "SortKeyInput",
-          [
-            InputValueNode.create("ref", NamedTypeNode.create("String")),
-            InputValueNode.create("eq", NamedTypeNode.create("String")),
-            InputValueNode.create("ne", NamedTypeNode.create("KeyValueInput")),
-            InputValueNode.create("le", NamedTypeNode.create("KeyValueInput")),
-            InputValueNode.create("lt", NamedTypeNode.create("KeyValueInput")),
-            InputValueNode.create("ge", NamedTypeNode.create("KeyValueInput")),
-            InputValueNode.create("gt", NamedTypeNode.create("KeyValueInput")),
-            InputValueNode.create(
-              "between",
-              ListTypeNode.create(NonNullTypeNode.create("KeyValueInput"))
-            ),
-            InputValueNode.create("beginsWith", NamedTypeNode.create("KeyValueInput")),
-          ],
-          [DirectiveNode.create(UtilityDirective.INTERNAL)]
-        )
-      )
-      .addNode(
         EnumNode.create(
           "ConnectionRelationType",
           ["oneToMany", "manyToMany"],
@@ -477,17 +449,13 @@ export class ConnectionPlugin extends TransformerPluginBase {
       )
       .addNode(
         DirectiveDefinitionNode.create("hasOne", "FIELD_DEFINITION", [
-          InputValueNode.create("key", "KeyValueInput"),
-          InputValueNode.create("sortKey", "SortKeyInput"),
-          InputValueNode.create("index", "String"),
+          InputValueNode.create("key", "String"),
         ])
       )
       .addNode(
         DirectiveDefinitionNode.create("hasMany", "FIELD_DEFINITION", [
           InputValueNode.create("relation", "ConnectionRelationType"),
-          InputValueNode.create("key", "KeyValueInput"),
-          InputValueNode.create("sortKey", "SortKeyInput"),
-          InputValueNode.create("index", "String"),
+          InputValueNode.create("key", "String"),
         ])
       )
       .addNode(
@@ -529,25 +497,26 @@ export class ConnectionPlugin extends TransformerPluginBase {
         continue;
       }
 
-      if (
-        connection.relation === RelationType.ONE_TO_ONE &&
-        connection.key.ref?.startsWith("source.")
-      ) {
-        const key = connection.key.ref.split(".")[1];
-        this._setConnectionKey(definition, key);
+      if (connection.relation === RelationType.ONE_TO_ONE && connection.key) {
+        this._setConnectionKey(definition, connection.key, true);
       }
 
-      if (connection.relation === RelationType.ONE_TO_MANY) {
+      if (
+        connection.relation === RelationType.ONE_TO_MANY &&
+        !this._isConnectionType(connection.target)
+      ) {
+        const sourceKey = connection.key ?? camelCase(definition.name, "id");
+
         if (connection.target instanceof UnionNode) {
           for (const type of connection.target.types ?? []) {
             const unionType = this.context.document.getNode(type.getTypeName());
 
             if (unionType instanceof ObjectNode || unionType instanceof InterfaceNode) {
-              this._setConnectionKey(unionType, "sourceId", false);
+              this._setConnectionKey(unionType, sourceKey, false);
             }
           }
         } else {
-          this._setConnectionKey(connection.target, "sourceId", false);
+          this._setConnectionKey(connection.target, sourceKey, false);
         }
       }
     }

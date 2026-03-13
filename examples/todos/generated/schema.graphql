@@ -1,0 +1,318 @@
+type User implements Node {
+  id: ID!
+  name: String @semanticNonNull
+  email: String @semanticNonNull
+  age: Int
+  todos(filter: TodoFilterInput, first: Int, after: String, sort: SortDirection): TodoConnection! @semanticNonNull
+  createdAt: String
+  updatedAt: String
+}
+
+enum Role {
+  OWNER
+  ADMIN
+  MEMBER
+}
+
+type WorkspaceMember implements Node {
+  id: ID!
+  role: Role @semanticNonNull
+  user: User @semanticNonNull
+  workspace: Workspace @semanticNonNull
+  createdAt: String
+  updatedAt: String
+}
+
+type Workspace implements Node {
+  id: ID!
+  name: String @semanticNonNull
+  members(filter: WorkspaceMemberFilterInput, first: Int, after: String, sort: SortDirection): WorkspaceMemberConnection!
+  createdAt: String
+  updatedAt: String
+}
+
+type Todo implements Node {
+  id: ID!
+  title: String @semanticNonNull
+  description: String
+  completed: Boolean @semanticNonNull
+  owner: User @semanticNonNull
+  subtasks(filter: TodoFilterInput, first: Int, after: String, sort: SortDirection): TodoConnection!
+  createdAt: String
+  updatedAt: String
+}
+
+type Viewer {
+  actor: User
+}
+
+directive @semanticNonNull(levels: [Int] = [0]) on FIELD_DEFINITION
+
+interface Node {
+  id: ID!
+}
+
+type Query {
+  node(id: ID!): Node
+  getUser(id: ID!): User
+  listUsers(filter: UserFilterInput, first: Int, after: String, sort: SortDirection): UserConnection!
+  getWorkspaceMember(id: ID!): WorkspaceMember
+  listWorkspaceMembers(filter: WorkspaceMemberFilterInput, first: Int, after: String, sort: SortDirection): WorkspaceMemberConnection!
+  getWorkspace(id: ID!): Workspace
+  listWorkspaces(filter: WorkspaceFilterInput, first: Int, after: String, sort: SortDirection): WorkspaceConnection!
+  getTodo(id: ID!): Todo
+  listTodos(filter: TodoFilterInput, first: Int, after: String, sort: SortDirection): TodoConnection!
+}
+
+type PageInfo {
+  hasNextPage: Boolean
+  hasPreviousPage: Boolean
+  startCursor: String
+  endCursor: String
+}
+
+input SizeFilterInput {
+  ne: Int
+  eq: Int
+  le: Int
+  lt: Int
+  ge: Int
+  gt: Int
+  between: [Int!]
+}
+
+input StringFilterInput {
+  ne: String
+  eq: String
+  le: String
+  lt: String
+  ge: String
+  gt: String
+  in: [String!]
+  contains: String
+  notContains: String
+  between: [String!]
+  beginsWith: String
+  attributeExists: Boolean
+  size: SizeFilterInput
+}
+
+input IntFilterInput {
+  ne: Int
+  eq: Int
+  le: Int
+  lt: Int
+  ge: Int
+  gt: Int
+  in: [Int!]
+  between: [Int!]
+  attributeExists: Boolean
+}
+
+input FloatFilterInput {
+  ne: Float
+  eq: Float
+  le: Float
+  lt: Float
+  ge: Float
+  gt: Float
+  in: [Float!]
+  between: [Float!]
+  attributeExists: Boolean
+}
+
+input BooleanFilterInput {
+  ne: Boolean
+  eq: Boolean
+  attributeExists: Boolean
+}
+
+input IDFilterInput {
+  ne: ID
+  eq: ID
+  in: [ID!]
+  attributeExists: Boolean
+}
+
+input ListFilterInput {
+  contains: String
+  notContains: String
+  size: SizeFilterInput
+}
+
+enum SortDirection {
+  ASC
+  DESC
+}
+
+type Mutation {
+  createUser(input: CreateUserInput!): User
+  updateUser(input: UpdateUserInput!): User
+  deleteUser(id: ID!): User
+  createWorkspaceMember(input: CreateWorkspaceMemberInput!): WorkspaceMember
+  updateWorkspaceMember(input: UpdateWorkspaceMemberInput!): WorkspaceMember
+  deleteWorkspaceMember(id: ID!): WorkspaceMember
+  createWorkspace(input: CreateWorkspaceInput!): Workspace
+  updateWorkspace(input: UpdateWorkspaceInput!): Workspace
+  deleteWorkspace(id: ID!): Workspace
+  createTodo(input: CreateTodoInput!): Todo
+  updateTodo(input: UpdateTodoInput!): Todo
+  deleteTodo(id: ID!): Todo
+}
+
+input CreateUserInput {
+  id: ID
+  name: String
+  email: String
+  age: Int
+  createdAt: String
+  updatedAt: String
+}
+
+input UpdateUserInput {
+  id: ID!
+  name: String
+  email: String
+  age: Int
+  createdAt: String
+  updatedAt: String
+}
+
+type TodoConnection {
+  edges: [TodoEdge!]!
+  pageInfo: PageInfo!
+}
+
+type TodoEdge {
+  cursor: String
+  node: Todo
+}
+
+input TodoFilterInput {
+  id: IDFilterInput
+  title: StringFilterInput
+  description: StringFilterInput
+  completed: BooleanFilterInput
+  and: [TodoFilterInput]
+  or: [TodoFilterInput]
+  not: TodoFilterInput
+}
+
+input CreateWorkspaceMemberInput {
+  id: ID
+  role: Role
+  createdAt: String
+  updatedAt: String
+}
+
+input UpdateWorkspaceMemberInput {
+  id: ID!
+  role: Role
+  createdAt: String
+  updatedAt: String
+}
+
+input CreateWorkspaceInput {
+  id: ID
+  name: String
+  createdAt: String
+  updatedAt: String
+}
+
+input UpdateWorkspaceInput {
+  id: ID!
+  name: String
+  createdAt: String
+  updatedAt: String
+}
+
+type WorkspaceMemberConnection {
+  edges: [WorkspaceMemberEdge!]!
+  pageInfo: PageInfo!
+}
+
+type WorkspaceMemberEdge {
+  cursor: String
+  node: WorkspaceMember
+}
+
+input RoleFilterInput {
+  eq: Role
+  ne: Role
+  in: [Role!]
+  attributeExists: Boolean
+}
+
+input WorkspaceMemberFilterInput {
+  id: IDFilterInput
+  role: RoleFilterInput
+  createdAt: StringFilterInput
+  updatedAt: StringFilterInput
+  and: [WorkspaceMemberFilterInput]
+  or: [WorkspaceMemberFilterInput]
+  not: WorkspaceMemberFilterInput
+}
+
+input CreateTodoInput {
+  id: ID
+  title: String
+  description: String
+  completed: Boolean
+  ownerId: ID
+  todoId: ID
+  createdAt: String
+  updatedAt: String
+}
+
+input UpdateTodoInput {
+  id: ID!
+  title: String
+  description: String
+  completed: Boolean
+  ownerId: ID
+  todoId: ID
+  createdAt: String
+  updatedAt: String
+}
+
+type UserConnection {
+  edges: [UserEdge!]!
+  pageInfo: PageInfo!
+}
+
+type UserEdge {
+  cursor: String
+  node: User
+}
+
+input UserFilterInput {
+  id: IDFilterInput
+  name: StringFilterInput
+  email: StringFilterInput
+  age: IntFilterInput
+  createdAt: StringFilterInput
+  updatedAt: StringFilterInput
+  and: [UserFilterInput]
+  or: [UserFilterInput]
+  not: UserFilterInput
+}
+
+type WorkspaceConnection {
+  edges: [WorkspaceEdge!]!
+  pageInfo: PageInfo!
+}
+
+type WorkspaceEdge {
+  cursor: String
+  node: Workspace
+}
+
+input WorkspaceFilterInput {
+  id: IDFilterInput
+  name: StringFilterInput
+  createdAt: StringFilterInput
+  updatedAt: StringFilterInput
+  and: [WorkspaceFilterInput]
+  or: [WorkspaceFilterInput]
+  not: WorkspaceFilterInput
+}

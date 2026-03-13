@@ -16,13 +16,14 @@ import {
 import { pascalCase } from "../utils/strings";
 import { TransformerContext } from "../context";
 import { printDefinitions } from "../utils";
-import { UtilityDirective } from "../constants";
 import { TransformerPluginBase } from "../plugins/PluginBase";
+import { UtilityDirective } from "../plugins/UtilitiesPlugin";
+import { ConnectionDirective } from "../plugins/ConnectionPlugin";
 
-export class SchemaTypesGenerator extends TransformerPluginBase {
+export class ModelTypesGenerator extends TransformerPluginBase {
   private readonly _definitions: ts.Node[];
   constructor(context: TransformerContext) {
-    super("SchemaTypesGenerator", context);
+    super("ModelTypesGenerator", context);
 
     this._definitions = [];
   }
@@ -43,11 +44,33 @@ export class SchemaTypesGenerator extends TransformerPluginBase {
   }
 
   private _shouldIncludeField(field: FieldNode) {
-    if (field.hasDirective("hasOne") || field.hasDirective("hasMany")) {
+    if (
+      field.hasDirective(ConnectionDirective.HAS_ONE) ||
+      field.hasDirective(ConnectionDirective.HAS_MANY)
+    ) {
       return false;
     }
 
     return true;
+  }
+
+  private _isNullableField(field: FieldNode | InputValueNode): boolean {
+    if (
+      field.type instanceof NonNullTypeNode ||
+      field.hasDirective(UtilityDirective.SEMANTIC_NON_NULL)
+    ) {
+      return false;
+    }
+    return true;
+  }
+
+  private _isBetweenFilterField(field: FieldNode | InputValueNode, isFilterInput: boolean) {
+    return (
+      isFilterInput &&
+      field instanceof InputValueNode &&
+      field.name === "between" &&
+      field.type instanceof ListTypeNode
+    );
   }
 
   private _value(ref: string) {
@@ -88,15 +111,34 @@ export class SchemaTypesGenerator extends TransformerPluginBase {
     }
   }
 
-  private _field(field: FieldNode | InputValueNode) {
+  private _field(field: FieldNode | InputValueNode, isFilterInput = false) {
+    const isNullable = this._isNullableField(field);
+    // Special case for between filters to make it a tuple of [T, T] instead of T[]
+    if (this._isBetweenFilterField(field, isFilterInput)) {
+      return ts.factory.createPropertySignature(
+        undefined,
+        ts.factory.createIdentifier(field.name),
+        !isNullable ? undefined : ts.factory.createToken(ts.SyntaxKind.QuestionToken),
+        !isNullable
+          ? ts.factory.createTupleTypeNode([
+              this._value(field.type.getTypeName()),
+              this._value(field.type.getTypeName()),
+            ])
+          : ts.factory.createTypeReferenceNode("Maybe", [
+              ts.factory.createTupleTypeNode([
+                this._value(field.type.getTypeName()),
+                this._value(field.type.getTypeName()),
+              ]),
+            ])
+      );
+    }
+
     return ts.factory.createPropertySignature(
       undefined,
       ts.factory.createIdentifier(field.name),
-      field.type instanceof NonNullTypeNode
-        ? undefined
-        : ts.factory.createToken(ts.SyntaxKind.QuestionToken),
-      field.type instanceof NonNullTypeNode
-        ? this._fieldType(field.type.type)
+      !isNullable ? undefined : ts.factory.createToken(ts.SyntaxKind.QuestionToken),
+      !isNullable
+        ? this._fieldType(field.type)
         : ts.factory.createTypeReferenceNode("Maybe", [this._fieldType(field.type)])
     );
   }
@@ -161,9 +203,10 @@ export class SchemaTypesGenerator extends TransformerPluginBase {
 
   private _input(node: InputObjectNode) {
     const members: ts.TypeElement[] = [];
+    const isFilterInput = node.name.endsWith("FilterInput");
 
     for (const field of node.fields ?? []) {
-      members.push(this._field(field));
+      members.push(this._field(field, isFilterInput));
     }
 
     this._definitions.push(
@@ -184,9 +227,9 @@ export class SchemaTypesGenerator extends TransformerPluginBase {
         members.push(this._field(field));
       }
 
-      if (field.arguments?.length) {
-        this._args(node, field);
-      }
+      // if (field.arguments?.length) {
+      //   this._args(node, field);
+      // }
     }
 
     if (!["Query", "Mutation", "Subscription"].includes(node.name)) {
@@ -261,6 +304,6 @@ export class SchemaTypesGenerator extends TransformerPluginBase {
   }
 
   public static create(context: TransformerContext) {
-    return new SchemaTypesGenerator(context);
+    return new ModelTypesGenerator(context);
   }
 }
